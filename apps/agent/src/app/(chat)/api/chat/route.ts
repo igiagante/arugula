@@ -52,7 +52,7 @@ export async function POST(request: Request) {
 
   if (!chat) {
     const title = await generateTitleFromUserMessage({ message: userMessage });
-    await saveChat({ id, userId: user.id, title });
+    await saveChat({ id, userId: user.id, organizationId: "arugula", title });
   }
 
   await saveMessages({
