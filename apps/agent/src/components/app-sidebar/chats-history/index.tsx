@@ -1,14 +1,14 @@
-'use client';
+"use client";
 
-import { isToday, isYesterday, subMonths, subWeeks } from 'date-fns';
-import { useParams, usePathname, useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
-import { toast } from 'sonner';
-import useSWR from 'swr';
+import { isToday, isYesterday, subMonths, subWeeks } from "date-fns";
+import { useParams, usePathname, useRouter } from "next/navigation";
+import { CSSProperties, useEffect, useState } from "react";
+import { toast } from "sonner";
+import useSWR from "swr";
 
-import type { Chat } from '@/lib/db/schema';
-import { fetcher } from '@/lib/utils';
-import { useUser } from '@clerk/nextjs';
+import type { Chat } from "@/lib/db/schema";
+import { fetcher } from "@/lib/utils";
+import { useUser } from "@clerk/nextjs";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -18,15 +18,14 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@workspace/ui/components/alert-dialog';
+} from "@workspace/ui/components/alert-dialog";
 import {
   SidebarGroup,
   SidebarGroupContent,
   SidebarMenu,
   useSidebar,
-} from '@workspace/ui/components/sidebar';
-import { CSSProperties } from 'react';
-import { ChatItem } from './chat-item';
+} from "@workspace/ui/components/sidebar";
+import { ChatItem } from "./chat-item";
 
 type GroupedChats = {
   today: Chat[];
@@ -45,7 +44,7 @@ export function ChatsHistory() {
     data: history,
     isLoading,
     mutate,
-  } = useSWR<Array<Chat>>(user ? '/api/history' : null, fetcher, {
+  } = useSWR<Array<Chat>>(user ? "/api/history" : null, fetcher, {
     fallbackData: [],
   });
 
@@ -58,26 +57,26 @@ export function ChatsHistory() {
   const router = useRouter();
   const handleDelete = async () => {
     const deletePromise = fetch(`/api/chat?id=${deleteId}`, {
-      method: 'DELETE',
+      method: "DELETE",
     });
 
     toast.promise(deletePromise, {
-      loading: 'Deleting chat...',
+      loading: "Deleting chat...",
       success: () => {
         mutate((history) => {
           if (history) {
             return history.filter((h) => h.id !== id);
           }
         });
-        return 'Chat deleted successfully';
+        return "Chat deleted successfully";
       },
-      error: 'Failed to delete chat',
+      error: "Failed to delete chat",
     });
 
     setShowDeleteDialog(false);
 
     if (deleteId === id) {
-      router.push('/');
+      router.push("/");
     }
   };
 
@@ -110,7 +109,7 @@ export function ChatsHistory() {
                   className="bg-sidebar-accent-foreground/10 h-4 max-w-[--skeleton-width] flex-1 rounded-md"
                   style={
                     {
-                      '--skeleton-width': `${item}%`,
+                      "--skeleton-width": `${item}%`,
                     } as CSSProperties
                   }
                 />

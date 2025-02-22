@@ -21,7 +21,7 @@ export function ContentLayout({
             className="flex items-center md:hidden"
             aria-label="Toggle sidebar menu"
           >
-            <SidebarTrigger icon={<AlignLeftIcon className="h-5 w-5" />} />
+            <SidebarTrigger icon={<AlignLeftIcon className="size-5" />} />
           </div>
           <h1 className="text-lg font-medium tracking-tight">{title}</h1>
           {navigation && (

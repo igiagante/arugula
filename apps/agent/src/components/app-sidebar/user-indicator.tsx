@@ -1,10 +1,10 @@
-import { Protect } from '@clerk/nextjs';
-import { currentUser } from '@clerk/nextjs/server';
+import { Protect } from "@clerk/nextjs";
+import { currentUser } from "@clerk/nextjs/server";
 import {
   Avatar,
   AvatarFallback,
   AvatarImage,
-} from '@workspace/ui/components/avatar';
+} from "@workspace/ui/components/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,20 +13,20 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@workspace/ui/components/dropdown-menu';
+} from "@workspace/ui/components/dropdown-menu";
 import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from '@workspace/ui/components/sidebar';
+} from "@workspace/ui/components/sidebar";
 import {
   BadgeCheckIcon,
   BellIcon,
   ChevronsUpDownIcon,
   CreditCardIcon,
-} from 'lucide-react';
-import Link from 'next/link';
-import { DropdownMenuItemSignOut } from '../dropdown-menu-item-sign-out';
+} from "lucide-react";
+import Link from "next/link";
+import { DropdownMenuItemSignOut } from "../dropdown-menu-item-sign-out";
 
 export async function UserIndicator() {
   const user = await currentUser();
@@ -40,14 +40,14 @@ export async function UserIndicator() {
               size="lg"
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
-              <Avatar className="h-8 w-8 rounded-lg">
+              <Avatar className="size-8 rounded-lg">
                 <AvatarImage
                   src={user?.imageUrl}
                   alt={`${user?.firstName} avatar`}
                 />
                 <AvatarFallback className="rounded-lg">
-                  {user?.firstName?.[0] ?? ''}
-                  {user?.lastName?.[0] ?? ''}
+                  {user?.firstName?.[0] ?? ""}
+                  {user?.lastName?.[0] ?? ""}
                 </AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
@@ -68,14 +68,14 @@ export async function UserIndicator() {
           >
             <DropdownMenuLabel className="p-0 font-normal">
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-                <Avatar className="h-8 w-8 rounded-lg">
+                <Avatar className="size-8 rounded-lg">
                   <AvatarImage
                     src={user?.imageUrl}
                     alt={`${user?.firstName} avatar`}
                   />
                   <AvatarFallback className="rounded-lg">
-                    {user?.firstName?.[0] ?? ''}
-                    {user?.lastName?.[0] ?? ''}
+                    {user?.firstName?.[0] ?? ""}
+                    {user?.lastName?.[0] ?? ""}
                   </AvatarFallback>
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
