@@ -70,6 +70,8 @@ export async function POST(req: Request) {
     });
   }
 
+  console.log("Webhook received:", evt.type);
+
   if (evt.type === "user.created") {
     try {
       console.log("Creating user with data:", {

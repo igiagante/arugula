@@ -6,6 +6,7 @@ import type {
 } from "ai";
 
 import type { Message as DBMessage, Document } from "@/lib/db/schema";
+import { auth } from "@clerk/nextjs/server";
 
 interface ApplicationError extends Error {
   info: string;

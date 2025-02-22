@@ -4,9 +4,13 @@ import { Chat } from "@/components/chat";
 import { DEFAULT_CHAT_MODEL } from "@/lib/ai/models";
 import { generateUUID } from "@/lib/utils";
 import { DataStreamHandler } from "@/components/data-stream-handler";
+import { fetchIndoors } from "../(indoors)/actions";
 
 export default async function Page() {
   const id = generateUUID();
+
+  const indoorData = await fetchIndoors();
+  console.log("Indoor data:", indoorData);
 
   const cookieStore = await cookies();
   const modelIdFromCookie = cookieStore.get("chat-model");

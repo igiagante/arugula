@@ -3,6 +3,8 @@ import {
   boolean,
   foreignKey,
   json,
+  jsonb,
+  numeric,
   pgTable,
   primaryKey,
   text,
@@ -136,109 +138,253 @@ export const suggestion = pgTable(
 
 export type Suggestion = InferSelectModel<typeof suggestion>;
 
-/* ------------------------------------------------------------------
-   INDOORS TABLE
-   Store info about each indoor environment
------------------------------------------------------------------- */
-export const indoors = pgTable("indoors", {
-  // Using UUID for indoors, but you can also do text if you want
-  id: uuid("id").primaryKey().defaultRandom(),
-
-  name: text("name").notNull(),
-
-  // user who created the indoor
-  createdBy: text("created_by") // references users.id (text)
-    .notNull(),
-
-  createdAt: timestamp("created_at", { withTimezone: true })
-    .defaultNow()
-    .notNull(),
-  updatedAt: timestamp("updated_at", { withTimezone: true })
-    .defaultNow()
-    .notNull(),
-});
-
-export type Indoor = InferSelectModel<typeof indoors>;
-
-/* ------------------------------------------------------------------
-   INDOOR_COLLABORATORS TABLE
-   Many users can collaborate on one indoor
------------------------------------------------------------------- */
-export const indoorCollaborators = pgTable("indoor_collaborators", {
-  id: uuid("id").primaryKey().defaultRandom(),
-
-  // references indoors.id
-  indoorId: uuid("indoor_id").notNull(),
-
-  // references users.id (text)
-  userId: text("user_id").notNull(),
-
-  role: varchar("role", { length: 50 }).notNull(), // 'owner', 'editor', etc.
-
-  createdAt: timestamp("created_at", { withTimezone: true })
-    .defaultNow()
-    .notNull(),
-});
-
-export type IndoorCollaborator = InferSelectModel<typeof indoorCollaborators>;
-
-/* ------------------------------------------------------------------
-   PLANTS TABLE
-   Each plant belongs to an indoor
------------------------------------------------------------------- */
-export const plants = pgTable("plants", {
+// Indoor table
+export const indoor = pgTable("Indoor", {
   id: uuid("id").defaultRandom().primaryKey(),
-
-  indoorId: uuid("indoor_id").notNull(),
-
   name: text("name").notNull(),
-  strain: text("strain"),
-  stage: varchar("stage", { length: 50 }).default("seedling").notNull(),
+  location: text("location"),
+  dimensions: text("dimensions"),
+  lighting: text("lighting"),
+  ventilation: text("ventilation"),
+  recommendedConditions: jsonb("recommendedConditions"),
+  createdBy: text("createdBy")
+    .notNull()
+    .references(() => user.id, { onDelete: "restrict" }),
+  archived: boolean("archived").default(false).notNull(),
+  createdAt: timestamp("createdAt", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
+  updatedAt: timestamp("updatedAt", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
+});
 
-  // Example: store as a timestamp
-  startDate: timestamp("start_date", { withTimezone: true }).notNull(),
+export type Indoor = InferSelectModel<typeof indoor>;
 
+// IndoorCollaborator table
+export const indoorCollaborator = pgTable("IndoorCollaborator", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  indoorId: uuid("indoorId")
+    .notNull()
+    .references(() => indoor.id, { onDelete: "cascade" }),
+  userId: text("userId")
+    .notNull()
+    .references(() => user.id, { onDelete: "restrict" }),
+  role: text("role").notNull(),
+  createdAt: timestamp("createdAt", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
+  updatedAt: timestamp("updatedAt", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
+});
+
+export type IndoorCollaborator = InferSelectModel<typeof indoorCollaborator>;
+
+// Grow table
+export const grow = pgTable("Grow", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  indoorId: uuid("indoorId")
+    .notNull()
+    .references(() => indoor.id, { onDelete: "cascade" }),
+  name: text("name"),
+  stage: text("stage").notNull(),
+  startDate: timestamp("startDate", { withTimezone: true }),
+  endDate: timestamp("endDate", { withTimezone: true }),
   archived: boolean("archived").default(false).notNull(),
 
-  createdAt: timestamp("created_at", { withTimezone: true })
+  // New fields for initial setup
+  substrateComposition: jsonb("substrateComposition"), // e.g., { soil: 70, perlite: 20, coco: 10 }
+  potSize: jsonb("potSize").notNull().default({ size: 0, unit: "L" }), // e.g., { size: 7.5, unit: "L" }
+  growingMethod: text("growingMethod"), // e.g., "soil", "hydroponic", "coco"
+
+  createdAt: timestamp("createdAt", { withTimezone: true })
     .defaultNow()
     .notNull(),
-  updatedAt: timestamp("updated_at", { withTimezone: true })
+  updatedAt: timestamp("updatedAt", { withTimezone: true })
     .defaultNow()
     .notNull(),
 });
 
-export type Plant = InferSelectModel<typeof plants>;
+export type Grow = InferSelectModel<typeof grow>;
 
-/* ------------------------------------------------------------------
-   TASKS TABLE
-   Feedings, prunings, transplants, etc.
------------------------------------------------------------------- */
-export const tasks = pgTable("tasks", {
+// Strain table
+export const strain = pgTable("Strain", {
   id: uuid("id").defaultRandom().primaryKey(),
+  name: text("name").notNull(),
+  breeder: text("breeder"),
+  genotype: text("genotype"),
+  ratio: text("ratio"),
+  floweringType: text("floweringType"),
+  indoorVegTime: text("indoorVegTime"),
+  indoorFlowerTime: text("indoorFlowerTime"),
+  indoorYield: text("indoorYield"),
+  outdoorHeight: text("outdoorHeight"),
+  outdoorYield: text("outdoorYield"),
+  harvestMonthOutdoor: text("harvestMonthOutdoor"),
+  cannabinoidProfile: jsonb("cannabinoidProfile"),
+  resistance: jsonb("resistance"),
+  optimalConditions: jsonb("optimalConditions"),
+  terpeneProfile: jsonb("terpeneProfile"),
+  difficulty: text("difficulty"),
+  awards: text("awards"),
+  description: text("description"),
+  createdAt: timestamp("createdAt", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
+  updatedAt: timestamp("updatedAt", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
+});
 
-  indoorId: uuid("indoor_id").notNull(), // which indoor
-  userId: text("user_id").notNull(), // Clerk user ID for who performed it
+export type Strain = InferSelectModel<typeof strain>;
 
-  type: varchar("type", { length: 50 }).notNull(), // 'feeding', 'pruning', etc.
+// Plant table
+export const plant = pgTable("Plant", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  growId: uuid("growId")
+    .notNull()
+    .references(() => grow.id, { onDelete: "cascade" }),
+  strainId: uuid("strainId").references(() => strain.id, {
+    onDelete: "set null",
+  }),
+  customName: text("customName").notNull(),
+  stage: text("stage").default("seedling"),
+  startDate: timestamp("startDate", { withTimezone: true }),
+  archived: boolean("archived").default(false).notNull(),
   notes: text("notes"),
-
-  createdAt: timestamp("created_at", { withTimezone: true })
+  potSize: jsonb("potSize").notNull().default({ size: 0, unit: "L" }), // e.g., { size: 7.5, unit: "L" }
+  createdAt: timestamp("createdAt", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
+  updatedAt: timestamp("updatedAt", { withTimezone: true })
     .defaultNow()
     .notNull(),
 });
 
-export type Task = InferSelectModel<typeof tasks>;
+export type Plant = InferSelectModel<typeof plant>;
 
-/* ------------------------------------------------------------------
-   TASK_PLANTS TABLE
-   Many-to-many linking tasks to plants
------------------------------------------------------------------- */
-export const taskPlants = pgTable("task_plants", {
+// PlantNote table
+export const plantNote = pgTable("PlantNote", {
   id: uuid("id").defaultRandom().primaryKey(),
-
-  taskId: uuid("task_id").notNull(),
-  plantId: uuid("plant_id").notNull(),
+  plantId: uuid("plantId")
+    .notNull()
+    .references(() => plant.id, { onDelete: "cascade" }),
+  content: text("content").notNull(),
+  images: jsonb("images"),
+  createdAt: timestamp("createdAt", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
+  updatedAt: timestamp("updatedAt", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
 });
 
-export type TaskPlant = InferSelectModel<typeof taskPlants>;
+export type PlantNote = InferSelectModel<typeof plantNote>;
+
+// TaskType table
+export const taskType = pgTable("TaskType", {
+  id: text("id").primaryKey().notNull(),
+  label: text("label").notNull(),
+  icon: text("icon"),
+  schema: jsonb("schema"),
+  createdAt: timestamp("createdAt", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
+  updatedAt: timestamp("updatedAt", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
+});
+
+export type TaskType = InferSelectModel<typeof taskType>;
+
+// Task table
+export const task = pgTable("Task", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  taskTypeId: text("taskTypeId")
+    .notNull()
+    .references(() => taskType.id, { onDelete: "restrict" }),
+  growId: uuid("growId")
+    .notNull()
+    .references(() => grow.id, { onDelete: "cascade" }),
+  userId: text("userId")
+    .notNull()
+    .references(() => user.id, { onDelete: "restrict" }),
+  notes: text("notes"),
+  details: jsonb("details"),
+  images: jsonb("images"),
+  createdAt: timestamp("createdAt", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
+  updatedAt: timestamp("updatedAt", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
+});
+
+export type Task = InferSelectModel<typeof task>;
+
+// TaskPlant table
+export const taskPlant = pgTable("TaskPlant", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  taskId: uuid("taskId")
+    .notNull()
+    .references(() => task.id, { onDelete: "cascade" }),
+  plantId: uuid("plantId")
+    .notNull()
+    .references(() => plant.id, { onDelete: "cascade" }),
+});
+
+export type TaskPlant = InferSelectModel<typeof taskPlant>;
+
+// SensorReading table
+export const sensorReading = pgTable("SensorReading", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  indoorId: uuid("indoorId")
+    .notNull()
+    .references(() => indoor.id, { onDelete: "cascade" }),
+  recordedAt: timestamp("recordedAt", { withTimezone: true }).defaultNow(),
+  data: jsonb("data").notNull(),
+});
+
+export type SensorReading = InferSelectModel<typeof sensorReading>;
+
+// Product table
+export const product = pgTable("Product", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  name: text("name").notNull(),
+  brand: text("brand"),
+  category: text("category"),
+  defaultCost: numeric("defaultCost", { precision: 10, scale: 2 }),
+  description: text("description"),
+  productUrl: text("productUrl"),
+  extraData: jsonb("extraData"),
+  createdAt: timestamp("createdAt", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
+  updatedAt: timestamp("updatedAt", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
+});
+
+export type Product = InferSelectModel<typeof product>;
+
+// TaskProduct table
+export const taskProduct = pgTable("TaskProduct", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  taskId: uuid("taskId")
+    .notNull()
+    .references(() => task.id, { onDelete: "cascade" }),
+  productId: uuid("productId")
+    .notNull()
+    .references(() => product.id, { onDelete: "cascade" }),
+  quantity: numeric("quantity", { precision: 10, scale: 2 }),
+  unit: text("unit"),
+  createdAt: timestamp("createdAt", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
+  updatedAt: timestamp("updatedAt", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
+});
+
+export type TaskProduct = InferSelectModel<typeof taskProduct>;
