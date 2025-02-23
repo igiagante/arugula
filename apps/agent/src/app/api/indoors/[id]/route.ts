@@ -1,35 +1,29 @@
 import { NextResponse } from "next/server";
-import { auth, currentUser } from "@clerk/nextjs/server";
+import { auth } from "@clerk/nextjs/server";
 import {
   createIndoor,
   deleteIndoor,
-  getIndoorsByUserId,
+  getIndoorById,
   updateIndoor,
 } from "@/lib/db/queries/indoors";
 
 /**
- * GET /api/indoors?userId=...
+ * GET /api/indoors
  * Returns all indoor records created by the specified user.
  */
-export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const requestedUserId = searchParams.get("userId");
-
-  if (!requestedUserId) {
-    return NextResponse.json(
-      { error: "UserId query parameter is missing" },
-      { status: 404 }
-    );
-  }
-
+export async function GET(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
   const { userId } = await auth();
+  const { id: indoorId } = await params;
 
-  if (userId !== requestedUserId) {
+  if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   try {
-    const indoors = await getIndoorsByUserId({ userId: requestedUserId });
+    const indoors = await getIndoorById({ userId, indoorId });
     return NextResponse.json(indoors, { status: 200 });
   } catch (error) {
     console.error("GET /api/indoors error:", error);
@@ -69,13 +63,13 @@ export async function POST(request: Request) {
     }
 
     const newIndoor = await createIndoor({
-      userId,
       name,
       location,
       dimensions,
       lighting,
       ventilation,
       recommendedConditions,
+      createdBy: userId,
     });
 
     return NextResponse.json(newIndoor, { status: 201 });
@@ -89,11 +83,14 @@ export async function POST(request: Request) {
 }
 
 /**
- * PATCH /api/indoors?indoorId=...
+ * PATCH /api/indoors/[id]
  * Updates an existing indoor record.
  * Request body should include the fields to update (e.g., { name: string })
  */
-export async function PATCH(request: Request) {
+export async function PATCH(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
     const { userId } = await auth();
 
@@ -101,8 +98,7 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { searchParams } = new URL(request.url);
-    const indoorId = searchParams.get("indoorId");
+    const { id: indoorId } = await params;
 
     if (!indoorId) {
       return NextResponse.json(
@@ -113,11 +109,13 @@ export async function PATCH(request: Request) {
 
     const body = await request.json();
     const {
+      id,
       name,
       location,
       dimensions,
       lighting,
       ventilation,
+      archived,
       recommendedConditions,
     } = body;
 
@@ -126,14 +124,14 @@ export async function PATCH(request: Request) {
     }
 
     const updatedIndoor = await updateIndoor({
-      indoorId,
+      id,
       name,
       location,
       dimensions,
       lighting,
       ventilation,
       recommendedConditions,
-      userId,
+      archived,
     });
     return NextResponse.json(updatedIndoor, { status: 200 });
   } catch (error) {
@@ -146,19 +144,21 @@ export async function PATCH(request: Request) {
 }
 
 /**
- * DELETE /api/indoors?indoorId=...
+ * DELETE /api/indoors/[id]
  * Deletes an indoor record.
  */
-export async function DELETE(request: Request) {
+export async function DELETE(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
-    const user = await currentUser();
+    const { userId } = await auth();
 
-    if (!user) {
+    if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { searchParams } = new URL(request.url);
-    const indoorId = searchParams.get("indoorId");
+    const { id: indoorId } = await params;
 
     if (!indoorId) {
       return NextResponse.json(
@@ -167,7 +167,7 @@ export async function DELETE(request: Request) {
       );
     }
 
-    const deletedIndoor = await deleteIndoor({ indoorId, userId: user.id });
+    const deletedIndoor = await deleteIndoor({ indoorId, userId });
 
     return NextResponse.json(deletedIndoor, { status: 200 });
   } catch (error) {

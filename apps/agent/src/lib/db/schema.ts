@@ -184,9 +184,15 @@ export type IndoorCollaborator = InferSelectModel<typeof indoorCollaborator>;
 // Grow table
 export const grow = pgTable("Grow", {
   id: uuid("id").defaultRandom().primaryKey(),
+  // The indoor where this grow is taking place
   indoorId: uuid("indoorId")
     .notNull()
     .references(() => indoor.id, { onDelete: "cascade" }),
+
+  // Added userId field to directly associate the grow with a user
+  userId: text("userId")
+    .notNull()
+    .references(() => user.id, { onDelete: "restrict" }),
   name: text("name"),
   stage: text("stage").notNull(),
   startDate: timestamp("startDate", { withTimezone: true }),

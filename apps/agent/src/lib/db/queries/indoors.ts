@@ -1,7 +1,7 @@
 import postgres from "postgres";
 import { drizzle } from "drizzle-orm/postgres-js";
-import { eq, or } from "drizzle-orm";
-import { indoor, indoorCollaborator } from "../schema";
+import { eq, or, and } from "drizzle-orm";
+import { Indoor, indoor, indoorCollaborator } from "../schema";
 
 // biome-ignore lint: Forbidden non-null assertion.
 const client = postgres(process.env.POSTGRES_URL!);
@@ -20,22 +20,14 @@ const db = drizzle(client);
  * @returns The newly inserted indoor record
  */
 export async function createIndoor({
-  userId,
   name,
   location,
   dimensions,
   lighting,
   ventilation,
   recommendedConditions,
-}: {
-  userId: string;
-  name: string;
-  location?: string;
-  dimensions?: string;
-  lighting?: string;
-  ventilation?: string;
-  recommendedConditions?: any;
-}) {
+  createdBy,
+}: Omit<Indoor, "id" | "createdAt" | "updatedAt" | "archived">) {
   try {
     // Drizzle's insert(...).values(...).returning() returns an array
     const [newIndoor] = await db
@@ -47,7 +39,7 @@ export async function createIndoor({
         lighting,
         ventilation,
         recommendedConditions,
-        createdBy: userId, // references a text user ID from Clerk
+        createdBy, // references a text user ID from Clerk
       })
       .returning(); // get the inserted row back
 
@@ -72,24 +64,14 @@ export async function createIndoor({
  * @returns The updated indoor record
  */
 export async function updateIndoor({
-  indoorId,
-  userId,
+  id,
   name,
   location,
   dimensions,
   lighting,
   ventilation,
   recommendedConditions,
-}: {
-  indoorId: string;
-  userId: string;
-  name: string;
-  location?: string;
-  dimensions?: string;
-  lighting?: string;
-  ventilation?: string;
-  recommendedConditions?: any;
-}) {
+}: Omit<Indoor, "createdBy" | "createdAt" | "updatedAt">) {
   try {
     // If you want to enforce that only the owner can update:
     // .where(and(eq(Indoor.id, indoorId), eq(Indoor.createdBy, userId)))
@@ -105,7 +87,7 @@ export async function updateIndoor({
         recommendedConditions,
         // updatedAt will be auto if you have triggers or can set new Date() here
       })
-      .where(eq(indoor.id, indoorId))
+      .where(eq(indoor.id, id))
       .returning();
 
     return updatedIndoor;
@@ -171,7 +153,11 @@ export async function getIndoorsByUserId({ userId }: { userId: string }) {
  * @param userId - Clerk user ID (text)
  * @returns A list of indoor records, including those where the user is a collaborator.
  */
-export async function getAllIndoorsForUser({ userId }: { userId: string }) {
+export async function getIndoorsWithMyCollaboration({
+  userId,
+}: {
+  userId: string;
+}) {
   try {
     // Using a LEFT JOIN on IndoorCollaborator to include collaborations
     const results = await db
@@ -192,6 +178,33 @@ export async function getAllIndoorsForUser({ userId }: { userId: string }) {
     return results;
   } catch (error) {
     console.error("Failed to get all indoors (owner or collaborator):", error);
+    throw error;
+  }
+}
+
+/**
+ * Get a specific indoor environment by its ID and verify user access.
+ *
+ * @param indoorId - The indoor's UUID
+ * @param userId - Clerk user ID to verify ownership/access
+ * @returns The indoor record or null if not found
+ */
+export async function getIndoorById({
+  indoorId,
+  userId,
+}: {
+  indoorId: string;
+  userId: string;
+}) {
+  try {
+    const [result] = await db
+      .select()
+      .from(indoor)
+      .where(and(eq(indoor.id, indoorId), eq(indoor.createdBy, userId)));
+
+    return result || null;
+  } catch (error) {
+    console.error("Failed to get indoor by id:", error);
     throw error;
   }
 }

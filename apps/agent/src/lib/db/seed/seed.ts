@@ -26,13 +26,18 @@ const client = postgres(process.env.POSTGRES_URL!);
 const db = drizzle(client);
 
 const userId = "user_2tMsS1D6OD8KYB9GQxWHo6as1IX";
+const email = "igiagante@gmail.com";
+const imageUrl = "https://i.pravatar.cc/150?img=1";
 
 async function seed() {
   // 1. Insert a User (simulate a Clerk user)
-  // await db.insert(user).values({
-  //   id: userId,
-  //   email,
-  // });
+  await db.insert(user).values({
+    id: userId,
+    email,
+    firstName: "Nachito",
+    lastName: "Giagante",
+    imageUrl,
+  });
 
   // 2. Insert an Indoor
   const [indoorAdded] = await db
@@ -60,6 +65,7 @@ async function seed() {
     .insert(grow)
     .values({
       indoorId: indoorAdded!.id,
+      userId,
       name: "Spring Test Cycle",
       stage: "vegetative",
       startDate: new Date(),
