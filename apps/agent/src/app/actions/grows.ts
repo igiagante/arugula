@@ -1,6 +1,9 @@
+"use server";
+
 import { unstable_cache } from "next/cache";
 import { createApiClient, HttpMethods } from "../server"; // adjust path accordingly
 import { Grow } from "@/lib/db/schema";
+import { revalidatePath } from "next/cache";
 
 export type CreateGrowDto = {
   indoorId: string;
@@ -53,12 +56,14 @@ export async function fetchGrows(): Promise<Grow[]> {
 
 export async function createGrow(data: CreateGrowDto): Promise<Grow> {
   const apiClient = await createApiClient();
-  return apiClient<Grow, CreateGrowDto>(
+  const result = await apiClient<Grow, CreateGrowDto>(
     `/api/grows`,
     HttpMethods.POST,
     undefined,
     data
   );
+  revalidatePath("/grows");
+  return result;
 }
 
 export async function updateGrow(
@@ -66,15 +71,30 @@ export async function updateGrow(
   data: UpdateGrowDto
 ): Promise<Grow> {
   const apiClient = await createApiClient();
-  return apiClient<Grow, UpdateGrowDto>(
-    `/api/grows?growId=${growId}`,
+
+  const result = await apiClient<Grow, UpdateGrowDto>(
+    `/api/grows/${growId}`,
     HttpMethods.PATCH,
     undefined,
     data
   );
+
+  revalidatePath("/grows");
+  revalidatePath(`/grows/${growId}`);
+
+  return result;
 }
 
 export async function deleteGrow(growId: string): Promise<Grow> {
   const apiClient = await createApiClient();
-  return apiClient<Grow>(`/api/grows?growId=${growId}`, HttpMethods.DELETE);
+
+  const result = await apiClient<Grow>(
+    `/api/grows?growId=${growId}`,
+    HttpMethods.DELETE
+  );
+
+  revalidatePath("/grows");
+  revalidatePath(`/grows/${growId}`);
+
+  return result;
 }

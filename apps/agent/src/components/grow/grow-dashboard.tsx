@@ -2,9 +2,9 @@ import Link from "next/link";
 import { SidebarTrigger } from "@workspace/ui/components/sidebar";
 import { Button } from "@workspace/ui/components/button";
 import { GrowCard } from "./grow-card";
-import { Separator } from "@workspace/ui/components/separator";
+import { GrowView } from "@/lib/db/queries/types/grow";
 
-const grows = [
+const growsData = [
   {
     id: 1,
     name: "Spring 2026 Cycle",
@@ -98,7 +98,9 @@ const grows = [
   },
 ];
 
-export function GrowDashboardContent() {
+export async function GrowDashboardContent({ grows }: { grows: GrowView[] }) {
+  const growsMixed = [...grows, ...growsData];
+
   return (
     <div className="flex flex-col w-full">
       <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-background/60 px-6 backdrop-blur-lg">
@@ -112,8 +114,16 @@ export function GrowDashboardContent() {
       </header>
       <main className="flex-1 space-y-4 p-8 pt-6">
         <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-          {grows.map((grow) => (
-            <GrowCard key={grow.id} {...grow} />
+          {growsMixed.map((grow) => (
+            <GrowCard
+              key={grow.id}
+              {...grow}
+              lastUpdated={grow.lastUpdated.toLocaleString()}
+              image={
+                grow.image ??
+                "https://kzmldmf02xim38b47rcg.lite.vusercontent.net/placeholder.svg?height=400&width=600"
+              }
+            />
           ))}
         </div>
       </main>

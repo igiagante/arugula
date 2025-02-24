@@ -16,15 +16,14 @@ import {
   UseFormSetValue,
   UseFormGetValues,
 } from "react-hook-form";
-import type { FormValues } from "../types";
-
+import { GrowFormValues } from "../schema";
 interface SetupDetailsStepProps {
-  control: Control<FormValues>;
-  fieldArray: UseFieldArrayReturn<FormValues, "substrate">;
+  control: Control<GrowFormValues>;
+  fieldArray: UseFieldArrayReturn<GrowFormValues, "substrate">;
   handleImageUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
   watch: (name: string) => any;
-  setValue: UseFormSetValue<FormValues>;
-  getValues: UseFormGetValues<FormValues>;
+  setValue: UseFormSetValue<GrowFormValues>;
+  getValues: UseFormGetValues<GrowFormValues>;
 }
 
 export function SetupDetailsStep({
@@ -37,68 +36,7 @@ export function SetupDetailsStep({
 }: SetupDetailsStepProps) {
   return (
     <div className="space-y-8">
-      <div className="flex flex-row gap-6">
-        <FormField
-          control={control}
-          name="lampType"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Lamp Type</FormLabel>
-              <FormControl>
-                <Input placeholder="600W LED" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={control}
-          name="ventilationSpeed"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Fan Speed</FormLabel>
-              <FormControl>
-                <div className="flex items-center gap-2">
-                  <Input
-                    type="number"
-                    placeholder="50"
-                    {...field}
-                    onChange={(e) => field.onChange(Number(e.target.value))}
-                    className="w-[120px]"
-                  />
-                  <span className="text-sm">%</span>
-                </div>
-              </FormControl>
-              <FormDescription>Fan speed (0-100%)</FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={control}
-          name="lightIntensity"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Light Intensity</FormLabel>
-              <FormControl>
-                <div className="flex items-center gap-2">
-                  <Input
-                    type="number"
-                    placeholder="350"
-                    {...field}
-                    onChange={(e) => field.onChange(Number(e.target.value))}
-                    className="w-[120px]"
-                  />
-                  <span className="text-sm">mA</span>
-                </div>
-              </FormControl>
-              <FormDescription>Light intensity (0-1000mA)</FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-      </div>
-      <div className="space-y-4 mt-16">
+      <div className="space-y-4 mt-4">
         <div className="flex items-center justify-between">
           <FormLabel>Substrate Composition</FormLabel>
           <Button
@@ -215,7 +153,7 @@ export function SetupDetailsStep({
           </Button>
           <div className="flex gap-4 overflow-x-auto pb-2">
             {watch("images")?.map((image: string, index: number) => (
-              <div key={index} className="relative w-[120px] h-[120px]">
+              <div key={index} className="relative size-[120px]">
                 <Image
                   src={image || "/placeholder.svg"}
                   alt={`Grow image ${index + 1}`}

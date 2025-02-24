@@ -1,5 +1,5 @@
 {
-  "id": "b6442e2f-1826-4411-bef9-959017fc312f",
+  "id": "a2bdd132-3367-4105-bdb3-28dd15fca343",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -179,11 +179,17 @@
           "primaryKey": false,
           "notNull": true
         },
+        "userId": {
+          "name": "userId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
         "name": {
           "name": "name",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true
         },
         "stage": {
           "name": "stage",
@@ -200,6 +206,12 @@
         "endDate": {
           "name": "endDate",
           "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "progress": {
+          "name": "progress",
+          "type": "numeric(3, 1)",
           "primaryKey": false,
           "notNull": false
         },
@@ -226,6 +238,12 @@
         "growingMethod": {
           "name": "growingMethod",
           "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "images": {
+          "name": "images",
+          "type": "jsonb",
           "primaryKey": false,
           "notNull": false
         },
@@ -258,6 +276,19 @@
           ],
           "onDelete": "cascade",
           "onUpdate": "no action"
+        },
+        "Grow_userId_User_id_fk": {
+          "name": "Grow_userId_User_id_fk",
+          "tableFrom": "Grow",
+          "tableTo": "User",
+          "columnsFrom": [
+            "userId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
@@ -283,33 +314,39 @@
           "primaryKey": false,
           "notNull": true
         },
-        "location": {
-          "name": "location",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
         "dimensions": {
           "name": "dimensions",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "lighting": {
-          "name": "lighting",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "ventilation": {
-          "name": "ventilation",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "recommendedConditions": {
-          "name": "recommendedConditions",
           "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "temperature": {
+          "name": "temperature",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "humidity": {
+          "name": "humidity",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "co2": {
+          "name": "co2",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "images": {
+          "name": "images",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "notes": {
+          "name": "notes",
+          "type": "text",
           "primaryKey": false,
           "notNull": false
         },
@@ -318,13 +355,6 @@
           "type": "text",
           "primaryKey": false,
           "notNull": true
-        },
-        "archived": {
-          "name": "archived",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true,
-          "default": false
         },
         "createdAt": {
           "name": "createdAt",
@@ -433,6 +463,96 @@
             "id"
           ],
           "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.Lamp": {
+      "name": "Lamp",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "indoorId": {
+          "name": "indoorId",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "lampType": {
+          "name": "lampType",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "lightIntensity": {
+          "name": "lightIntensity",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "fanSpeed": {
+          "name": "fanSpeed",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "current": {
+          "name": "current",
+          "type": "numeric(5, 2)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "voltage": {
+          "name": "voltage",
+          "type": "numeric(5, 1)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "power": {
+          "name": "power",
+          "type": "numeric(6, 1)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updatedAt": {
+          "name": "updatedAt",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "Lamp_indoorId_Indoor_id_fk": {
+          "name": "Lamp_indoorId_Indoor_id_fk",
+          "tableFrom": "Lamp",
+          "tableTo": "Indoor",
+          "columnsFrom": [
+            "indoorId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
           "onUpdate": "no action"
         }
       },

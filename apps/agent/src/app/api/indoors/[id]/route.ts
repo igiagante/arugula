@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import {
-  createIndoor,
   deleteIndoor,
   getIndoorById,
   updateIndoor,
@@ -35,54 +34,6 @@ export async function GET(
 }
 
 /**
- * POST /api/indoors
- * Creates a new indoor record.
- * Request body should include: { name: string, ... }
- */
-export async function POST(request: Request) {
-  try {
-    const { userId } = await auth();
-
-    if (!userId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const body = await request.json();
-
-    const {
-      name,
-      location,
-      dimensions,
-      lighting,
-      ventilation,
-      recommendedConditions,
-    } = body;
-
-    if (!name) {
-      return NextResponse.json({ error: "Name is required" }, { status: 400 });
-    }
-
-    const newIndoor = await createIndoor({
-      name,
-      location,
-      dimensions,
-      lighting,
-      ventilation,
-      recommendedConditions,
-      createdBy: userId,
-    });
-
-    return NextResponse.json(newIndoor, { status: 201 });
-  } catch (error) {
-    console.error("POST /api/indoors error:", error);
-    return NextResponse.json(
-      { error: "Internal Server Error" },
-      { status: 500 }
-    );
-  }
-}
-
-/**
  * PATCH /api/indoors/[id]
  * Updates an existing indoor record.
  * Request body should include the fields to update (e.g., { name: string })
@@ -108,16 +59,8 @@ export async function PATCH(
     }
 
     const body = await request.json();
-    const {
-      id,
-      name,
-      location,
-      dimensions,
-      lighting,
-      ventilation,
-      archived,
-      recommendedConditions,
-    } = body;
+    const { id, name, dimensions, notes, images, temperature, humidity, co2 } =
+      body;
 
     if (!name) {
       return NextResponse.json({ error: "Name is required" }, { status: 400 });
@@ -126,12 +69,12 @@ export async function PATCH(
     const updatedIndoor = await updateIndoor({
       id,
       name,
-      location,
       dimensions,
-      lighting,
-      ventilation,
-      recommendedConditions,
-      archived,
+      notes,
+      images,
+      temperature,
+      humidity,
+      co2,
     });
     return NextResponse.json(updatedIndoor, { status: 200 });
   } catch (error) {

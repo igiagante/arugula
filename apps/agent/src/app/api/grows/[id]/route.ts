@@ -37,60 +37,6 @@ export async function GET(
 }
 
 /**
- * POST /api/grows
- * Creates a new grow cycle.
- * Request body should include: { indoorId, name, stage, startDate, substrateComposition, potSize, growingMethod, ... }
- */
-export async function POST(request: Request): Promise<NextResponse> {
-  try {
-    const { userId } = await auth();
-
-    if (!userId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const body = await request.json();
-
-    const {
-      indoorId,
-      name,
-      stage,
-      startDate,
-      substrateComposition,
-      potSize,
-      growingMethod,
-    } = body;
-
-    if (!indoorId || !name || !stage || !startDate) {
-      return NextResponse.json(
-        { error: "Missing required fields" },
-        { status: 400 }
-      );
-    }
-
-    const newGrow = await createGrow({
-      indoorId,
-      userId,
-      name,
-      stage,
-      startDate: new Date(startDate),
-      substrateComposition,
-      potSize,
-      growingMethod,
-    });
-
-    return NextResponse.json(newGrow, { status: 201 });
-  } catch (error) {
-    console.error("POST /api/grows error:", error);
-
-    return NextResponse.json(
-      { error: "Internal Server Error" },
-      { status: 500 }
-    );
-  }
-}
-
-/**
  * PATCH /api/grows/[id]
  * Updates an existing grow cycle.
  */

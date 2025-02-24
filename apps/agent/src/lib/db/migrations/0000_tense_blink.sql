@@ -21,14 +21,17 @@ CREATE TABLE "Document" (
 CREATE TABLE "Grow" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"indoorId" uuid NOT NULL,
-	"name" text,
+	"userId" text NOT NULL,
+	"name" text NOT NULL,
 	"stage" text NOT NULL,
 	"startDate" timestamp with time zone,
 	"endDate" timestamp with time zone,
+	"progress" numeric(3, 1),
 	"archived" boolean DEFAULT false NOT NULL,
 	"substrateComposition" jsonb,
 	"potSize" jsonb DEFAULT '{"size":0,"unit":"L"}'::jsonb NOT NULL,
 	"growingMethod" text,
+	"images" jsonb,
 	"createdAt" timestamp with time zone DEFAULT now() NOT NULL,
 	"updatedAt" timestamp with time zone DEFAULT now() NOT NULL
 );
@@ -36,13 +39,13 @@ CREATE TABLE "Grow" (
 CREATE TABLE "Indoor" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"name" text NOT NULL,
-	"location" text,
-	"dimensions" text,
-	"lighting" text,
-	"ventilation" text,
-	"recommendedConditions" jsonb,
+	"dimensions" jsonb NOT NULL,
+	"temperature" numeric,
+	"humidity" numeric,
+	"co2" numeric,
+	"images" jsonb,
+	"notes" text,
 	"createdBy" text NOT NULL,
-	"archived" boolean DEFAULT false NOT NULL,
 	"createdAt" timestamp with time zone DEFAULT now() NOT NULL,
 	"updatedAt" timestamp with time zone DEFAULT now() NOT NULL
 );
@@ -52,6 +55,19 @@ CREATE TABLE "IndoorCollaborator" (
 	"indoorId" uuid NOT NULL,
 	"userId" text NOT NULL,
 	"role" text NOT NULL,
+	"createdAt" timestamp with time zone DEFAULT now() NOT NULL,
+	"updatedAt" timestamp with time zone DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE "Lamp" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"indoorId" uuid NOT NULL,
+	"lampType" text NOT NULL,
+	"lightIntensity" numeric,
+	"fanSpeed" numeric,
+	"current" numeric(5, 2),
+	"voltage" numeric(5, 1),
+	"power" numeric(6, 1),
 	"createdAt" timestamp with time zone DEFAULT now() NOT NULL,
 	"updatedAt" timestamp with time zone DEFAULT now() NOT NULL
 );
@@ -209,9 +225,11 @@ ALTER TABLE "Chat" ADD CONSTRAINT "Chat_userId_User_id_fk" FOREIGN KEY ("userId"
 ALTER TABLE "Chat" ADD CONSTRAINT "Chat_organizationId_Organization_id_fk" FOREIGN KEY ("organizationId") REFERENCES "public"."Organization"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "Document" ADD CONSTRAINT "Document_userId_User_id_fk" FOREIGN KEY ("userId") REFERENCES "public"."User"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "Grow" ADD CONSTRAINT "Grow_indoorId_Indoor_id_fk" FOREIGN KEY ("indoorId") REFERENCES "public"."Indoor"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "Grow" ADD CONSTRAINT "Grow_userId_User_id_fk" FOREIGN KEY ("userId") REFERENCES "public"."User"("id") ON DELETE restrict ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "Indoor" ADD CONSTRAINT "Indoor_createdBy_User_id_fk" FOREIGN KEY ("createdBy") REFERENCES "public"."User"("id") ON DELETE restrict ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "IndoorCollaborator" ADD CONSTRAINT "IndoorCollaborator_indoorId_Indoor_id_fk" FOREIGN KEY ("indoorId") REFERENCES "public"."Indoor"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "IndoorCollaborator" ADD CONSTRAINT "IndoorCollaborator_userId_User_id_fk" FOREIGN KEY ("userId") REFERENCES "public"."User"("id") ON DELETE restrict ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "Lamp" ADD CONSTRAINT "Lamp_indoorId_Indoor_id_fk" FOREIGN KEY ("indoorId") REFERENCES "public"."Indoor"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "Message" ADD CONSTRAINT "Message_chatId_Chat_id_fk" FOREIGN KEY ("chatId") REFERENCES "public"."Chat"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "Plant" ADD CONSTRAINT "Plant_growId_Grow_id_fk" FOREIGN KEY ("growId") REFERENCES "public"."Grow"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "Plant" ADD CONSTRAINT "Plant_strainId_Strain_id_fk" FOREIGN KEY ("strainId") REFERENCES "public"."Strain"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint

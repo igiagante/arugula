@@ -1,67 +1,34 @@
-import postgres from "postgres";
-import { drizzle } from "drizzle-orm/postgres-js";
-import { eq, and } from "drizzle-orm";
-import { grow } from "../schema"; // Adjust path according to your project structure
+"use server";
 
-// biome-ignore lint: Forbidden non-null assertion.
-const client = postgres(process.env.POSTGRES_URL!);
-const db = drizzle(client);
+import { eq, and } from "drizzle-orm";
+import { grow, indoor, strain, plant, lamp, Grow } from "../schema";
+import { createGrowView } from "./views/grows";
+import { db } from "../index";
+import { GrowView } from "./types/grow";
+
+const GROW_SELECTION = {
+  grow: grow,
+  indoor: indoor,
+  plant: plant,
+  strain: strain,
+  lamp: lamp,
+} as const;
 
 /**
- * CREATE a grow cycle.
+ * Creates a new grow cycle in the database.
  *
- * @param indoorId - The UUID of the indoor where the grow is taking place
- * @param userId   - Clerk user ID (text) performing the operation
- * @param name     - Name/title of the grow cycle (e.g., "Spring Test Cycle")
- * @param stage    - Overall stage of the grow (e.g., "vegetative", "flowering")
- * @param startDate - Start date of the grow
- * @param endDate  - End date of the grow (optional)
- * @param substrateComposition - (Optional) Composition of the substrate (e.g., { soil: 70, perlite: 20, coco: 10 })
- * @param potSize  - (Optional) Default pot size used for the grow (in liters)
- * @param growingMethod - (Optional) Kind of growing (e.g., "soil", "hydroponic", "coco")
- * @param archived - (Optional) Whether the grow is archived (defaults to false)
- * @returns The newly inserted grow record
+ * @param data - The grow cycle data of type Grow
+ * @returns Promise<Grow> The newly created grow record
+ * @throws {Error} If the database operation fails
  */
-export async function createGrow({
-  indoorId,
-  userId,
-  name,
-  stage,
-  startDate,
-  endDate,
-  substrateComposition,
-  potSize,
-  growingMethod,
-  archived = false,
-}: {
-  indoorId: string;
-  userId: string;
-  name: string;
-  stage: string;
-  startDate: Date;
-  endDate?: Date;
-  substrateComposition?: Record<string, number>;
-  potSize?: number;
-  growingMethod?: string;
-  archived?: boolean;
-}) {
+export async function createGrow(data: Grow) {
   try {
-    const [newGrow] = await db
-      .insert(grow)
-      .values({
-        userId,
-        indoorId,
-        name,
-        stage,
-        startDate,
-        endDate,
-        substrateComposition,
-        potSize,
-        growingMethod,
-        archived,
-      })
-      .returning();
+    // Remove any undefined values from the data object
+    const cleanData = Object.fromEntries(
+      Object.entries(data).filter(([_, v]) => v !== undefined)
+    ) as Grow;
 
+    const [newGrow] = await db.insert(grow).values(cleanData).returning();
     return newGrow;
   } catch (error) {
     console.error("Failed to create grow:", error);
@@ -70,57 +37,23 @@ export async function createGrow({
 }
 
 /**
- * UPDATE a grow cycle.
+ * Updates an existing grow cycle in the database.
  *
- * @param growId - The grow cycle's UUID
- * @param userId - The user performing the update (for optional ownership check)
- * @param name - New name for the grow cycle
- * @param stage - New overall stage for the grow
- * @param startDate - Updated start date (if needed)
- * @param endDate - Updated end date (if needed)
- * @param substrateComposition - Updated substrate composition
- * @param potSize - Updated default pot size
- * @param growingMethod - Updated growing method
- * @param archived - Updated archive status
- * @returns The updated grow record
+ * @param data - The grow cycle data of type Grow
+ * @returns Promise<Grow> The updated grow record
+ * @throws {Error} If the database operation fails
  */
-export async function updateGrow({
-  growId,
-  userId,
-  name,
-  stage,
-  startDate,
-  endDate,
-  substrateComposition,
-  potSize,
-  growingMethod,
-  archived,
-}: {
-  growId: string;
-  userId: string;
-  name: string;
-  stage: string;
-  startDate: Date;
-  endDate?: Date;
-  substrateComposition?: Record<string, number>;
-  potSize?: number;
-  growingMethod?: string;
-  archived?: boolean;
-}) {
+export async function updateGrow(data: Grow) {
   try {
+    // Remove any undefined values from the data object
+    const cleanData = Object.fromEntries(
+      Object.entries(data).filter(([_, v]) => v !== undefined)
+    ) as Grow;
+
     const [updatedGrow] = await db
       .update(grow)
-      .set({
-        name,
-        stage,
-        startDate,
-        endDate,
-        substrateComposition,
-        potSize,
-        growingMethod,
-        archived,
-      })
-      .where(eq(grow.id, growId))
+      .set(cleanData)
+      .where(eq(grow.id, data.id))
       .returning();
 
     return updatedGrow;
@@ -183,47 +116,59 @@ export async function getGrowsByIndoorId({
   }
 }
 
-/**
- * GET all grow cycles for a specific user.
- *
- * @param userId - The user's ID to fetch grows for
- * @returns A list of grow records associated with the specified user
- */
-export async function getGrowsByUserId({ userId }: { userId: string }) {
-  try {
-    const growsList = await db
-      .select()
-      .from(grow)
-      .where(eq(grow.userId, userId));
-    return growsList;
-  } catch (error) {
-    console.error("Failed to get grows by user id:", error);
-    throw error;
-  }
+function baseGrowQuery() {
+  return db
+    .select(GROW_SELECTION)
+    .from(grow)
+    .leftJoin(indoor, eq(grow.indoorId, indoor.id))
+    .leftJoin(lamp, eq(indoor.id, lamp.indoorId))
+    .leftJoin(plant, eq(grow.id, plant.growId))
+    .leftJoin(strain, eq(plant.strainId, strain.id));
 }
 
-/**
- * GET a single grow cycle by ID and verify user ownership.
- *
- * @param growId - The grow cycle's UUID
- * @param userId - The user's ID to verify ownership
- * @returns A single grow record or null if not found
- */
+export async function getGrowsByUserId({
+  userId,
+}: {
+  userId: string;
+}): Promise<GrowView[]> {
+  const growsList = await baseGrowQuery().where(eq(grow.userId, userId));
+
+  // Create a Map to store unique grows
+  const growsMap = new Map();
+
+  // Process each row and store only unique grows
+  for (const row of growsList) {
+    if (!growsMap.has(row.grow.id)) {
+      growsMap.set(row.grow.id, [row]);
+    } else {
+      growsMap.get(row.grow.id).push(row);
+    }
+  }
+
+  // Convert to array and create views, with error handling
+  return Array.from(growsMap.values())
+    .map((growData) => {
+      try {
+        const view = createGrowView(growData);
+        return view;
+      } catch (error) {
+        console.error(`Failed to create grow view for data:`, error);
+        return null;
+      }
+    })
+    .filter((view): view is GrowView => view !== null);
+}
+
 export async function getGrowByIdAndUser({
   growId,
   userId,
 }: {
   growId: string;
   userId: string;
-}) {
-  try {
-    const [growRecord] = await db
-      .select()
-      .from(grow)
-      .where(and(eq(grow.id, growId), eq(grow.userId, userId)));
-    return growRecord || null;
-  } catch (error) {
-    console.error("Failed to get grow by id and user:", error);
-    throw error;
-  }
+}): Promise<GrowView | null> {
+  const growData = await baseGrowQuery().where(
+    and(eq(grow.id, growId), eq(grow.userId, userId))
+  );
+
+  return createGrowView(growData);
 }

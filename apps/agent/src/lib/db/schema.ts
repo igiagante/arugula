@@ -142,15 +142,15 @@ export type Suggestion = InferSelectModel<typeof suggestion>;
 export const indoor = pgTable("Indoor", {
   id: uuid("id").defaultRandom().primaryKey(),
   name: text("name").notNull(),
-  location: text("location"),
-  dimensions: text("dimensions"),
-  lighting: text("lighting"),
-  ventilation: text("ventilation"),
-  recommendedConditions: jsonb("recommendedConditions"),
+  dimensions: jsonb("dimensions").notNull(),
+  temperature: numeric("temperature"),
+  humidity: numeric("humidity"),
+  co2: numeric("co2"),
+  images: jsonb("images"),
+  notes: text("notes"),
   createdBy: text("createdBy")
     .notNull()
     .references(() => user.id, { onDelete: "restrict" }),
-  archived: boolean("archived").default(false).notNull(),
   createdAt: timestamp("createdAt", { withTimezone: true })
     .defaultNow()
     .notNull(),
@@ -160,6 +160,28 @@ export const indoor = pgTable("Indoor", {
 });
 
 export type Indoor = InferSelectModel<typeof indoor>;
+
+// Lamp table
+export const lamp = pgTable("Lamp", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  indoorId: uuid("indoorId")
+    .notNull()
+    .references(() => indoor.id, { onDelete: "cascade" }),
+  lampType: text("lampType").notNull(),
+  lightIntensity: numeric("lightIntensity"),
+  fanSpeed: numeric("fanSpeed"),
+  current: numeric("current", { precision: 5, scale: 2 }), // Amperes (A)
+  voltage: numeric("voltage", { precision: 5, scale: 1 }), // Volts (V)
+  power: numeric("power", { precision: 6, scale: 1 }), // Watts (W)
+  createdAt: timestamp("createdAt", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
+  updatedAt: timestamp("updatedAt", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
+});
+
+export type Lamp = InferSelectModel<typeof lamp>;
 
 // IndoorCollaborator table
 export const indoorCollaborator = pgTable("IndoorCollaborator", {
@@ -184,25 +206,23 @@ export type IndoorCollaborator = InferSelectModel<typeof indoorCollaborator>;
 // Grow table
 export const grow = pgTable("Grow", {
   id: uuid("id").defaultRandom().primaryKey(),
-  // The indoor where this grow is taking place
   indoorId: uuid("indoorId")
     .notNull()
     .references(() => indoor.id, { onDelete: "cascade" }),
-
-  // Added userId field to directly associate the grow with a user
   userId: text("userId")
     .notNull()
     .references(() => user.id, { onDelete: "restrict" }),
-  name: text("name"),
+  name: text("name").notNull(),
   stage: text("stage").notNull(),
   startDate: timestamp("startDate", { withTimezone: true }),
   endDate: timestamp("endDate", { withTimezone: true }),
+  progress: numeric("progress", { precision: 3, scale: 1 }),
   archived: boolean("archived").default(false).notNull(),
 
-  // New fields for initial setup
-  substrateComposition: jsonb("substrateComposition"), // e.g., { soil: 70, perlite: 20, coco: 10 }
-  potSize: jsonb("potSize").notNull().default({ size: 0, unit: "L" }), // e.g., { size: 7.5, unit: "L" }
-  growingMethod: text("growingMethod"), // e.g., "soil", "hydroponic", "coco"
+  substrateComposition: jsonb("substrateComposition"),
+  potSize: jsonb("potSize").notNull().default({ size: 0, unit: "L" }),
+  growingMethod: text("growingMethod"),
+  images: jsonb("images"),
 
   createdAt: timestamp("createdAt", { withTimezone: true })
     .defaultNow()

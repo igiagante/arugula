@@ -26,26 +26,44 @@ import { BasicDetailsStep } from "./steps/basic-details-step";
 import { SetupDetailsStep } from "./steps/setup-details-step";
 import { growFormSchema, GrowFormValues } from "./schema";
 import { growingMethods, growStages, steps } from "./constants";
+import { Grow, Indoor } from "@/lib/db/schema";
+import { CreateIndoorDto } from "@/app/actions/indoors";
+import { CreateGrowDto } from "@/app/actions/grows";
+import { useAuth } from "@clerk/nextjs";
 
 const defaultValues: Partial<GrowFormValues> = {
   substrate: [
-    { material: "Soil", percentage: 70 },
+    { material: "Soil", percentage: 40 },
     { material: "Perlite", percentage: 20 },
-    { material: "Coco", percentage: 10 },
+    { material: "Turba", percentage: 20 },
+    { material: "Humus", percentage: 20 },
   ],
-  potSize: 7.5,
+  potSize: 1,
   images: [],
 };
 
-export function AddGrowForm() {
+export function AddGrowForm({
+  fetchIndoors,
+  createIndoor,
+  createGrow,
+}: {
+  fetchIndoors: ({ userId }: { userId: string }) => Promise<Indoor[]>;
+  createIndoor: (data: CreateIndoorDto) => Promise<Indoor>;
+  createGrow: (data: CreateGrowDto) => Promise<Grow>;
+}) {
   const router = useRouter();
   const [step, setStep] = useState(0);
+  const { userId } = useAuth();
 
   const form = useForm<GrowFormValues>({
     resolver: zodResolver(growFormSchema),
     defaultValues,
     mode: "onChange",
   });
+
+  const { errors } = form.formState;
+
+  console.log(errors);
 
   const fieldArray = useFieldArray({
     control: form.control,
@@ -58,7 +76,26 @@ export function AddGrowForm() {
     try {
       // Simulate API call
       await new Promise((resolve) => setTimeout(resolve, 1000));
-      console.log(data);
+
+      if (!userId) {
+        throw new Error("User not found");
+      }
+
+      const growDto: CreateGrowDto = {
+        ...data,
+        substrateComposition: data.substrate.reduce(
+          (acc, item) => ({
+            ...acc,
+            [item.material]: item.percentage,
+          }),
+          {}
+        ),
+      };
+
+      const grow = await createGrow(growDto);
+
+      console.log("Grow created", grow);
+
       router.push("/");
     } catch (error) {
       console.error(error);
@@ -139,6 +176,8 @@ export function AddGrowForm() {
                   control={form.control}
                   growStages={growStages}
                   growingMethods={growingMethods}
+                  fetchIndoors={fetchIndoors}
+                  createIndoor={createIndoor}
                 />
               )}
 

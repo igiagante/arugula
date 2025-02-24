@@ -1,15 +1,13 @@
-import { unstable_cache } from "next/cache";
+"use server";
+
+import { unstable_cache, revalidateTag } from "next/cache";
 import { createApiClient, HttpMethods } from "../server";
 import { Indoor } from "@/lib/db/schema";
 
 export type CreateIndoorDto = Omit<Indoor, "id" | "createdAt" | "updatedAt">;
 export type UpdateIndoorDto = Partial<CreateIndoorDto>;
 
-export const fetchIndoors = async ({
-  userId,
-}: {
-  userId: string;
-}): Promise<any> => {
+export async function fetchIndoors({ userId }: { userId: string }) {
   const getIndoors = await createApiClient();
 
   return (
@@ -26,17 +24,22 @@ export const fetchIndoors = async ({
       }
     )
   )();
-};
+}
 
 export const createIndoor = async (data: CreateIndoorDto): Promise<Indoor> => {
   const createIndoor = await createApiClient();
 
-  return createIndoor<Indoor, CreateIndoorDto>(
+  const result = await createIndoor<Indoor, CreateIndoorDto>(
     "/api/indoors",
     HttpMethods.POST,
     {},
     data
   );
+
+  // Invalidate the cache after creating new indoor
+  revalidateTag("indoors");
+
+  return result;
 };
 
 export const updateIndoor = async (
@@ -45,16 +48,24 @@ export const updateIndoor = async (
 ): Promise<Indoor> => {
   const updateIndoor = await createApiClient();
 
-  return updateIndoor<Indoor, UpdateIndoorDto>(
+  const result = await updateIndoor<Indoor, UpdateIndoorDto>(
     `/api/indoors/${id}`,
     HttpMethods.PATCH,
     {},
     data
   );
+
+  // Invalidate the cache after updating indoor
+  revalidateTag("indoors");
+
+  return result;
 };
 
 export const deleteIndoor = async (id: string): Promise<void> => {
   const deleteIndoor = await createApiClient();
 
-  return deleteIndoor(`/api/indoors/${id}`, HttpMethods.DELETE);
+  await deleteIndoor(`/api/indoors/${id}`, HttpMethods.DELETE);
+
+  // Invalidate the cache after deleting indoor
+  revalidateTag("indoors");
 };

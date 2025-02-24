@@ -14,6 +14,7 @@ import {
   product,
   taskProduct,
   sensorReading,
+  lamp,
 } from "../schema";
 import { config } from "dotenv";
 
@@ -44,14 +45,25 @@ async function seed() {
     .insert(indoor)
     .values({
       name: "Test Grow Tent",
-      location: "Room",
-      dimensions: "1x1",
-      lighting: "600W LED",
-      ventilation: "Inline fan + filter",
-      recommendedConditions: { temp: "20-26C", humidity: "40-50%" },
+      dimensions: { width: 50, length: 50, height: 70, unit: "cm" },
+      temperature: "23",
+      humidity: "50",
+      images: ["https://example.com/photo1.jpg"],
+      notes: "This is a test indoor setup with high-quality LED lighting.",
       createdBy: userId,
     })
     .returning();
+
+  // Add lamp for the indoor
+  await db.insert(lamp).values({
+    indoorId: indoorAdded!.id,
+    lampType: "600W LED",
+    lightIntensity: "350",
+    fanSpeed: "50",
+    current: "2.5",
+    voltage: "220",
+    power: "600",
+  });
 
   // 3. Insert an IndoorCollaborator (the owner)
   await db.insert(indoorCollaborator).values({
@@ -81,50 +93,105 @@ async function seed() {
     })
     .returning();
 
-  // 5. Insert a Strain into the master library
-  const [strainAdded] = await db
+  // 5. Insert Strains into the master library
+  const [strain1024, strain2] = await db
     .insert(strain)
-    .values({
-      name: "1024",
-      breeder: "MedicalSeeds",
-      genotype: "Northern Lights x White Widow",
-      ratio: "60% Indica / 40% Sativa",
-      floweringType: "photoperiod",
-      indoorVegTime: "4 weeks",
-      indoorFlowerTime: "8 weeks",
-      indoorYield: "500 g/m²",
-      outdoorHeight: "1.7 m",
-      outdoorYield: "600 g/plant",
-      harvestMonthOutdoor: "October",
-      cannabinoidProfile: { THC: "28%", CBD: "low" },
-      resistance: { mold: "high", pests: "medium" },
-      optimalConditions: { temp: "23-27C", humidity: "40-50%" },
-      terpeneProfile: { dominant: ["Myrcene", "Limonene", "Caryophyllene"] },
-      difficulty: "Advanced",
-      awards: "Multiple Cannabis Cup Awards",
-      description:
-        "A potent strain known for its strong effects and high yields, ideal for experienced growers.",
-    })
+    .values([
+      {
+        name: "1024",
+        breeder: "MedicalSeeds",
+        genotype: "Northern Lights x White Widow",
+        ratio: "60% Indica / 40% Sativa",
+        floweringType: "photoperiod",
+        indoorVegTime: "4 weeks",
+        indoorFlowerTime: "8 weeks",
+        indoorYield: "500 g/m²",
+        outdoorHeight: "1.7 m",
+        outdoorYield: "600 g/plant",
+        harvestMonthOutdoor: "October",
+        cannabinoidProfile: { THC: "28%", CBD: "low" },
+        resistance: { mold: "high", pests: "medium" },
+        optimalConditions: { temp: "23-27C", humidity: "40-50%" },
+        terpeneProfile: { dominant: ["Myrcene", "Limonene", "Caryophyllene"] },
+        difficulty: "Advanced",
+        awards: "Multiple Cannabis Cup Awards",
+        description:
+          "A potent strain known for its strong effects and high yields, ideal for experienced growers.",
+      },
+      {
+        name: "Girl Scout Cookies",
+        breeder: "Cookie Fam",
+        genotype: "OG Kush x Durban Poison",
+        ratio: "40% Indica / 60% Sativa",
+        floweringType: "photoperiod",
+        indoorVegTime: "3-4 weeks",
+        indoorFlowerTime: "9-10 weeks",
+        indoorYield: "450 g/m²",
+        outdoorHeight: "1.8 m",
+        outdoorYield: "550 g/plant",
+        harvestMonthOutdoor: "October",
+        cannabinoidProfile: { THC: "25%", CBD: "0.2%" },
+        resistance: { mold: "medium", pests: "high" },
+        optimalConditions: { temp: "20-26C", humidity: "45-55%" },
+        terpeneProfile: { dominant: ["Caryophyllene", "Limonene", "Linalool"] },
+        difficulty: "Intermediate",
+        awards: "Multiple High Times Cannabis Cup Winner",
+        description:
+          "Famous for its sweet and earthy aroma, GSC delivers both full-body relaxation and cerebral euphoria.",
+      },
+    ])
     .returning();
 
-  // 6. Insert a Plant into the Grow, referencing the Strain
-  const [plantAdded] = await db
+  // 6. Insert multiple Plants into the Grow
+  const [plant1, plant2, plant3] = await db
     .insert(plant)
-    .values({
-      growId: growAdded!.id,
-      strainId: strainAdded!.id,
-      customName: "1024",
-      stage: "vegetative", // optional override; if null, assume grow.stage
-      startDate: new Date(),
-      archived: false,
-      notes: "lets grow",
-      potSize: { size: 1, unit: "L" },
-    })
+    .values([
+      {
+        growId: growAdded!.id,
+        strainId: strain1024!.id,
+        customName: "1024 #1",
+        stage: "vegetative",
+        startDate: new Date(),
+        archived: false,
+        notes: "First 1024 plant",
+        potSize: { size: 1, unit: "L" },
+      },
+      {
+        growId: growAdded!.id,
+        strainId: strain1024!.id,
+        customName: "1024 #2",
+        stage: "vegetative",
+        startDate: new Date(),
+        archived: false,
+        notes: "Second 1024 plant",
+        potSize: { size: 1, unit: "L" },
+      },
+      {
+        growId: growAdded!.id,
+        strainId: strain2!.id,
+        customName: "GSC #1",
+        stage: "vegetative",
+        startDate: new Date(),
+        archived: false,
+        notes: "First GSC plant",
+        potSize: { size: 1, unit: "L" },
+      },
+    ])
     .returning();
 
-  // 7. Insert a PlantNote for the Plant
+  // 7. Insert PlantNotes for the Plants
   await db.insert(plantNote).values({
-    plantId: plantAdded!.id,
+    plantId: plant1!.id,
+    content: "Observed new bud formation.",
+    images: [{ url: "https://example.com/photo1.jpg", caption: "Close-up" }],
+  });
+  await db.insert(plantNote).values({
+    plantId: plant2!.id,
+    content: "Observed new bud formation.",
+    images: [{ url: "https://example.com/photo1.jpg", caption: "Close-up" }],
+  });
+  await db.insert(plantNote).values({
+    plantId: plant3!.id,
     content: "Observed new bud formation.",
     images: [{ url: "https://example.com/photo1.jpg", caption: "Close-up" }],
   });
@@ -173,10 +240,18 @@ async function seed() {
     })
     .returning();
 
-  // 10. Link the Task to the Plant via TaskPlant
+  // 10. Link the Task to the Plants via TaskPlant
   await db.insert(taskPlant).values({
     taskId: taskAdded!.id,
-    plantId: plantAdded!.id,
+    plantId: plant1!.id,
+  });
+  await db.insert(taskPlant).values({
+    taskId: taskAdded!.id,
+    plantId: plant2!.id,
+  });
+  await db.insert(taskPlant).values({
+    taskId: taskAdded!.id,
+    plantId: plant3!.id,
   });
 
   // 11. Insert some real Products from Advanced Nutrients into the Product table

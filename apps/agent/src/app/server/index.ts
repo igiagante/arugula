@@ -1,12 +1,5 @@
 import { auth } from "@clerk/nextjs/server";
 
-// Get auth data outside of the cached function
-async function getAuthData() {
-  const { getToken, userId } = await auth();
-  const token = await getToken();
-  return { token, userId };
-}
-
 export const HttpMethods = {
   GET: "GET",
   POST: "POST",
@@ -52,7 +45,6 @@ export const createApiClient = async () => {
         Authorization: `Bearer ${token}`,
       },
       ...(body ? { body: JSON.stringify(body) } : {}),
-      credentials: "include",
     });
 
     if (!response.ok) {

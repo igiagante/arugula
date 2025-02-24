@@ -1,3 +1,5 @@
+"use client";
+
 import {
   FormField,
   FormItem,
@@ -10,7 +12,6 @@ import {
 import { Input } from "@workspace/ui/components/input";
 
 import { Control } from "react-hook-form";
-import type { FormValues } from "../types";
 import { Calendar } from "@workspace/ui/components/calendar";
 import {
   Select,
@@ -26,22 +27,103 @@ import {
   PopoverTrigger,
 } from "@workspace/ui/components/popover";
 import { cn } from "@workspace/ui/lib/utils";
-import { CalendarIcon } from "lucide-react";
-
+import { CalendarIcon, Plus } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Indoor } from "@/lib/db/schema";
+import { CreateIndoorModal } from "../indoor/create-indoor-modal";
+import { useAuth } from "@clerk/nextjs";
+import { CreateIndoorDto } from "@/app/actions/indoors";
+import { GrowFormValues } from "../schema";
 interface BasicDetailsStepProps {
-  control: Control<FormValues>;
+  control: Control<GrowFormValues>;
   growStages: readonly { label: string; value: string }[];
   growingMethods: readonly { label: string; value: string }[];
+  fetchIndoors: ({ userId }: { userId: string }) => Promise<Indoor[]>;
+  createIndoor: (data: CreateIndoorDto) => Promise<Indoor>;
 }
 
 export function BasicDetailsStep({
   control,
   growStages,
   growingMethods,
+  fetchIndoors,
+  createIndoor,
 }: BasicDetailsStepProps) {
+  const [createIndoorOpen, setCreateIndoorOpen] = useState(false);
+  const [indoors, setIndoors] = useState<Indoor[]>([]);
+  const { userId } = useAuth();
+
+  const loadIndoors = async () => {
+    const indoorSpaces = await fetchIndoors({ userId: userId || "" });
+    setIndoors(indoorSpaces);
+  };
+
+  useEffect(() => {
+    if (userId) {
+      loadIndoors();
+    }
+  }, [userId]);
+
+  const handleCreateIndoorSuccess = async () => {
+    setCreateIndoorOpen(false);
+    await loadIndoors();
+  };
+
   return (
     <div className="space-y-6">
       <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <FormField
+            control={control}
+            name="indoorId"
+            render={({ field }) => (
+              <FormItem className="flex-1">
+                <FormLabel>Indoor Space</FormLabel>
+                <div className="flex items-center gap-2">
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select an indoor space" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {indoors.length === 0 ? (
+                        <div className="p-2 text-sm text-muted-foreground text-center">
+                          No indoor spaces found
+                        </div>
+                      ) : (
+                        indoors.map((indoor) => (
+                          <SelectItem key={indoor.id} value={indoor.id}>
+                            {indoor.name}
+                          </SelectItem>
+                        ))
+                      )}
+                    </SelectContent>
+                  </Select>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    className="shrink-0"
+                    onClick={() => setCreateIndoorOpen(true)}
+                  >
+                    <Plus className="size-4" />
+                  </Button>
+                </div>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+        <CreateIndoorModal
+          open={createIndoorOpen}
+          onOpenChange={setCreateIndoorOpen}
+          createIndoor={createIndoor}
+          onSuccess={handleCreateIndoorSuccess}
+        />
         <FormField
           control={control}
           name="name"

@@ -21,11 +21,10 @@ const db = drizzle(client);
  */
 export async function createIndoor({
   name,
-  location,
   dimensions,
-  lighting,
-  ventilation,
-  recommendedConditions,
+  temperature,
+  humidity,
+  co2,
   createdBy,
 }: Omit<Indoor, "id" | "createdAt" | "updatedAt" | "archived">) {
   try {
@@ -34,11 +33,10 @@ export async function createIndoor({
       .insert(indoor)
       .values({
         name,
-        location,
         dimensions,
-        lighting,
-        ventilation,
-        recommendedConditions,
+        temperature,
+        humidity,
+        co2,
         createdBy, // references a text user ID from Clerk
       })
       .returning(); // get the inserted row back
@@ -66,11 +64,10 @@ export async function createIndoor({
 export async function updateIndoor({
   id,
   name,
-  location,
   dimensions,
-  lighting,
-  ventilation,
-  recommendedConditions,
+  temperature,
+  humidity,
+  co2,
 }: Omit<Indoor, "createdBy" | "createdAt" | "updatedAt">) {
   try {
     // If you want to enforce that only the owner can update:
@@ -80,11 +77,10 @@ export async function updateIndoor({
       .update(indoor)
       .set({
         name,
-        location,
         dimensions,
-        lighting,
-        ventilation,
-        recommendedConditions,
+        temperature,
+        humidity,
+        co2,
         // updatedAt will be auto if you have triggers or can set new Date() here
       })
       .where(eq(indoor.id, id))

@@ -18,10 +18,10 @@ export default async function ChatContainer({
 }) {
   const id = generateUUID();
 
-  // const indoorData = await fetchIndoors({
-  //   userId: "user_2tMsS1D6OD8KYB9GQxWHo6as1IX",
-  // });
-  // console.log("Indoor data:", indoorData);
+  const indoorData = await fetchIndoors({
+    userId: "user_2tMsS1D6OD8KYB9GQxWHo6as1IX",
+  });
+  console.log("Indoor data:", indoorData);
 
   // const growData = await fetchGrowsByIndoorId(indoorData[0].id);
   // console.log("Grow data:", growData);
