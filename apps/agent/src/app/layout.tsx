@@ -5,6 +5,14 @@ import { ThemeProvider } from "@/components/theme-provider";
 
 import "./globals.css";
 import { ClerkProvider } from "@clerk/nextjs";
+import { SidebarProvider } from "@workspace/ui/components/sidebar";
+import { currentUser } from "@clerk/nextjs/server";
+import { cookies } from "next/headers";
+import { AppSidebar } from "@/components/app-sidebar";
+
+import { redirect } from "next/navigation";
+import ChatContainer from "./(chat)/chat";
+import { Separator } from "@workspace/ui/components/separator";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://chat.vercel.ai"),
@@ -41,6 +49,13 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const [user, cookieStore] = await Promise.all([currentUser(), cookies()]);
+  const isCollapsed = cookieStore.get("sidebar:state")?.value !== "true";
+
+  if (!user) {
+    redirect("/sign-in");
+  }
+
   return (
     <ClerkProvider>
       <html
@@ -66,7 +81,14 @@ export default async function RootLayout({
             disableTransitionOnChange
           >
             <Toaster position="top-center" />
-            {children}
+            <SidebarProvider defaultOpen={!isCollapsed}>
+              <div className="flex w-full">
+                {user && <AppSidebar className="lg:w-64 shrink-0" />}
+                <main className="flex-1">{children}</main>
+                <Separator orientation="vertical" className="h-full" />
+                {user && <ChatContainer className="lg:w-64 shrink-0" />}
+              </div>
+            </SidebarProvider>
           </ThemeProvider>
         </body>
       </html>
