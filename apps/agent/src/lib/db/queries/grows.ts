@@ -28,6 +28,11 @@ export async function createGrow(data: Grow) {
       Object.entries(data).filter(([_, v]) => v !== undefined)
     ) as Grow;
 
+    // Ensure startDate is a Date object
+    if (cleanData.startDate && typeof cleanData.startDate === "string") {
+      cleanData.startDate = new Date(cleanData.startDate);
+    }
+
     const [newGrow] = await db.insert(grow).values(cleanData).returning();
     return newGrow;
   } catch (error) {

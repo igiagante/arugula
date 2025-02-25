@@ -27,9 +27,11 @@ import { SetupDetailsStep } from "./steps/setup-details-step";
 import { growFormSchema, GrowFormValues } from "./schema";
 import { growingMethods, growStages, steps } from "./constants";
 import { Grow, Indoor } from "@/lib/db/schema";
-import { CreateIndoorDto } from "@/app/actions/indoors";
-import { CreateGrowDto } from "@/app/actions/grows";
 import { useAuth } from "@clerk/nextjs";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { CreateGrowDto } from "@/app/api/dto";
+import { apiRequest, HttpMethods } from "@/app/api/client";
+import { CacheTags } from "@/app/api/tags";
 
 const defaultValues: Partial<GrowFormValues> = {
   substrate: [
@@ -42,28 +44,17 @@ const defaultValues: Partial<GrowFormValues> = {
   images: [],
 };
 
-export function AddGrowForm({
-  fetchIndoors,
-  createIndoor,
-  createGrow,
-}: {
-  fetchIndoors: ({ userId }: { userId: string }) => Promise<Indoor[]>;
-  createIndoor: (data: CreateIndoorDto) => Promise<Indoor>;
-  createGrow: (data: CreateGrowDto) => Promise<Grow>;
-}) {
+export function AddGrowForm() {
   const router = useRouter();
   const [step, setStep] = useState(0);
   const { userId } = useAuth();
+  const queryClient = useQueryClient();
 
   const form = useForm<GrowFormValues>({
     resolver: zodResolver(growFormSchema),
     defaultValues,
     mode: "onChange",
   });
-
-  const { errors } = form.formState;
-
-  console.log(errors);
 
   const fieldArray = useFieldArray({
     control: form.control,
@@ -72,18 +63,34 @@ export function AddGrowForm({
 
   const { isSubmitting } = form.formState;
 
+  const { mutateAsync: createGrow } = useMutation({
+    mutationFn: async (newGrow: CreateGrowDto) => {
+      return await apiRequest<Grow, CreateGrowDto>(
+        "/api/grows",
+        HttpMethods.POST,
+        {},
+        newGrow
+      );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [CacheTags.grows] });
+    },
+  });
+
   async function onSubmit(data: GrowFormValues) {
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
       if (!userId) {
         throw new Error("User not found");
       }
 
+      const { substrate, ...restData } = data;
       const growDto: CreateGrowDto = {
-        ...data,
-        substrateComposition: data.substrate.reduce(
+        ...restData,
+        images: null,
+        potSize: { size: data.potSize, unit: "L" },
+        startDate: data.startDate,
+        endDate: data.endDate || undefined,
+        substrateComposition: substrate.reduce(
           (acc, item) => ({
             ...acc,
             [item.material]: item.percentage,
@@ -176,8 +183,6 @@ export function AddGrowForm({
                   control={form.control}
                   growStages={growStages}
                   growingMethods={growingMethods}
-                  fetchIndoors={fetchIndoors}
-                  createIndoor={createIndoor}
                 />
               )}
 

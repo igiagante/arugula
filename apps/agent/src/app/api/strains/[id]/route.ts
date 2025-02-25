@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
+import { revalidateTag, unstable_cache } from "next/cache";
 import {
-  createStrain,
   updateStrain,
   deleteStrain,
   getStrainById,
-  getAllStrains,
 } from "@/lib/db/queries/strains";
+import { CacheTags, createDynamicTag } from "../../tags";
 
 /**
  * GET /api/strains/[id]
@@ -26,41 +26,20 @@ export async function GET(
 
   try {
     if (strainId) {
-      const strainRecord = await getStrainById({ strainId });
+      const getCachedStrain = unstable_cache(
+        async () => getStrainById({ strainId }),
+        [`strain-${strainId}`],
+        {
+          revalidate: 3600, // Cache for 1 hour
+          tags: [createDynamicTag(CacheTags.strain, strainId)],
+        }
+      );
+
+      const strainRecord = await getCachedStrain();
       return NextResponse.json(strainRecord, { status: 200 });
     }
   } catch (error) {
     console.error("GET /api/strains error:", error);
-    return NextResponse.json(
-      { error: "Internal Server Error" },
-      { status: 500 }
-    );
-  }
-}
-
-/**
- * POST /api/strains
- * Creates a new strain.
- */
-export async function POST(request: Request) {
-  try {
-    const { userId } = await auth();
-
-    if (!userId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const data = await request.json();
-
-    if (!data.name) {
-      return NextResponse.json({ error: "Name is required" }, { status: 400 });
-    }
-
-    const newStrain = await createStrain(data);
-    return NextResponse.json(newStrain, { status: 201 });
-  } catch (error) {
-    console.error("POST /api/strains error:", error);
-
     return NextResponse.json(
       { error: "Internal Server Error" },
       { status: 500 }
@@ -93,6 +72,10 @@ export async function PATCH(
     }
     const data = await request.json();
     const updatedStrain = await updateStrain({ strainId, data });
+
+    revalidateTag(CacheTags.strains);
+    revalidateTag(createDynamicTag(CacheTags.strain, strainId));
+
     return NextResponse.json(updatedStrain, { status: 200 });
   } catch (error) {
     console.error("PATCH /api/strains error:", error);
@@ -127,6 +110,9 @@ export async function DELETE(
     }
 
     const deletedStrain = await deleteStrain({ strainId });
+
+    revalidateTag(CacheTags.strains);
+
     return NextResponse.json(deletedStrain, { status: 200 });
   } catch (error) {
     console.error("DELETE /api/strains error:", error);

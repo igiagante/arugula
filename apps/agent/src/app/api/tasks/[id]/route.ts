@@ -1,12 +1,9 @@
 // app/(tasks)/api/route.ts
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
-import {
-  createTask,
-  updateTask,
-  deleteTask,
-  getTaskById,
-} from "@/lib/db/queries/tasks";
+import { updateTask, deleteTask, getTaskById } from "@/lib/db/queries/tasks";
+import { revalidateTag, unstable_cache } from "next/cache";
+import { createDynamicTag, CacheTags } from "../../tags";
 
 /**
  * GET /api/tasks/[id]
@@ -26,49 +23,18 @@ export async function GET(
 
   try {
     if (taskId) {
-      const taskRecord = await getTaskById({ taskId });
+      const taskRecord = await unstable_cache(
+        async () => getTaskById({ taskId }),
+        [createDynamicTag(CacheTags.getTaskById, taskId)],
+        {
+          revalidate: 3600, // Cache for 1 hour
+          tags: [createDynamicTag(CacheTags.getTaskById, taskId)],
+        }
+      )();
       return NextResponse.json(taskRecord, { status: 200 });
     }
   } catch (error) {
     console.error("GET /api/strains error:", error);
-    return NextResponse.json(
-      { error: "Internal Server Error" },
-      { status: 500 }
-    );
-  }
-}
-
-/**
- * POST /api/tasks
- * Creates a new task
- * Required fields:
- * - taskTypeId: string
- * - growId: string
- * Optional fields:
- * - notes: string
- * - details: object
- * - images: string[]
- */
-export async function POST(request: Request) {
-  try {
-    const { userId } = await auth();
-    if (!userId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-    const data = await request.json();
-
-    // Validate required fields
-    if (!data.taskTypeId || !data.growId) {
-      return NextResponse.json(
-        { error: "Missing required fields: taskTypeId and growId" },
-        { status: 400 }
-      );
-    }
-
-    const newTask = await createTask({ ...data, userId });
-    return NextResponse.json(newTask, { status: 201 });
-  } catch (error) {
-    console.error("POST /api/tasks error:", error);
     return NextResponse.json(
       { error: "Internal Server Error" },
       { status: 500 }
@@ -100,6 +66,14 @@ export async function PATCH(
 
     const data = await request.json();
     const updatedTask = await updateTask({ taskId, data });
+
+    if (updatedTask) {
+      revalidateTag(createDynamicTag(CacheTags.getTaskById, updatedTask.id));
+      revalidateTag(
+        createDynamicTag(CacheTags.tasksByGrowId, updatedTask.growId)
+      );
+    }
+
     return NextResponse.json(updatedTask, { status: 200 });
   } catch (error) {
     console.error("PATCH /api/tasks error:", error);
@@ -132,8 +106,15 @@ export async function DELETE(
       );
     }
 
-    const deleted = await deleteTask({ taskId });
-    return NextResponse.json(deleted, { status: 200 });
+    const deletedTask = await deleteTask({ taskId });
+
+    if (deletedTask) {
+      revalidateTag(
+        createDynamicTag(CacheTags.tasksByGrowId, deletedTask.growId)
+      );
+    }
+
+    return NextResponse.json(deletedTask, { status: 200 });
   } catch (error) {
     console.error("DELETE /api/tasks error:", error);
     return NextResponse.json(

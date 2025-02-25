@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { createGrow, getGrowsByUserId } from "@/lib/db/queries/grows";
-import { CreateGrowDto } from "@/app/actions/grows";
 import { Grow } from "@/lib/db/schema";
+import { unstable_cache, revalidateTag } from "next/cache";
+import { createDynamicTag, CacheTags } from "../tags";
+import { CreateGrowDto } from "../dto";
 
 /**
  * GET /api/grows
@@ -16,7 +18,17 @@ export async function GET(): Promise<NextResponse> {
   }
 
   try {
-    const grows = await getGrowsByUserId({ userId });
+    const getCachedGrows = unstable_cache(
+      async () => getGrowsByUserId({ userId }),
+      [createDynamicTag(CacheTags.growsByUserId, userId)],
+      {
+        revalidate: 60, // Cache for 60 seconds
+        tags: [createDynamicTag(CacheTags.growsByUserId, userId)],
+      }
+    );
+
+    const grows = await getCachedGrows();
+    console.log("grows", grows);
     if (!grows) {
       return NextResponse.json(
         { error: "Grows records not found" },
@@ -72,7 +84,10 @@ export async function POST(request: Request): Promise<NextResponse> {
       );
     }
 
-    const newGrow = await createGrow(body as Grow);
+    const newGrow = await createGrow({ ...body, userId } as Grow);
+
+    // Invalidate the cache using revalidateTag
+    revalidateTag(createDynamicTag(CacheTags.growsByUserId, userId));
 
     return NextResponse.json(newGrow, { status: 201 });
   } catch (error) {

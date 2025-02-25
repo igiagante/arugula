@@ -13,6 +13,7 @@ import { AppSidebar } from "@/components/app-sidebar";
 import { redirect } from "next/navigation";
 import ChatContainer from "./(chat)/chat";
 import { Separator } from "@workspace/ui/components/separator";
+import { Providers } from "./providers";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://chat.vercel.ai"),
@@ -74,22 +75,24 @@ export default async function RootLayout({
           />
         </head>
         <body className="antialiased">
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="system"
-            enableSystem
-            disableTransitionOnChange
-          >
-            <Toaster position="top-center" />
-            <SidebarProvider defaultOpen={!isCollapsed}>
-              <div className="flex w-full">
-                {user && <AppSidebar className="lg:w-64 shrink-0" />}
-                <main className="flex-1">{children}</main>
-                <Separator orientation="vertical" className="h-full" />
-                {user && <ChatContainer className="lg:w-64 shrink-0" />}
-              </div>
-            </SidebarProvider>
-          </ThemeProvider>
+          <Providers>
+            <ThemeProvider
+              attribute="class"
+              defaultTheme="system"
+              enableSystem
+              disableTransitionOnChange
+            >
+              <Toaster position="top-center" />
+              <SidebarProvider defaultOpen={!isCollapsed}>
+                <div className="flex w-full">
+                  {user && <AppSidebar className="lg:w-64 shrink-0" />}
+                  <main className="flex-1">{children}</main>
+                  <Separator orientation="vertical" className="h-full" />
+                  {user && <ChatContainer className="lg:w-64 shrink-0" />}
+                </div>
+              </SidebarProvider>
+            </ThemeProvider>
+          </Providers>
         </body>
       </html>
     </ClerkProvider>

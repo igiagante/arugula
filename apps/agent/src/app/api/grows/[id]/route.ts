@@ -2,11 +2,12 @@
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import {
-  createGrow,
   deleteGrow,
   getGrowByIdAndUser,
   updateGrow,
 } from "@/lib/db/queries/grows"; // adjust path as needed
+import { CacheTags, createDynamicTag } from "../../tags";
+import { revalidateTag, unstable_cache } from "next/cache";
 
 /**
  * GET /api/grows/[id]
@@ -24,7 +25,16 @@ export async function GET(
   }
 
   try {
-    const grow = await getGrowByIdAndUser({ userId, growId });
+    const getCachedGrow = unstable_cache(
+      async () => getGrowByIdAndUser({ userId, growId }),
+      [createDynamicTag(CacheTags.growByUserId, userId)],
+      {
+        tags: [createDynamicTag(CacheTags.growsByUserId, userId)],
+        revalidate: 3600, // Cache for 1 hour
+      }
+    );
+
+    const grow = await getCachedGrow();
     return NextResponse.json(grow, { status: 200 });
   } catch (error) {
     console.error("GET /api/grows/[id] error:", error);
@@ -63,6 +73,9 @@ export async function PATCH(
     const body = await request.json();
     const updatedGrow = await updateGrow({ growId, userId, ...body });
 
+    // Invalidate the cache using revalidateTag
+    revalidateTag(createDynamicTag(CacheTags.growsByUserId, userId));
+
     return NextResponse.json(updatedGrow, { status: 200 });
   } catch (error) {
     console.error("PATCH /api/grows error:", error);
@@ -97,6 +110,9 @@ export async function DELETE(
     }
 
     const deletedGrow = await deleteGrow({ growId, userId });
+
+    // Invalidate the cache using revalidateTag
+    revalidateTag(createDynamicTag(CacheTags.growsByUserId, userId));
 
     return NextResponse.json(deletedGrow, { status: 200 });
   } catch (error) {

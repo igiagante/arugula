@@ -4,12 +4,6 @@ import { Chat } from "@/components/chat";
 import { DEFAULT_CHAT_MODEL } from "@/lib/ai/models";
 import { generateUUID } from "@/lib/utils";
 import { DataStreamHandler } from "@/components/data-stream-handler";
-import { fetchGrowsByIndoorId } from "../actions/grows";
-import { fetchPlants } from "../actions/plants";
-import { fetchIndoors } from "../actions/indoors";
-import { fetchStrainById } from "../actions/strains";
-import { fetchTasksByGrow } from "../actions/tasks";
-import { fetchProducts } from "../actions/products";
 
 export default async function ChatContainer({
   className,
@@ -17,11 +11,6 @@ export default async function ChatContainer({
   className?: string;
 }) {
   const id = generateUUID();
-
-  const indoorData = await fetchIndoors({
-    userId: "user_2tMsS1D6OD8KYB9GQxWHo6as1IX",
-  });
-  console.log("Indoor data:", indoorData);
 
   // const growData = await fetchGrowsByIndoorId(indoorData[0].id);
   // console.log("Grow data:", growData);

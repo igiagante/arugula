@@ -5,6 +5,8 @@ import {
   getIndoorById,
   updateIndoor,
 } from "@/lib/db/queries/indoors";
+import { CacheTags, createDynamicTag } from "../../tags";
+import { revalidateTag, unstable_cache } from "next/cache";
 
 /**
  * GET /api/indoors
@@ -22,7 +24,16 @@ export async function GET(
   }
 
   try {
-    const indoors = await getIndoorById({ userId, indoorId });
+    const getIndoorWithCache = unstable_cache(
+      async () => getIndoorById({ userId, indoorId }),
+      [createDynamicTag(CacheTags.indoorByUserId, userId)],
+      {
+        tags: [createDynamicTag(CacheTags.indoorByUserId, userId)],
+        revalidate: 3600, // Cache for 1 hour
+      }
+    );
+
+    const indoors = await getIndoorWithCache();
     return NextResponse.json(indoors, { status: 200 });
   } catch (error) {
     console.error("GET /api/indoors error:", error);
@@ -76,6 +87,11 @@ export async function PATCH(
       humidity,
       co2,
     });
+
+    // Invalidate the cache for this user's indoors
+    revalidateTag(createDynamicTag(CacheTags.indoorByUserId, userId));
+    revalidateTag(createDynamicTag(CacheTags.indoorsByUserId, userId));
+
     return NextResponse.json(updatedIndoor, { status: 200 });
   } catch (error) {
     console.error("PATCH /api/indoors error:", error);
@@ -111,6 +127,9 @@ export async function DELETE(
     }
 
     const deletedIndoor = await deleteIndoor({ indoorId, userId });
+
+    // Invalidate the cache for this user's indoors
+    revalidateTag(createDynamicTag(CacheTags.indoorsByUserId, userId));
 
     return NextResponse.json(deletedIndoor, { status: 200 });
   } catch (error) {

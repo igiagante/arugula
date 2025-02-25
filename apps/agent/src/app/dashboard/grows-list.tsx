@@ -1,8 +1,12 @@
-import Link from "next/link";
-import { SidebarTrigger } from "@workspace/ui/components/sidebar";
-import { Button } from "@workspace/ui/components/button";
-import { GrowCard } from "./grow-card";
+"use client";
+
+import React from "react";
+import { useQuery } from "@tanstack/react-query";
+
 import { GrowView } from "@/lib/db/queries/types/grow";
+import { GrowCard, GrowCardSkeleton } from "@/components/grow/grow-card";
+import { apiRequest } from "../api/client";
+import { toast } from "sonner";
 
 const growsData = [
   {
@@ -98,35 +102,44 @@ const growsData = [
   },
 ];
 
-export async function GrowDashboardContent({ grows }: { grows: GrowView[] }) {
-  const growsMixed = [...grows, ...growsData];
+export function GrowsList() {
+  const { data, isLoading, error } = useQuery({
+    queryKey: ["grows"],
+    queryFn: async () => {
+      return await apiRequest<GrowView[]>("/api/grows");
+    },
+  });
+
+  if (isLoading) {
+    return (
+      <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+        {new Array(6).fill(null).map((_, index) => (
+          <GrowCardSkeleton key={index} />
+        ))}
+      </div>
+    );
+  }
+
+  if (error) {
+    toast.error("Error loading grows", {
+      description: error.message,
+    });
+    return null;
+  }
 
   return (
-    <div className="flex flex-col w-full">
-      <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-background/60 px-6 backdrop-blur-lg">
-        <SidebarTrigger className="lg:hidden" />
-        <div className="flex flex-1 items-center justify-between">
-          <h1 className="text-xl font-semibold">Grow Dashboard</h1>
-          <Button asChild>
-            <Link href="/grow/new">New Grow</Link>
-          </Button>
-        </div>
-      </header>
-      <main className="flex-1 space-y-4 p-8 pt-6">
-        <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-          {growsMixed.map((grow) => (
-            <GrowCard
-              key={grow.id}
-              {...grow}
-              lastUpdated={grow.lastUpdated.toLocaleString()}
-              image={
-                grow.image ??
-                "https://kzmldmf02xim38b47rcg.lite.vusercontent.net/placeholder.svg?height=400&width=600"
-              }
-            />
-          ))}
-        </div>
-      </main>
+    <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+      {[...(data ?? []), ...growsData].map((grow) => (
+        <GrowCard
+          key={grow.id}
+          {...grow}
+          lastUpdated={grow.lastUpdated.toLocaleString()}
+          image={
+            grow.image ??
+            "https://kzmldmf02xim38b47rcg.lite.vusercontent.net/placeholder.svg?height=400&width=600"
+          }
+        />
+      ))}
     </div>
   );
 }

@@ -3,10 +3,11 @@ import {
   getPlantWithStrain,
   getPlantById,
   updatePlant,
-  createPlant,
 } from "@/lib/db/queries/plants";
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
+import { revalidateTag, unstable_cache } from "next/cache";
+import { createDynamicTag, CacheTags } from "../../tags";
 
 /**
  * GET /api/plants/[id]
@@ -42,57 +43,26 @@ export async function GET(
 
   const { id: plantId } = await params;
 
-  const plant = includeStrain
-    ? await getPlantWithStrain({ plantId })
-    : await getPlantById({ plantId });
+  const getCachedPlant = unstable_cache(
+    async () => {
+      return includeStrain
+        ? await getPlantWithStrain({ plantId })
+        : await getPlantById({ plantId });
+    },
+    [createDynamicTag(CacheTags.plantByUserId, plantId)],
+    {
+      tags: [createDynamicTag(CacheTags.plantByUserId, plantId)],
+      revalidate: 30, // Cache for 30 seconds
+    }
+  );
+
+  const plant = await getCachedPlant();
 
   if (!plant) {
     return new Response("Plant not found", { status: 404 });
   }
 
   return Response.json(plant);
-}
-
-/**
- * POST /api/plants
- * Creates a new plant record.
- * Request body should include: { growId, strainId, customName, stage, startDate, notes, potSize }
- */
-export async function POST(request: Request) {
-  try {
-    const { userId } = await auth();
-    if (!userId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-    const body = await request.json();
-    const { growId, strainId, customName, stage, startDate, notes, potSize } =
-      body;
-
-    if (!growId || !customName || !stage || !startDate) {
-      return NextResponse.json(
-        { error: "Missing required fields" },
-        { status: 400 }
-      );
-    }
-
-    const newPlant = await createPlant({
-      growId,
-      strainId,
-      customName,
-      stage,
-      startDate: new Date(startDate),
-      notes,
-      potSize,
-    });
-
-    return NextResponse.json(newPlant, { status: 201 });
-  } catch (error) {
-    console.error("POST /api/plants error:", error);
-    return NextResponse.json(
-      { error: "Internal Server Error" },
-      { status: 500 }
-    );
-  }
 }
 
 /**
@@ -121,6 +91,13 @@ export async function PATCH(
 
     const body = await request.json();
     const updatedPlant = await updatePlant({ plantId, data: body });
+
+    if (updatedPlant?.growId) {
+      revalidateTag(
+        createDynamicTag(CacheTags.getPlantsByGrowId, updatedPlant.growId)
+      );
+      revalidateTag(createDynamicTag(CacheTags.plantByUserId, plantId));
+    }
 
     return NextResponse.json(updatedPlant, { status: 200 });
   } catch (error) {
@@ -158,6 +135,13 @@ export async function DELETE(
     }
 
     const deletedPlant = await deletePlant({ plantId });
+
+    if (deletedPlant?.growId) {
+      revalidateTag(
+        createDynamicTag(CacheTags.getPlantsByGrowId, deletedPlant.growId)
+      );
+    }
+
     return NextResponse.json(deletedPlant, { status: 200 });
   } catch (error) {
     console.error("DELETE /api/plants error:", error);

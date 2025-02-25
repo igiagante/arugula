@@ -1,12 +1,12 @@
-// app/(products)/api/route.ts
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import {
-  createProduct,
   updateProduct,
   deleteProduct,
   getProductById,
 } from "@/lib/db/queries/products";
+import { revalidateTag, unstable_cache } from "next/cache";
+import { createDynamicTag, CacheTags } from "../../tags";
 
 /**
  * Retrieves a specific product by ID
@@ -27,47 +27,20 @@ export async function GET(
 
   try {
     if (productId) {
-      const singleProduct = await getProductById({ productId });
+      const getCachedProduct = unstable_cache(
+        async () => getProductById({ productId }),
+        [createDynamicTag(CacheTags.productById, productId)],
+        {
+          revalidate: 3600, // Cache for 1 hour
+          tags: [createDynamicTag(CacheTags.productById, productId)],
+        }
+      );
+
+      const singleProduct = await getCachedProduct();
       return NextResponse.json(singleProduct, { status: 200 });
     }
   } catch (error) {
     console.error("GET /api/products error:", error);
-    return NextResponse.json(
-      { error: "Internal Server Error" },
-      { status: 500 }
-    );
-  }
-}
-
-/**
- * Creates a new product
- * @param request - The incoming HTTP request containing product data
- * @returns {Promise<NextResponse>} JSON response with the created product or error
- */
-export async function POST(request: Request) {
-  try {
-    const { userId } = await auth();
-    if (!userId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const data = await request.json();
-
-    // Validate required fields
-    const requiredFields = ["name", "price", "description"];
-    const missingFields = requiredFields.filter((field) => !data[field]);
-
-    if (missingFields.length > 0) {
-      return NextResponse.json(
-        { error: `Missing required fields: ${missingFields.join(", ")}` },
-        { status: 400 }
-      );
-    }
-
-    const newProd = await createProduct(data);
-    return NextResponse.json(newProd, { status: 201 });
-  } catch (error) {
-    console.error("POST /api/products error:", error);
     return NextResponse.json(
       { error: "Internal Server Error" },
       { status: 500 }
@@ -101,6 +74,12 @@ export async function PATCH(
 
     const data = await request.json();
     const updated = await updateProduct({ productId, data });
+
+    if (updated) {
+      revalidateTag(createDynamicTag(CacheTags.productById, productId));
+    }
+    revalidateTag(CacheTags.products);
+
     return NextResponse.json(updated, { status: 200 });
   } catch (error) {
     console.error("PATCH /api/products error:", error);
@@ -136,6 +115,9 @@ export async function DELETE(
       );
     }
     const deleted = await deleteProduct({ productId });
+
+    revalidateTag(CacheTags.products);
+
     return NextResponse.json(deleted, { status: 200 });
   } catch (error) {
     console.error("DELETE /api/products error:", error);

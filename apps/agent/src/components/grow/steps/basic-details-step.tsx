@@ -28,46 +28,50 @@ import {
 } from "@workspace/ui/components/popover";
 import { cn } from "@workspace/ui/lib/utils";
 import { CalendarIcon, Plus } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Indoor } from "@/lib/db/schema";
 import { CreateIndoorModal } from "../indoor/create-indoor-modal";
-import { useAuth } from "@clerk/nextjs";
-import { CreateIndoorDto } from "@/app/actions/indoors";
+
 import { GrowFormValues } from "../schema";
+import { CacheTags } from "@/app/api/tags";
+import { apiRequest } from "@/app/api/client";
+import { useQuery } from "@tanstack/react-query";
+import { toast } from "sonner";
+
 interface BasicDetailsStepProps {
   control: Control<GrowFormValues>;
   growStages: readonly { label: string; value: string }[];
   growingMethods: readonly { label: string; value: string }[];
-  fetchIndoors: ({ userId }: { userId: string }) => Promise<Indoor[]>;
-  createIndoor: (data: CreateIndoorDto) => Promise<Indoor>;
 }
 
 export function BasicDetailsStep({
   control,
   growStages,
   growingMethods,
-  fetchIndoors,
-  createIndoor,
 }: BasicDetailsStepProps) {
   const [createIndoorOpen, setCreateIndoorOpen] = useState(false);
-  const [indoors, setIndoors] = useState<Indoor[]>([]);
-  const { userId } = useAuth();
 
-  const loadIndoors = async () => {
-    const indoorSpaces = await fetchIndoors({ userId: userId || "" });
-    setIndoors(indoorSpaces);
-  };
-
-  useEffect(() => {
-    if (userId) {
-      loadIndoors();
-    }
-  }, [userId]);
+  const {
+    data: indoors,
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: [CacheTags.indoors],
+    queryFn: async () => {
+      return await apiRequest<Indoor[]>("/api/indoors");
+    },
+  });
 
   const handleCreateIndoorSuccess = async () => {
     setCreateIndoorOpen(false);
-    await loadIndoors();
   };
+
+  if (error) {
+    toast.error("Error loading indoor spaces", {
+      description: error.message,
+    });
+    return null;
+  }
 
   return (
     <div className="space-y-6">
@@ -90,12 +94,16 @@ export function BasicDetailsStep({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {indoors.length === 0 ? (
+                      {isLoading ? (
+                        <div className="p-2 text-sm text-muted-foreground text-center">
+                          Loading indoor spaces...
+                        </div>
+                      ) : indoors?.length === 0 ? (
                         <div className="p-2 text-sm text-muted-foreground text-center">
                           No indoor spaces found
                         </div>
                       ) : (
-                        indoors.map((indoor) => (
+                        indoors?.map((indoor) => (
                           <SelectItem key={indoor.id} value={indoor.id}>
                             {indoor.name}
                           </SelectItem>
@@ -121,7 +129,6 @@ export function BasicDetailsStep({
         <CreateIndoorModal
           open={createIndoorOpen}
           onOpenChange={setCreateIndoorOpen}
-          createIndoor={createIndoor}
           onSuccess={handleCreateIndoorSuccess}
         />
         <FormField

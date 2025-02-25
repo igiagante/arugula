@@ -39,8 +39,11 @@ import { Textarea } from "@workspace/ui/components/textarea";
 import { Slider } from "@workspace/ui/components/slider";
 import { CreateIndoorFormValues, createIndoorSchema } from "../schema";
 import { useAuth } from "@clerk/nextjs";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { CreateIndoorDto } from "@/app/api/dto";
 import { Indoor } from "@/lib/db/schema";
-import { CreateIndoorDto } from "@/app/actions/indoors";
+import { apiRequest, HttpMethods } from "@/app/api/client";
+import { CacheTags } from "@/app/api/tags";
 
 const dimensionUnits = [
   { label: "Ft", value: "ft" },
@@ -50,18 +53,32 @@ const dimensionUnits = [
 interface CreateIndoorModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  createIndoor: (data: CreateIndoorDto) => Promise<Indoor>;
   onSuccess: () => Promise<void>;
 }
 
 export function CreateIndoorModal({
   open,
   onOpenChange,
-  createIndoor,
   onSuccess,
 }: CreateIndoorModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { userId } = useAuth();
+  const queryClient = useQueryClient();
+
+  const { mutateAsync: createIndoor } = useMutation({
+    mutationFn: async (newIndoor: CreateIndoorDto) => {
+      return await apiRequest<Indoor, CreateIndoorDto>(
+        "/api/indoors",
+        HttpMethods.POST,
+        {},
+        newIndoor
+      );
+    },
+    onSuccess: () => {
+      // Invalidate and refetch the indoors list
+      queryClient.invalidateQueries({ queryKey: [CacheTags.indoors] });
+    },
+  });
 
   const form = useForm<CreateIndoorFormValues>({
     resolver: zodResolver(createIndoorSchema),
@@ -87,17 +104,6 @@ export function CreateIndoorModal({
       unit: formData.unit,
     };
 
-    // 2. Lighting JSON
-    const lighting = {
-      lampType: formData.lampType,
-      ...(formData.lightIntensity !== undefined && {
-        lightIntensity: formData.lightIntensity,
-      }),
-      ...(formData.lampFanSpeed !== undefined && {
-        lampFanSpeed: formData.lampFanSpeed,
-      }),
-    };
-
     // 3. Images array (optional)
     const images =
       formData.images && formData.images.length > 0 ? formData.images : null;
@@ -106,16 +112,23 @@ export function CreateIndoorModal({
     const notes = formData.notes || null;
 
     // 5. Insert into DB
-    const newIndoor = {
+    const newIndoor: CreateIndoorDto = {
       name: formData.name,
       dimensions,
-      lighting,
       images,
       notes,
       createdBy: userId,
       temperature: null,
       humidity: null,
       co2: null,
+      lamp: {
+        lampType: formData.lampType,
+        lightIntensity: formData.lightIntensity?.toString() || "",
+        fanSpeed: formData.lampFanSpeed?.toString() || "",
+        current: formData.lightIntensity?.toString() || "",
+        voltage: null,
+        power: null,
+      },
     };
 
     return newIndoor;

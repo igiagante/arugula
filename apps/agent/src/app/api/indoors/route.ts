@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { createIndoor, getIndoorsByUserId } from "@/lib/db/queries/indoors";
+import { unstable_cache, revalidateTag } from "next/cache";
+import { createDynamicTag, CacheTags } from "../tags";
+import { createLamp } from "@/lib/db/queries/lamps";
 
 /**
  * GET /api/indoors
@@ -14,7 +17,15 @@ export async function GET() {
   }
 
   try {
-    const indoor = await getIndoorsByUserId({ userId });
+    const indoor = await unstable_cache(
+      async () => getIndoorsByUserId({ userId }),
+      [createDynamicTag(CacheTags.indoorsByUserId, userId)],
+      {
+        revalidate: 3600, // Cache for 1 hour
+        tags: [createDynamicTag(CacheTags.indoorsByUserId, userId)],
+      }
+    )();
+
     if (!indoor) {
       return NextResponse.json(
         { error: "Indoor record not found" },
@@ -47,8 +58,16 @@ export async function POST(request: Request) {
 
     const body = await request.json();
 
-    const { name, dimensions, notes, images, temperature, humidity, co2 } =
-      body;
+    const {
+      name,
+      dimensions,
+      notes,
+      images,
+      temperature,
+      humidity,
+      co2,
+      lamp,
+    } = body;
 
     if (!name) {
       return NextResponse.json({ error: "Name is required" }, { status: 400 });
@@ -64,6 +83,21 @@ export async function POST(request: Request) {
       co2,
       createdBy: userId,
     });
+
+    if (!newIndoor) {
+      return NextResponse.json(
+        { error: "Failed to create indoor" },
+        { status: 500 }
+      );
+    }
+
+    await createLamp({
+      ...lamp,
+      indoorId: newIndoor.id,
+    });
+
+    // Invalidate the cache for this user's indoors
+    revalidateTag(createDynamicTag(CacheTags.indoorsByUserId, userId));
 
     return NextResponse.json(newIndoor, { status: 201 });
   } catch (error) {

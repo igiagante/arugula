@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
-import { getPlantsByGrowId } from "@/lib/db/queries/plants";
+import { createPlant, getPlantsByGrowId } from "@/lib/db/queries/plants";
+import { revalidateTag, unstable_cache } from "next/cache";
+import { CacheTags, createDynamicTag } from "../tags";
 
 /**
  * GET /api/plants?growId=...
@@ -18,7 +20,16 @@ export async function GET(request: Request) {
 
   try {
     if (growId) {
-      const plants = await getPlantsByGrowId({ growId });
+      const getCachedPlants = unstable_cache(
+        async () => getPlantsByGrowId({ growId }),
+        [createDynamicTag(CacheTags.getPlantsByGrowId, growId)],
+        {
+          revalidate: 30, // Cache for 30 seconds
+          tags: [createDynamicTag(CacheTags.getPlantsByGrowId, growId)], // Tag for cache invalidation
+        }
+      );
+
+      const plants = await getCachedPlants();
       return NextResponse.json(plants, { status: 200 });
     } else {
       return NextResponse.json(
@@ -28,6 +39,54 @@ export async function GET(request: Request) {
     }
   } catch (error) {
     console.error("GET /api/plants error:", error);
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 }
+    );
+  }
+}
+
+/**
+ * POST /api/plants
+ * Creates a new plant record.
+ * Request body should include: { growId, strainId, customName, stage, startDate, notes, potSize }
+ */
+export async function POST(request: Request) {
+  try {
+    const { userId } = await auth();
+    if (!userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    const body = await request.json();
+    const { growId, strainId, customName, stage, startDate, notes, potSize } =
+      body;
+
+    if (!growId || !customName || !stage || !startDate) {
+      return NextResponse.json(
+        { error: "Missing required fields" },
+        { status: 400 }
+      );
+    }
+
+    const newPlant = await createPlant({
+      growId,
+      strainId,
+      customName,
+      stage,
+      startDate: new Date(startDate),
+      notes,
+      potSize,
+    });
+
+    if (newPlant) {
+      revalidateTag(createDynamicTag(CacheTags.plantByUserId, newPlant.id));
+    }
+
+    revalidateTag(createDynamicTag(CacheTags.getPlantsByGrowId, growId));
+
+    return NextResponse.json(newPlant, { status: 201 });
+  } catch (error) {
+    console.error("POST /api/plants error:", error);
     return NextResponse.json(
       { error: "Internal Server Error" },
       { status: 500 }

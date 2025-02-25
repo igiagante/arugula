@@ -1,6 +1,8 @@
-import { getTasksByGrowId } from "@/lib/db/queries/tasks";
+import { createTask, getTasksByGrowId } from "@/lib/db/queries/tasks";
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
+import { revalidateTag, unstable_cache } from "next/cache";
+import { CacheTags, createDynamicTag } from "../tags";
 
 /**
  * GET /api/tasks
@@ -24,10 +26,59 @@ export async function GET(request: Request) {
       );
     }
 
-    const tasks = await getTasksByGrowId({ growId });
+    const tasks = await unstable_cache(
+      async () => getTasksByGrowId({ growId }),
+      [createDynamicTag(CacheTags.tasksByGrowId, growId)],
+      {
+        revalidate: 3600, // Cache for 1 hour
+        tags: [createDynamicTag(CacheTags.tasksByGrowId, growId)],
+      }
+    )();
+
     return NextResponse.json(tasks, { status: 200 });
   } catch (error) {
     console.error("GET /api/strains error:", error);
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 }
+    );
+  }
+}
+
+/**
+ * POST /api/tasks
+ * Creates a new task
+ * Required fields:
+ * - taskTypeId: string
+ * - growId: string
+ * Optional fields:
+ * - notes: string
+ * - details: object
+ * - images: string[]
+ */
+export async function POST(request: Request) {
+  try {
+    const { userId } = await auth();
+    if (!userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    const data = await request.json();
+
+    // Validate required fields
+    if (!data.taskTypeId || !data.growId) {
+      return NextResponse.json(
+        { error: "Missing required fields: taskTypeId and growId" },
+        { status: 400 }
+      );
+    }
+
+    const newTask = await createTask({ ...data, userId });
+
+    revalidateTag(createDynamicTag(CacheTags.tasksByGrowId, data.growId));
+
+    return NextResponse.json(newTask, { status: 201 });
+  } catch (error) {
+    console.error("POST /api/tasks error:", error);
     return NextResponse.json(
       { error: "Internal Server Error" },
       { status: 500 }
