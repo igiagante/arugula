@@ -21,9 +21,15 @@ export type HttpMethods = (typeof HttpMethods)[keyof typeof HttpMethods];
  */
 export const apiRequest = async <T, B = undefined>(
   url: string,
-  method: HttpMethods = HttpMethods.GET,
-  queryParams?: Record<string, string>,
-  body?: B
+  {
+    method = HttpMethods.GET,
+    body,
+    queryParams,
+  }: {
+    method?: HttpMethods;
+    body?: B;
+    queryParams?: Record<string, string>;
+  } = {}
 ) => {
   const queryString = new URLSearchParams(queryParams).toString();
   const urlWithQuery = `${url}${queryString ? `?${queryString}` : ""}`;

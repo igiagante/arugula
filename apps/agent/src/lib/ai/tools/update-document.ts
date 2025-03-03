@@ -1,8 +1,8 @@
-import { DataStreamWriter, tool } from "ai";
+import { type DataStreamWriter, tool } from "ai";
 import { z } from "zod";
 import { getDocumentById } from "@/lib/db/queries";
 import { documentHandlersByArtifactKind } from "@/lib/artifacts/server";
-import { User } from "@clerk/nextjs/server";
+import type { User } from "@clerk/nextjs/server";
 
 interface UpdateDocumentProps {
   user: User;

@@ -1,10 +1,9 @@
-import { NextResponse } from "next/server";
+import { createGrow, getGrowsByOrganizationId } from "@/lib/db/queries/grows";
 import { auth } from "@clerk/nextjs/server";
-import { createGrow, getGrowsByUserId } from "@/lib/db/queries/grows";
-import { Grow } from "@/lib/db/schema";
-import { unstable_cache, revalidateTag } from "next/cache";
-import { createDynamicTag, CacheTags } from "../tags";
-import { CreateGrowDto } from "../dto";
+import { revalidateTag, unstable_cache } from "next/cache";
+import { NextResponse } from "next/server";
+import type { CreateGrowDto } from "../dto";
+import { CacheTags, createDynamicTag } from "../tags";
 
 /**
  * GET /api/grows
@@ -13,22 +12,25 @@ import { CreateGrowDto } from "../dto";
 export async function GET(): Promise<NextResponse> {
   const { userId } = await auth();
 
+  // TODO: Remove this once we have a real organization ID
+  const organizationId = "516e3958-1842-4219-bf07-2a515b86df04";
+
   if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   try {
     const getCachedGrows = unstable_cache(
-      async () => getGrowsByUserId({ userId }),
-      [createDynamicTag(CacheTags.growsByUserId, userId)],
+      async () => getGrowsByOrganizationId(organizationId),
+      [createDynamicTag(CacheTags.growsByOrganizationId, organizationId)],
       {
         revalidate: 60, // Cache for 60 seconds
-        tags: [createDynamicTag(CacheTags.growsByUserId, userId)],
+        tags: [createDynamicTag(CacheTags.growsByOrganizationId, userId)],
       }
     );
 
     const grows = await getCachedGrows();
-    console.log("grows", grows);
+
     if (!grows) {
       return NextResponse.json(
         { error: "Grows records not found" },
@@ -62,7 +64,13 @@ export async function POST(request: Request): Promise<NextResponse> {
     const body = (await request.json()) as CreateGrowDto;
 
     // Validate required fields
-    const requiredFields = ["indoorId", "name", "stage", "startDate"] as const;
+    const requiredFields = [
+      "indoorId",
+      "name",
+      "stage",
+      "startDate",
+      "organizationId",
+    ] as const;
     const missingFields = requiredFields.filter((field) => !body[field]);
 
     if (missingFields.length > 0) {
@@ -77,17 +85,29 @@ export async function POST(request: Request): Promise<NextResponse> {
 
     // Validate date format
     const startDate = new Date(body.startDate);
-    if (isNaN(startDate.getTime())) {
+    if (Number.isNaN(startDate.getTime())) {
       return NextResponse.json(
         { error: "Invalid date format for startDate" },
         { status: 400 }
       );
     }
 
-    const newGrow = await createGrow({ ...body, userId } as Grow);
+    const newGrow = await createGrow(
+      {
+        ...body,
+        archived: false,
+        endDate: body.endDate || null,
+        images: body.images || [],
+        growingMethod: body.growingMethod || null,
+        substrateComposition: body.substrateComposition || null,
+        progress: body.progress || null,
+        strainPlants: body.strainPlants || [],
+      },
+      userId
+    );
 
     // Invalidate the cache using revalidateTag
-    revalidateTag(createDynamicTag(CacheTags.growsByUserId, userId));
+    revalidateTag(createDynamicTag(CacheTags.growsByOrganizationId, userId));
 
     return NextResponse.json(newGrow, { status: 201 });
   } catch (error) {

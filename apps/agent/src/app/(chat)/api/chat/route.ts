@@ -19,12 +19,12 @@ import {
   sanitizeResponseMessages,
 } from "@/lib/utils";
 
-import { generateTitleFromUserMessage } from "../../actions";
 import { createDocument } from "@/lib/ai/tools/create-document";
-import { updateDocument } from "@/lib/ai/tools/update-document";
-import { requestSuggestions } from "@/lib/ai/tools/request-suggestions";
 import { getWeather } from "@/lib/ai/tools/get-weather";
+import { requestSuggestions } from "@/lib/ai/tools/request-suggestions";
+import { updateDocument } from "@/lib/ai/tools/update-document";
 import { currentUser } from "@clerk/nextjs/server";
+import { generateTitleFromUserMessage } from "../../actions";
 
 export const maxDuration = 60;
 
@@ -106,7 +106,7 @@ export async function POST(request: Request) {
                 }),
               });
             } catch (error) {
-              console.error("Failed to save chat");
+              console.error("Failed to save chat", error);
             }
           }
         },

@@ -1,6 +1,6 @@
 import { SidebarTrigger } from "@workspace/ui/components/sidebar";
 import { AlignLeftIcon } from "lucide-react";
-import { ReactNode } from "react";
+import type { ReactNode } from "react";
 
 interface ContentLayoutProps {
   title: string;
@@ -25,7 +25,7 @@ export function ContentLayout({
           </div>
           <h1 className="text-lg font-medium tracking-tight">{title}</h1>
           {navigation && (
-            <nav className="flex items-center" role="navigation">
+            <nav className="flex items-center" >
               {navigation}
             </nav>
           )}

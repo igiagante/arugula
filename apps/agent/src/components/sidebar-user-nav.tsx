@@ -16,7 +16,7 @@ import {
   SidebarMenuItem,
 } from "@workspace/ui/components/sidebar";
 import { SignOutButton } from "@clerk/nextjs";
-import { User } from "@/lib/db/schema";
+import type { User } from "@/lib/db/schema";
 
 export function SidebarUserNav({ user }: { user: User }) {
   const { setTheme, theme } = useTheme();

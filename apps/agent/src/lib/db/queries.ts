@@ -4,19 +4,19 @@ import { and, asc, desc, eq, gt, gte, inArray } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 
+import type { ArtifactKind } from "@/components/artifact";
 import {
-  user,
   chat,
-  type User,
   document,
-  type Suggestion,
-  suggestion,
   type Message,
   message,
-  vote,
   organization,
+  type Suggestion,
+  suggestion,
+  user,
+  type User,
+  vote,
 } from "./schema";
-import { ArtifactKind } from "@/components/artifact";
 
 // Optionally, if not using email/pass login, you can
 // use the Drizzle adapter for Auth.js / NextAuth
@@ -25,25 +25,6 @@ import { ArtifactKind } from "@/components/artifact";
 // biome-ignore lint: Forbidden non-null assertion.
 const client = postgres(process.env.POSTGRES_URL!);
 const db = drizzle(client);
-
-export async function getUserById({ id }: { id: string }) {
-  try {
-    const users = await db.select().from(user).where(eq(user.id, id));
-    return users[0];
-  } catch (error) {
-    console.error("Failed to get user by id from database");
-    throw error;
-  }
-}
-
-export async function getUserByEmail(email: string): Promise<Array<User>> {
-  try {
-    return await db.select().from(user).where(eq(user.email, email));
-  } catch (error) {
-    console.error("Failed to get user from database");
-    throw error;
-  }
-}
 
 export async function getOrganizationByDomain({ domain }: { domain: string }) {
   try {
@@ -147,7 +128,7 @@ export async function saveChat({
       id,
       createdAt: new Date(),
       userId,
-      organizationId: "arugula",
+      organizationId,
       title,
     });
   } catch (error) {

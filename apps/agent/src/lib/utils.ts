@@ -6,7 +6,9 @@ import type {
 } from "ai";
 
 import type { Message as DBMessage, Document } from "@/lib/db/schema";
-import { auth } from "@clerk/nextjs/server";
+import { GetObjectCommand } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { getS3BucketName, getS3Client } from "./s3/client";
 
 interface ApplicationError extends Error {
   info: string;
@@ -221,4 +223,44 @@ export function getDocumentTimestampByIndex(
   if (index < 0 || index >= documents.length) return new Date();
 
   return documents[index]?.createdAt ?? new Date();
+}
+
+export async function mapImages<T extends { images: string[] }>(
+  entity: T,
+  forSeed: boolean = false
+): Promise<T & { images: string[] }> {
+  return {
+    ...entity,
+    images: await Promise.all(
+      entity.images.map(async (image) => {
+        try {
+          // Clean the image key first
+          const cleanKey = decodeURIComponent(image);
+
+          const signedUrl = await getSignedUrl(
+            getS3Client(),
+            new GetObjectCommand({
+              Bucket: getS3BucketName(),
+              Key: cleanKey,
+            }),
+            { expiresIn: forSeed ? 60 * 60 * 24 * 60 : 60 * 60 * 24 } // 60 days for seed, 1 day for regular
+          );
+
+          // Ensure the URL is properly formatted
+          const url = new URL(signedUrl);
+          return url.toString();
+        } catch (error) {
+          console.error("Error generating signed URL:", error);
+          return image; // Return original key if URL generation fails
+        }
+      })
+    ),
+  };
+}
+
+export function formatRatio(sativa: number, indica: number): string {
+  if (sativa >= indica) {
+    return `${sativa}% Sativa / ${indica}% Indica`;
+  }
+  return `${indica}% Indica / ${sativa}% Sativa`;
 }

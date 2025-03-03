@@ -1,8 +1,8 @@
 // lib/db/queries/plantQueries.ts
-import postgres from "postgres";
-import { drizzle } from "drizzle-orm/postgres-js";
 import { eq } from "drizzle-orm";
-import { Plant, plant, strain } from "../schema"; // adjust the path as needed
+import { drizzle } from "drizzle-orm/postgres-js";
+import postgres from "postgres";
+import { type Plant, plant, strain } from "../schema"; // adjust the path as needed
 
 // biome-ignore lint: Forbidden non-null assertion.
 const client = postgres(process.env.POSTGRES_URL!);
@@ -26,8 +26,6 @@ export async function createPlant({
   strainId,
   customName,
   stage,
-  startDate,
-  notes,
   potSize,
 }: Omit<Plant, "id" | "archived" | "createdAt" | "updatedAt">) {
   try {
@@ -38,9 +36,7 @@ export async function createPlant({
         strainId,
         customName,
         stage,
-        startDate,
         archived: false,
-        notes,
         potSize,
       })
       .returning();

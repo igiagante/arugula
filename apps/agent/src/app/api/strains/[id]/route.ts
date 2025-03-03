@@ -1,11 +1,11 @@
-import { NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
-import { revalidateTag, unstable_cache } from "next/cache";
 import {
-  updateStrain,
   deleteStrain,
   getStrainById,
+  updateStrain,
 } from "@/lib/db/queries/strains";
+import { auth } from "@clerk/nextjs/server";
+import { revalidateTag, unstable_cache } from "next/cache";
+import { NextResponse } from "next/server";
 import { CacheTags, createDynamicTag } from "../../tags";
 
 /**
@@ -14,7 +14,7 @@ import { CacheTags, createDynamicTag } from "../../tags";
  * Otherwise, returns all strains.
  */
 export async function GET(
-  request: Request,
+  _request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id: strainId } = await params;
@@ -91,7 +91,7 @@ export async function PATCH(
  * Deletes a strain.
  */
 export async function DELETE(
-  request: Request,
+  _request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {

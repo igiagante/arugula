@@ -1,19 +1,19 @@
-import { NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
 import {
   deleteIndoor,
   getIndoorById,
   updateIndoor,
 } from "@/lib/db/queries/indoors";
-import { CacheTags, createDynamicTag } from "../../tags";
+import { auth } from "@clerk/nextjs/server";
 import { revalidateTag, unstable_cache } from "next/cache";
+import { NextResponse } from "next/server";
+import { CacheTags, createDynamicTag } from "../../tags";
 
 /**
  * GET /api/indoors
  * Returns all indoor records created by the specified user.
  */
 export async function GET(
-  request: Request,
+  _request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { userId } = await auth();
@@ -70,23 +70,13 @@ export async function PATCH(
     }
 
     const body = await request.json();
-    const { id, name, dimensions, notes, images, temperature, humidity, co2 } =
-      body;
+    const { name } = body;
 
     if (!name) {
       return NextResponse.json({ error: "Name is required" }, { status: 400 });
     }
 
-    const updatedIndoor = await updateIndoor({
-      id,
-      name,
-      dimensions,
-      notes,
-      images,
-      temperature,
-      humidity,
-      co2,
-    });
+    const updatedIndoor = await updateIndoor(body);
 
     // Invalidate the cache for this user's indoors
     revalidateTag(createDynamicTag(CacheTags.indoorByUserId, userId));
@@ -126,7 +116,7 @@ export async function DELETE(
       );
     }
 
-    const deletedIndoor = await deleteIndoor({ indoorId, userId });
+    const deletedIndoor = await deleteIndoor({ indoorId });
 
     // Invalidate the cache for this user's indoors
     revalidateTag(createDynamicTag(CacheTags.indoorsByUserId, userId));

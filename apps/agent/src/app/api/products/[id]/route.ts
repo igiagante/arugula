@@ -1,21 +1,21 @@
-import { NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
 import {
-  updateProduct,
   deleteProduct,
   getProductById,
+  updateProduct,
 } from "@/lib/db/queries/products";
+import { auth } from "@clerk/nextjs/server";
 import { revalidateTag, unstable_cache } from "next/cache";
-import { createDynamicTag, CacheTags } from "../../tags";
+import { NextResponse } from "next/server";
+import { CacheTags, createDynamicTag } from "../../tags";
 
 /**
  * Retrieves a specific product by ID
- * @param request - The incoming HTTP request
+ * @param _request - The incoming HTTP request
  * @param params - Route parameters containing the product ID
  * @returns {Promise<NextResponse>} JSON response with product data or error
  */
 export async function GET(
-  request: Request,
+  _request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id: productId } = await params;
@@ -92,12 +92,12 @@ export async function PATCH(
 
 /**
  * Deletes a product
- * @param request - The incoming HTTP request
+ * @param _request - The incoming HTTP request
  * @param params - Route parameters containing the product ID
  * @returns {Promise<NextResponse>} JSON response confirming deletion or error
  */
 export async function DELETE(
-  request: Request,
+  _request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {

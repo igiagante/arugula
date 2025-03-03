@@ -16,6 +16,9 @@ import {
   ShareIcon,
   TrashIcon,
 } from "@/components/icons";
+import { useChatVisibility } from "@/hooks/use-chat-visibility";
+import type { Chat, User } from "@/lib/db/schema";
+import { fetcher } from "@/lib/utils";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -31,7 +34,6 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuPortal,
-  DropdownMenuSeparator,
   DropdownMenuSub,
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
@@ -46,9 +48,6 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@workspace/ui/components/sidebar";
-import type { Chat, User } from "@/lib/db/schema";
-import { fetcher } from "@/lib/utils";
-import { useChatVisibility } from "@/hooks/use-chat-visibility";
 
 type GroupedChats = {
   today: Chat[];

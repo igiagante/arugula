@@ -1,21 +1,21 @@
 "use client";
 
+import type { Document } from "@/lib/db/schema";
+import { fetcher } from "@/lib/utils";
 import {
   memo,
-  MouseEvent,
+  type MouseEvent,
   useCallback,
   useEffect,
   useMemo,
   useRef,
 } from "react";
-import { ArtifactKind, UIArtifact } from "./artifact";
-import { FileIcon, FullscreenIcon, ImageIcon, LoaderIcon } from "./icons";
-import { fetcher } from "@/lib/utils";
-import { Document } from "@/lib/db/schema";
-import { InlineDocumentSkeleton } from "./document-skeleton";
 import useSWR from "swr";
-import { Editor } from "./text-editor";
+import type { UIArtifact } from "./artifact";
 import { DocumentToolCall, DocumentToolResult } from "./document";
+import { InlineDocumentSkeleton } from "./document-skeleton";
+import { FileIcon, FullscreenIcon, LoaderIcon } from "./icons";
+import { Editor } from "./text-editor";
 
 import { useArtifact } from "@/hooks/use-artifact";
 import equal from "fast-deep-equal";
@@ -82,7 +82,7 @@ export function DocumentPreview({
   }
 
   if (isDocumentsFetching) {
-    return <LoadingSkeleton artifactKind={result.kind ?? args.kind} />;
+    return <LoadingSkeleton />;
   }
 
   const document: Document | null = previewDocument
@@ -98,7 +98,7 @@ export function DocumentPreview({
         }
       : null;
 
-  if (!document) return <LoadingSkeleton artifactKind={artifact.kind} />;
+  if (!document) return <LoadingSkeleton />;
 
   return (
     <div className="relative w-full cursor-pointer">
@@ -109,7 +109,6 @@ export function DocumentPreview({
       />
       <DocumentHeader
         title={document.title}
-        kind={document.kind}
         isStreaming={artifact.status === "streaming"}
       />
       <DocumentContent document={document} />
@@ -117,7 +116,7 @@ export function DocumentPreview({
   );
 }
 
-const LoadingSkeleton = ({ artifactKind }: { artifactKind: ArtifactKind }) => (
+const LoadingSkeleton = () => (
   <div className="w-full">
     <div className="p-4 border rounded-t-2xl flex flex-row gap-2 items-center justify-between dark:bg-muted h-[57px] dark:border-zinc-700 border-b-0">
       <div className="flex flex-row items-center gap-3">
@@ -196,11 +195,9 @@ const HitboxLayer = memo(PureHitboxLayer, (prevProps, nextProps) => {
 
 const PureDocumentHeader = ({
   title,
-  kind,
   isStreaming,
 }: {
   title: string;
-  kind: ArtifactKind;
   isStreaming: boolean;
 }) => (
   <div className="p-4 border rounded-t-2xl flex flex-row gap-2 items-start sm:items-center justify-between dark:bg-muted border-b-0 dark:border-zinc-700">

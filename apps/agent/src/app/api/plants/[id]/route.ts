@@ -1,13 +1,13 @@
 import {
   deletePlant,
-  getPlantWithStrain,
   getPlantById,
+  getPlantWithStrain,
   updatePlant,
 } from "@/lib/db/queries/plants";
 import { auth } from "@clerk/nextjs/server";
-import { NextResponse } from "next/server";
 import { revalidateTag, unstable_cache } from "next/cache";
-import { createDynamicTag, CacheTags } from "../../tags";
+import { NextResponse } from "next/server";
+import { CacheTags, createDynamicTag } from "../../tags";
 
 /**
  * GET /api/plants/[id]

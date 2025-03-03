@@ -1,10 +1,10 @@
-import { ArtifactKind } from "@/components/artifact";
+import type { ArtifactKind } from "@/components/artifact";
 import {
   deleteDocumentsByIdAfterTimestamp,
   getDocumentsById,
   saveDocument,
 } from "@/lib/db/queries";
-import { auth, currentUser } from "@clerk/nextjs/server";
+import { currentUser } from "@clerk/nextjs/server";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);

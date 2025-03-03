@@ -1,9 +1,9 @@
 import { textDocumentHandler } from "@/artifacts/text/server";
-import { ArtifactKind } from "@/components/artifact";
-import { DataStreamWriter } from "ai";
-import { Document } from "../db/schema";
+import type { ArtifactKind } from "@/components/artifact";
+import type { DataStreamWriter } from "ai";
+import type { Document } from "../db/schema";
 import { saveDocument } from "../db/queries";
-import { User } from "@clerk/nextjs/server";
+import type { User } from "@clerk/nextjs/server";
 
 export interface SaveDocumentProps {
   id: string;

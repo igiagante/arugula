@@ -1,6 +1,6 @@
 'use client';
 
-import { Button, ButtonProps } from '@workspace/ui/components/button';
+import { Button, type ButtonProps } from '@workspace/ui/components/button';
 import { useSidebar } from '@workspace/ui/components/sidebar';
 import { PlusIcon } from 'lucide-react';
 

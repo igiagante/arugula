@@ -1,48 +1,43 @@
 // app/(grows)/api/route.ts
-import { NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
 import {
   deleteGrow,
   getGrowByIdAndUser,
   updateGrow,
 } from "@/lib/db/queries/grows"; // adjust path as needed
+import { auth } from "@clerk/nextjs/server";
+import { revalidateTag } from "next/cache";
+import { NextResponse } from "next/server";
 import { CacheTags, createDynamicTag } from "../../tags";
-import { revalidateTag, unstable_cache } from "next/cache";
 
 /**
  * GET /api/grows/[id]
  * Returns the grow cycle with the specified ID.
  */
 export async function GET(
-  request: Request,
+  _request: Request,
   { params }: { params: Promise<{ id: string }> }
 ): Promise<NextResponse> {
-  const { userId } = await auth();
-  const { id: growId } = await params;
-
-  if (!userId) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
   try {
-    const getCachedGrow = unstable_cache(
-      async () => getGrowByIdAndUser({ userId, growId }),
-      [createDynamicTag(CacheTags.growByUserId, userId)],
-      {
-        tags: [createDynamicTag(CacheTags.growsByUserId, userId)],
-        revalidate: 3600, // Cache for 1 hour
-      }
-    );
+    const { id: growId } = await params;
+    const { userId } = await auth();
 
-    const grow = await getCachedGrow();
-    return NextResponse.json(grow, { status: 200 });
+    if (!userId) {
+      return new NextResponse("Unauthorized", { status: 401 });
+    }
+
+    const grow = await getGrowByIdAndUser({
+      growId,
+      userId,
+    });
+
+    if (!grow) {
+      return new NextResponse("Not found", { status: 404 });
+    }
+
+    return NextResponse.json(grow);
   } catch (error) {
-    console.error("GET /api/grows/[id] error:", error);
-
-    return NextResponse.json(
-      { error: "Internal Server Error" },
-      { status: 500 }
-    );
+    console.error("[GROW_GET]", error);
+    return new NextResponse("Internal error", { status: 500 });
   }
 }
 
@@ -56,29 +51,31 @@ export async function PATCH(
 ): Promise<NextResponse> {
   try {
     const { userId } = await auth();
+    const { id: growId } = await params;
 
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { id: growId } = await params;
+    const data = await request.json();
 
-    if (!growId) {
-      return NextResponse.json(
-        { error: "growId query parameter is missing" },
-        { status: 400 }
-      );
-    }
+    // Ensure dates are properly handled
+    const cleanData = {
+      ...data,
+      id: growId,
+      updatedAt: new Date(),
+      startDate: data.startDate ? new Date(data.startDate) : undefined,
+      endDate: data.endDate ? new Date(data.endDate) : undefined,
+    };
 
-    const body = await request.json();
-    const updatedGrow = await updateGrow({ growId, userId, ...body });
+    const updatedGrow = await updateGrow(cleanData);
 
     // Invalidate the cache using revalidateTag
-    revalidateTag(createDynamicTag(CacheTags.growsByUserId, userId));
+    revalidateTag(createDynamicTag(CacheTags.growsByOrganizationId, userId));
 
     return NextResponse.json(updatedGrow, { status: 200 });
   } catch (error) {
-    console.error("PATCH /api/grows error:", error);
+    console.error("PATCH /api/grows/[id] error:", error);
     return NextResponse.json(
       { error: "Internal Server Error" },
       { status: 500 }
@@ -91,7 +88,7 @@ export async function PATCH(
  * Deletes (or archives) a grow cycle.
  */
 export async function DELETE(
-  request: Request,
+  _request: Request,
   { params }: { params: Promise<{ id: string }> }
 ): Promise<NextResponse> {
   try {
@@ -109,10 +106,10 @@ export async function DELETE(
       );
     }
 
-    const deletedGrow = await deleteGrow({ growId, userId });
+    const deletedGrow = await deleteGrow({ growId });
 
     // Invalidate the cache using revalidateTag
-    revalidateTag(createDynamicTag(CacheTags.growsByUserId, userId));
+    revalidateTag(createDynamicTag(CacheTags.growsByOrganizationId, userId));
 
     return NextResponse.json(deletedGrow, { status: 200 });
   } catch (error) {

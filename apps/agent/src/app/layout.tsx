@@ -3,16 +3,14 @@ import { Toaster } from "sonner";
 
 import { ThemeProvider } from "@/components/theme-provider";
 
-import "./globals.css";
+import { AppSidebar } from "@/components/app-sidebar";
 import { ClerkProvider } from "@clerk/nextjs";
 import { SidebarProvider } from "@workspace/ui/components/sidebar";
-import { currentUser } from "@clerk/nextjs/server";
 import { cookies } from "next/headers";
-import { AppSidebar } from "@/components/app-sidebar";
+import "./globals.css";
 
-import { redirect } from "next/navigation";
-import ChatContainer from "./(chat)/chat";
 import { Separator } from "@workspace/ui/components/separator";
+import ChatContainer from "./(chat)/chat";
 import { Providers } from "./providers";
 
 export const metadata: Metadata = {
@@ -50,12 +48,8 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const [user, cookieStore] = await Promise.all([currentUser(), cookies()]);
+  const [cookieStore] = await Promise.all([cookies()]);
   const isCollapsed = cookieStore.get("sidebar:state")?.value !== "true";
-
-  if (!user) {
-    redirect("/sign-in");
-  }
 
   return (
     <ClerkProvider>
@@ -85,10 +79,10 @@ export default async function RootLayout({
               <Toaster position="top-center" />
               <SidebarProvider defaultOpen={!isCollapsed}>
                 <div className="flex w-full">
-                  {user && <AppSidebar className="lg:w-64 shrink-0" />}
+                  <AppSidebar className="lg:w-64 shrink-0" />
                   <main className="flex-1">{children}</main>
                   <Separator orientation="vertical" className="h-full" />
-                  {user && <ChatContainer className="lg:w-64 shrink-0" />}
+                  <ChatContainer className="lg:w-64 shrink-0" />
                 </div>
               </SidebarProvider>
             </ThemeProvider>

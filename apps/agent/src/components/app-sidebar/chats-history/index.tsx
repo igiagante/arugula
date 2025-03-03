@@ -2,7 +2,7 @@
 
 import { isToday, isYesterday, subMonths, subWeeks } from "date-fns";
 import { useParams, usePathname, useRouter } from "next/navigation";
-import { CSSProperties, useEffect, useState } from "react";
+import { type CSSProperties, useEffect, useState } from "react";
 import { toast } from "sonner";
 import useSWR from "swr";
 

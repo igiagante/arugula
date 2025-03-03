@@ -1,9 +1,8 @@
-// app/(tasks)/api/route.ts
-import { NextResponse } from "next/server";
+import { deleteTask, getTaskById, updateTask } from "@/lib/db/queries/tasks";
 import { auth } from "@clerk/nextjs/server";
-import { updateTask, deleteTask, getTaskById } from "@/lib/db/queries/tasks";
 import { revalidateTag, unstable_cache } from "next/cache";
-import { createDynamicTag, CacheTags } from "../../tags";
+import { NextResponse } from "next/server";
+import { CacheTags, createDynamicTag } from "../../tags";
 
 /**
  * GET /api/tasks/[id]
@@ -11,7 +10,7 @@ import { createDynamicTag, CacheTags } from "../../tags";
  * Otherwise, returns all tasks.
  */
 export async function GET(
-  request: Request,
+  _request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id: taskId } = await params;
@@ -34,7 +33,7 @@ export async function GET(
       return NextResponse.json(taskRecord, { status: 200 });
     }
   } catch (error) {
-    console.error("GET /api/strains error:", error);
+    console.error("GET /api/tasks/[id] error:", error);
     return NextResponse.json(
       { error: "Internal Server Error" },
       { status: 500 }
@@ -89,7 +88,7 @@ export async function PATCH(
  * Deletes a task
  */
 export async function DELETE(
-  request: Request,
+  _request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {

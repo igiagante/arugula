@@ -1,5 +1,5 @@
 {
-  "id": "a2bdd132-3367-4105-bdb3-28dd15fca343",
+  "id": "fc88ce04-cc57-4533-9f8f-04e40554ad29",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -179,8 +179,8 @@
           "primaryKey": false,
           "notNull": true
         },
-        "userId": {
-          "name": "userId",
+        "organizationId": {
+          "name": "organizationId",
           "type": "text",
           "primaryKey": false,
           "notNull": true
@@ -230,10 +230,16 @@
         },
         "potSize": {
           "name": "potSize",
-          "type": "jsonb",
+          "type": "numeric(5, 2)",
           "primaryKey": false,
-          "notNull": true,
-          "default": "'{\"size\":0,\"unit\":\"L\"}'::jsonb"
+          "notNull": false
+        },
+        "potSizeUnit": {
+          "name": "potSizeUnit",
+          "type": "varchar(10)",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'L'"
         },
         "growingMethod": {
           "name": "growingMethod",
@@ -243,7 +249,7 @@
         },
         "images": {
           "name": "images",
-          "type": "jsonb",
+          "type": "text[]",
           "primaryKey": false,
           "notNull": false
         },
@@ -262,7 +268,23 @@
           "default": "now()"
         }
       },
-      "indexes": {},
+      "indexes": {
+        "grow_organizationId_idx": {
+          "name": "grow_organizationId_idx",
+          "columns": [
+            {
+              "expression": "organizationId",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
       "foreignKeys": {
         "Grow_indoorId_Indoor_id_fk": {
           "name": "Grow_indoorId_Indoor_id_fk",
@@ -277,9 +299,126 @@
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
-        "Grow_userId_User_id_fk": {
-          "name": "Grow_userId_User_id_fk",
+        "Grow_organizationId_Organization_id_fk": {
+          "name": "Grow_organizationId_Organization_id_fk",
           "tableFrom": "Grow",
+          "tableTo": "Organization",
+          "columnsFrom": [
+            "organizationId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.GrowCollaborator": {
+      "name": "GrowCollaborator",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "growId": {
+          "name": "growId",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "userId": {
+          "name": "userId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "role": {
+          "name": "role",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "archived": {
+          "name": "archived",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updatedAt": {
+          "name": "updatedAt",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "growCollaborator_userId_idx": {
+          "name": "growCollaborator_userId_idx",
+          "columns": [
+            {
+              "expression": "userId",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "growCollaborator_growId_idx": {
+          "name": "growCollaborator_growId_idx",
+          "columns": [
+            {
+              "expression": "growId",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "GrowCollaborator_growId_Grow_id_fk": {
+          "name": "GrowCollaborator_growId_Grow_id_fk",
+          "tableFrom": "GrowCollaborator",
+          "tableTo": "Grow",
+          "columnsFrom": [
+            "growId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "GrowCollaborator_userId_User_id_fk": {
+          "name": "GrowCollaborator_userId_User_id_fk",
+          "tableFrom": "GrowCollaborator",
           "tableTo": "User",
           "columnsFrom": [
             "userId"
@@ -292,7 +431,16 @@
         }
       },
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
+      "uniqueConstraints": {
+        "GrowCollaborator_userId_growId_unique": {
+          "name": "GrowCollaborator_userId_growId_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "userId",
+            "growId"
+          ]
+        }
+      },
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false
@@ -314,11 +462,30 @@
           "primaryKey": false,
           "notNull": true
         },
-        "dimensions": {
-          "name": "dimensions",
-          "type": "jsonb",
+        "height": {
+          "name": "height",
+          "type": "numeric(5, 2)",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
+        },
+        "width": {
+          "name": "width",
+          "type": "numeric(5, 2)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "length": {
+          "name": "length",
+          "type": "numeric(5, 2)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "dimensionUnit": {
+          "name": "dimensionUnit",
+          "type": "varchar(10)",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'cm'"
         },
         "temperature": {
           "name": "temperature",
@@ -340,7 +507,7 @@
         },
         "images": {
           "name": "images",
-          "type": "jsonb",
+          "type": "text[]",
           "primaryKey": false,
           "notNull": false
         },
@@ -379,85 +546,6 @@
           "tableTo": "User",
           "columnsFrom": [
             "createdBy"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "restrict",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "public.IndoorCollaborator": {
-      "name": "IndoorCollaborator",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true,
-          "default": "gen_random_uuid()"
-        },
-        "indoorId": {
-          "name": "indoorId",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "userId": {
-          "name": "userId",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "role": {
-          "name": "role",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "createdAt": {
-          "name": "createdAt",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "updatedAt": {
-          "name": "updatedAt",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {
-        "IndoorCollaborator_indoorId_Indoor_id_fk": {
-          "name": "IndoorCollaborator_indoorId_Indoor_id_fk",
-          "tableFrom": "IndoorCollaborator",
-          "tableTo": "Indoor",
-          "columnsFrom": [
-            "indoorId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        },
-        "IndoorCollaborator_userId_User_id_fk": {
-          "name": "IndoorCollaborator_userId_User_id_fk",
-          "tableFrom": "IndoorCollaborator",
-          "tableTo": "User",
-          "columnsFrom": [
-            "userId"
           ],
           "columnsTo": [
             "id"
@@ -701,12 +789,6 @@
           "notNull": false,
           "default": "'seedling'"
         },
-        "startDate": {
-          "name": "startDate",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": false
-        },
         "archived": {
           "name": "archived",
           "type": "boolean",
@@ -714,18 +796,24 @@
           "notNull": true,
           "default": false
         },
-        "notes": {
-          "name": "notes",
-          "type": "text",
+        "potSize": {
+          "name": "potSize",
+          "type": "numeric(5, 2)",
           "primaryKey": false,
           "notNull": false
         },
-        "potSize": {
-          "name": "potSize",
-          "type": "jsonb",
+        "potSizeUnit": {
+          "name": "potSizeUnit",
+          "type": "varchar(10)",
           "primaryKey": false,
-          "notNull": true,
-          "default": "'{\"size\":0,\"unit\":\"L\"}'::jsonb"
+          "notNull": false,
+          "default": "'L'"
+        },
+        "harvestedAt": {
+          "name": "harvestedAt",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
         },
         "createdAt": {
           "name": "createdAt",
@@ -802,7 +890,7 @@
         },
         "images": {
           "name": "images",
-          "type": "jsonb",
+          "type": "text[]",
           "primaryKey": false,
           "notNull": false
         },
@@ -989,11 +1077,11 @@
           "primaryKey": false,
           "notNull": true
         },
-        "breeder": {
-          "name": "breeder",
+        "type": {
+          "name": "type",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true
         },
         "genotype": {
           "name": "genotype",
@@ -1001,14 +1089,20 @@
           "primaryKey": false,
           "notNull": false
         },
-        "ratio": {
-          "name": "ratio",
+        "breeder": {
+          "name": "breeder",
           "type": "text",
           "primaryKey": false,
           "notNull": false
         },
         "floweringType": {
           "name": "floweringType",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "ratio": {
+          "name": "ratio",
           "type": "text",
           "primaryKey": false,
           "notNull": false
@@ -1031,6 +1125,12 @@
           "primaryKey": false,
           "notNull": false
         },
+        "indoorHeight": {
+          "name": "indoorHeight",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
         "outdoorHeight": {
           "name": "outdoorHeight",
           "type": "text",
@@ -1043,38 +1143,14 @@
           "primaryKey": false,
           "notNull": false
         },
-        "harvestMonthOutdoor": {
-          "name": "harvestMonthOutdoor",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
         "cannabinoidProfile": {
           "name": "cannabinoidProfile",
           "type": "jsonb",
           "primaryKey": false,
           "notNull": false
         },
-        "resistance": {
-          "name": "resistance",
-          "type": "jsonb",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "optimalConditions": {
-          "name": "optimalConditions",
-          "type": "jsonb",
-          "primaryKey": false,
-          "notNull": false
-        },
         "terpeneProfile": {
           "name": "terpeneProfile",
-          "type": "jsonb",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "difficulty": {
-          "name": "difficulty",
           "type": "text",
           "primaryKey": false,
           "notNull": false
@@ -1091,19 +1167,11 @@
           "primaryKey": false,
           "notNull": false
         },
-        "createdAt": {
-          "name": "createdAt",
-          "type": "timestamp with time zone",
+        "images": {
+          "name": "images",
+          "type": "text[]",
           "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "updatedAt": {
-          "name": "updatedAt",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
+          "notNull": false
         }
       },
       "indexes": {},
@@ -1262,7 +1330,7 @@
         },
         "images": {
           "name": "images",
-          "type": "jsonb",
+          "type": "text[]",
           "primaryKey": false,
           "notNull": false
         },
@@ -1560,6 +1628,12 @@
           "primaryKey": false,
           "notNull": true,
           "default": "''"
+        },
+        "preferences": {
+          "name": "preferences",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
         }
       },
       "indexes": {},

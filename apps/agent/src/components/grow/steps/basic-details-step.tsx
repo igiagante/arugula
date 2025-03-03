@@ -1,18 +1,24 @@
 "use client";
 
 import {
+  FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
-  FormControl,
   FormMessage,
-  FormDescription,
 } from "@workspace/ui/components/form";
 
 import { Input } from "@workspace/ui/components/input";
 
-import { Control } from "react-hook-form";
+import type { Indoor } from "@/lib/db/schema";
+import { Button } from "@workspace/ui/components/button";
 import { Calendar } from "@workspace/ui/components/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@workspace/ui/components/popover";
 import {
   Select,
   SelectContent,
@@ -20,41 +26,40 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui/components/select";
-import { Button } from "@workspace/ui/components/button";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@workspace/ui/components/popover";
 import { cn } from "@workspace/ui/lib/utils";
 import { CalendarIcon, Plus } from "lucide-react";
 import { useState } from "react";
-import { Indoor } from "@/lib/db/schema";
+import type { Control, UseFormSetValue } from "react-hook-form";
 import { CreateIndoorModal } from "../indoor/create-indoor-modal";
 
-import { GrowFormValues } from "../schema";
-import { CacheTags } from "@/app/api/tags";
 import { apiRequest } from "@/app/api/client";
+import { CacheTags } from "@/app/api/tags";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
+import type { GrowFormValues } from "../schema";
 
 interface BasicDetailsStepProps {
   control: Control<GrowFormValues>;
   growStages: readonly { label: string; value: string }[];
   growingMethods: readonly { label: string; value: string }[];
+  setValue: UseFormSetValue<GrowFormValues>;
 }
 
 export function BasicDetailsStep({
   control,
   growStages,
   growingMethods,
+  setValue,
 }: BasicDetailsStepProps) {
   const [createIndoorOpen, setCreateIndoorOpen] = useState(false);
+  const [startDateOpen, setStartDateOpen] = useState(false);
+  const [endDateOpen, setEndDateOpen] = useState(false);
 
   const {
     data: indoors,
     isLoading,
     error,
+    refetch,
   } = useQuery({
     queryKey: [CacheTags.indoors],
     queryFn: async () => {
@@ -62,7 +67,12 @@ export function BasicDetailsStep({
     },
   });
 
-  const handleCreateIndoorSuccess = async () => {
+  const handleCreateIndoorSuccess = async (id: string) => {
+    await refetch();
+    // Set the newly created indoor as the selected value
+    setValue("indoorId", id, {
+      shouldValidate: false, // Change this to false to prevent validation
+    });
     setCreateIndoorOpen(false);
   };
 
@@ -207,7 +217,7 @@ export function BasicDetailsStep({
             render={({ field }) => (
               <FormItem className="flex flex-col">
                 <FormLabel>Start Date</FormLabel>
-                <Popover>
+                <Popover open={startDateOpen} onOpenChange={setStartDateOpen}>
                   <PopoverTrigger asChild>
                     <FormControl>
                       <Button
@@ -230,7 +240,10 @@ export function BasicDetailsStep({
                     <Calendar
                       mode="single"
                       selected={field.value}
-                      onSelect={field.onChange}
+                      onSelect={(date) => {
+                        field.onChange(date);
+                        setStartDateOpen(false);
+                      }}
                       disabled={(date) =>
                         date > new Date() || date < new Date("1900-01-01")
                       }
@@ -248,7 +261,7 @@ export function BasicDetailsStep({
             render={({ field }) => (
               <FormItem className="flex flex-col">
                 <FormLabel>Expected End Date</FormLabel>
-                <Popover>
+                <Popover open={endDateOpen} onOpenChange={setEndDateOpen}>
                   <PopoverTrigger asChild>
                     <FormControl>
                       <Button
@@ -271,7 +284,10 @@ export function BasicDetailsStep({
                     <Calendar
                       mode="single"
                       selected={field.value}
-                      onSelect={field.onChange}
+                      onSelect={(date) => {
+                        field.onChange(date);
+                        setEndDateOpen(false);
+                      }}
                       disabled={(date) => date < new Date()}
                       initialFocus
                     />

@@ -1,7 +1,7 @@
 import postgres from "postgres";
 import { drizzle } from "drizzle-orm/postgres-js";
 import { eq } from "drizzle-orm";
-import { Product, product } from "@/lib/db/schema";
+import { type Product, product } from "@/lib/db/schema";
 // biome-ignore lint: Forbidden non-null assertion.
 const client = postgres(process.env.POSTGRES_URL!);
 const db = drizzle(client);

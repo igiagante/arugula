@@ -1,7 +1,7 @@
-import postgres from "postgres";
+import { and, eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
-import { eq, or, and } from "drizzle-orm";
-import { Indoor, indoor, indoorCollaborator } from "../schema";
+import postgres from "postgres";
+import { type Indoor, indoor } from "../schema";
 
 // biome-ignore lint: Forbidden non-null assertion.
 const client = postgres(process.env.POSTGRES_URL!);
@@ -10,21 +10,27 @@ const db = drizzle(client);
 /**
  * CREATE an indoor environment.
  *
- * @param userId - Clerk user ID (text) who is creating it
- * @param name   - Name/title of the indoor
- * @param location - Location of the indoor
- * @param dimensions - Dimensions of the indoor
- * @param lighting - Lighting of the indoor
- * @param ventilation - Ventilation of the indoor
- * @param recommendedConditions - Recommended conditions for the indoor
+ * @param name - Name/title of the indoor
+ * @param length - Length of the indoor space
+ * @param width - Width of the indoor space
+ * @param height - Height of the indoor space
+ * @param dimensionUnit - Unit of measurement for dimensions (e.g., 'ft', 'm')
+ * @param temperature - Temperature setting for the indoor environment
+ * @param humidity - Humidity level for the indoor environment
+ * @param co2 - CO2 level for the indoor environment
+ * @param createdBy - Clerk user ID (text) who is creating it
  * @returns The newly inserted indoor record
  */
 export async function createIndoor({
   name,
-  dimensions,
+  length,
+  width,
+  height,
+  dimensionUnit,
   temperature,
   humidity,
   co2,
+  images,
   createdBy,
 }: Omit<Indoor, "id" | "createdAt" | "updatedAt" | "archived">) {
   try {
@@ -33,10 +39,14 @@ export async function createIndoor({
       .insert(indoor)
       .values({
         name,
-        dimensions,
+        length,
+        width,
+        height,
+        dimensionUnit,
         temperature,
         humidity,
         co2,
+        images,
         createdBy, // references a text user ID from Clerk
       })
       .returning(); // get the inserted row back
@@ -49,22 +59,26 @@ export async function createIndoor({
 }
 
 /**
- * UPDATE an indoor environment (e.g., rename it).
+ * UPDATE an indoor environment.
  *
- * @param indoorId - The indoor's UUID
- * @param userId   - The user performing the update (for optional ownership check)
- * @param name     - New name for the indoor
- * @param location - New location for the indoor
- * @param dimensions - New dimensions for the indoor
- * @param lighting - New lighting for the indoor
- * @param ventilation - New ventilation for the indoor
- * @param recommendedConditions - New recommended conditions for the indoor
+ * @param id - The indoor's UUID
+ * @param name - New name for the indoor
+ * @param length - New length of the indoor space
+ * @param width - New width of the indoor space
+ * @param height - New height of the indoor space
+ * @param dimensionUnit - New unit of measurement for dimensions (e.g., 'ft', 'm')
+ * @param temperature - New temperature setting for the indoor environment
+ * @param humidity - New humidity level for the indoor environment
+ * @param co2 - New CO2 level for the indoor environment
  * @returns The updated indoor record
  */
 export async function updateIndoor({
   id,
   name,
-  dimensions,
+  length,
+  width,
+  height,
+  dimensionUnit,
   temperature,
   humidity,
   co2,
@@ -77,7 +91,10 @@ export async function updateIndoor({
       .update(indoor)
       .set({
         name,
-        dimensions,
+        length,
+        width,
+        height,
+        dimensionUnit,
         temperature,
         humidity,
         co2,
@@ -97,19 +114,11 @@ export async function updateIndoor({
  * DELETE an indoor environment entirely.
  *
  * @param indoorId - The indoor's UUID to delete
- * @param userId   - The user performing the delete (for optional ownership check)
  * @returns The deleted indoor record
  */
-export async function deleteIndoor({
-  indoorId,
-  userId,
-}: {
-  indoorId: string;
-  userId: string;
-}) {
+export async function deleteIndoor({ indoorId }: { indoorId: string }) {
   try {
     // If you need to ensure the user is the owner, do something like:
-    // .where(and(eq(Indoor.id, indoorId), eq(Indoor.createdBy, userId)))
     const [deletedIndoor] = await db
       .delete(indoor)
       .where(eq(indoor.id, indoorId))
@@ -155,21 +164,14 @@ export async function getIndoorsWithMyCollaboration({
   userId: string;
 }) {
   try {
-    // Using a LEFT JOIN on IndoorCollaborator to include collaborations
     const results = await db
       .select({
         indoorId: indoor.id,
         name: indoor.name,
         createdBy: indoor.createdBy,
-        collaboratorId: indoorCollaborator.id,
-        collaboratorUserId: indoorCollaborator.userId,
-        role: indoorCollaborator.role,
       })
       .from(indoor)
-      .leftJoin(indoorCollaborator, eq(indoor.id, indoorCollaborator.indoorId))
-      .where(
-        or(eq(indoor.createdBy, userId), eq(indoorCollaborator.userId, userId))
-      );
+      .where(eq(indoor.createdBy, userId));
 
     return results;
   } catch (error) {

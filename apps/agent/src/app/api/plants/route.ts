@@ -1,7 +1,7 @@
-import { NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
 import { createPlant, getPlantsByGrowId } from "@/lib/db/queries/plants";
+import { auth } from "@clerk/nextjs/server";
 import { revalidateTag, unstable_cache } from "next/cache";
+import { NextResponse } from "next/server";
 import { CacheTags, createDynamicTag } from "../tags";
 
 /**
@@ -49,7 +49,7 @@ export async function GET(request: Request) {
 /**
  * POST /api/plants
  * Creates a new plant record.
- * Request body should include: { growId, strainId, customName, stage, startDate, notes, potSize }
+ * Request body should include: { growId, strainId, customName, stage, startDate, notes, potSize, potSizeUnit }
  */
 export async function POST(request: Request) {
   try {
@@ -58,8 +58,16 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
     const body = await request.json();
-    const { growId, strainId, customName, stage, startDate, notes, potSize } =
-      body;
+    const {
+      growId,
+      strainId,
+      customName,
+      stage,
+      startDate,
+      notes,
+      potSize,
+      potSizeUnit,
+    } = body;
 
     if (!growId || !customName || !stage || !startDate) {
       return NextResponse.json(
@@ -73,9 +81,9 @@ export async function POST(request: Request) {
       strainId,
       customName,
       stage,
-      startDate: new Date(startDate),
-      notes,
       potSize,
+      potSizeUnit,
+      harvestedAt: null,
     });
 
     if (newPlant) {

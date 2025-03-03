@@ -1,12 +1,12 @@
 import { generateUUID } from "@/lib/utils";
-import { DataStreamWriter, tool } from "ai";
+import { type DataStreamWriter, tool } from "ai";
 import { z } from "zod";
 
 import {
   artifactKinds,
   documentHandlersByArtifactKind,
 } from "@/lib/artifacts/server";
-import { User } from "@clerk/nextjs/server";
+import type { User } from "@clerk/nextjs/server";
 interface CreateDocumentProps {
   user: User;
   dataStream: DataStreamWriter;

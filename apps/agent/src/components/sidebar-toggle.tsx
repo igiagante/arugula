@@ -1,21 +1,14 @@
-import type { ComponentProps } from "react";
-
-import {
-  type SidebarTrigger,
-  useSidebar,
-} from "@workspace/ui/components/sidebar";
+import { useSidebar } from "@workspace/ui/components/sidebar";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@workspace/ui/components/tooltip";
 
-import { SidebarLeftIcon } from "./icons";
 import { Button } from "@workspace/ui/components/button";
+import { SidebarLeftIcon } from "./icons";
 
-export function SidebarToggle({
-  className,
-}: ComponentProps<typeof SidebarTrigger>) {
+export function SidebarToggle() {
   const { toggleSidebar } = useSidebar();
 
   return (

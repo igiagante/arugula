@@ -1,21 +1,19 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useWindowSize } from "usehooks-ts";
 
 import { ModelSelector } from "@/components/model-selector";
-import { SidebarToggle } from "@/components/sidebar-toggle";
 import { Button } from "@workspace/ui/components/button";
-import { PlusIcon } from "./icons";
 import { useSidebar } from "@workspace/ui/components/sidebar";
-import { memo } from "react";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@workspace/ui/components/tooltip";
-import { VisibilityType, VisibilitySelector } from "./visibility-selector";
+import { memo } from "react";
+import { PlusIcon } from "./icons";
+import { VisibilitySelector, type VisibilityType } from "./visibility-selector";
 
 function PureChatHeader({
   chatId,

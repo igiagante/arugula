@@ -2,6 +2,7 @@ import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
+  SidebarGroup,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
@@ -10,72 +11,64 @@ import {
   SidebarSeparator,
   SidebarTrigger,
 } from "@workspace/ui/components/sidebar";
+import { CalendarDays, Leaf, Package, Sprout } from "lucide-react";
 import Link from "next/link";
-import { ComponentProps } from "react";
+import type { ComponentProps } from "react";
 import { SidebarLeftIcon } from "../icons";
+import { OrganizationSidebar } from "../organization/organization-sidebar";
 import { ChatsHistory } from "./chats-history";
-import { Navigation } from "./navigation";
-import { NewChatButton } from "./new-chat-button";
+import { SideBarAdmin } from "./side-bar-admin";
 import { UserIndicator } from "./user-indicator";
-import { CalendarDays, Home, Leaf, Package, Sprout } from "lucide-react";
 
 export async function AppSidebar(props: ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar collapsible="icon" {...props}>
-      <SidebarHeader>
-        <SidebarMenu className="gap-2">
+      <SidebarHeader className="p-4">
+        <SidebarMenu className="gap-2 mb-2">
           <Link href="/" className="flex items-center gap-2">
-            <Leaf className="size-6 text-emerald-600" />
-            <span className="font-semibold">GrowTracker</span>
+            <Leaf className="size-6 text-emerald-600 shrink-0 flex items-center justify-center" />
+            <span className="font-semibold group-data-[collapsible=icon]:hidden">
+              GrowTracker
+            </span>
           </Link>
         </SidebarMenu>
         <SidebarMenu className="gap-2">
-          <Link href="/" passHref>
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="New Chat">
-                <NewChatButton />
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          </Link>
-          <Navigation />
+          <OrganizationSidebar />
+        </SidebarMenu>
+        <SidebarMenu className="gap-2">
+          <SideBarAdmin />
         </SidebarMenu>
       </SidebarHeader>
       <SidebarSeparator className="group-data-[collapsible=icon]:hidden" />
       <SidebarContent className="mt-2">
-        <SidebarMenu className="flex flex-col gap-2 px-2">
-          <SidebarMenuItem>
-            <SidebarMenuButton asChild>
-              <Link href="/dashboard">
-                <Home />
-                <span>Dashboard</span>
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-          <SidebarMenuItem>
-            <SidebarMenuButton asChild>
-              <Link href="/grows">
-                <Sprout />
-                <span>Active Grows</span>
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-          <SidebarMenuItem>
-            <SidebarMenuButton asChild>
-              <Link href="/calendar">
-                <CalendarDays />
-                <span>Calendar</span>
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-          <SidebarMenuItem>
-            <SidebarMenuButton asChild>
-              <Link href="/store">
-                <Package />
-                <span>Store</span>
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
+        <SidebarGroup>
+          <SidebarMenu className="flex flex-col gap-2 px-2">
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild>
+                <Link href="/grows">
+                  <Sprout />
+                  <span>Active Grows</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild>
+                <Link href="/calendar">
+                  <CalendarDays />
+                  <span>Calendar</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild>
+                <Link href="/store">
+                  <Package />
+                  <span>Store</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarGroup>
         <SidebarSeparator className="group-data-[collapsible=icon]:hidden" />
         <ChatsHistory />
       </SidebarContent>

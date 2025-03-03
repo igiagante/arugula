@@ -1,14 +1,14 @@
 import { createProduct, getAllProducts } from "@/lib/db/queries/products";
 import { auth } from "@clerk/nextjs/server";
-import { NextResponse } from "next/server";
 import { revalidateTag, unstable_cache } from "next/cache";
-import { createDynamicTag, CacheTags } from "../tags";
+import { NextResponse } from "next/server";
+import { CacheTags, createDynamicTag } from "../tags";
 
 /**
  * GET /api/products
  * Retrieves all products.
  */
-export async function GET(request: Request) {
+export async function GET(_request: Request) {
   try {
     const { userId } = await auth();
 

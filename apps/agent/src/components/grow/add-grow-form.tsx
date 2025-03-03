@@ -1,11 +1,9 @@
 "use client";
 
-import type React from "react";
-import { useState } from "react";
-
 import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 import { Button } from "@workspace/ui/components/button";
 import {
@@ -20,20 +18,29 @@ import { Form } from "@workspace/ui/components/form";
 
 import { Progress } from "@workspace/ui/components/progress";
 
-import { useForm, useFieldArray } from "react-hook-form";
+import { apiRequest, HttpMethods } from "@/app/api/client";
+import type { CreateGrowDto } from "@/app/api/dto";
+import { CacheTags } from "@/app/api/tags";
+import { uploadImages } from "@/app/utils/s3/s3-upload";
+import type { Grow } from "@/lib/db/schema";
+import { useAuth } from "@clerk/nextjs";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { parseAsInteger, useQueryState } from "nuqs";
+import { useFieldArray, useForm } from "react-hook-form";
+import { growingMethods, growStages, steps } from "./constants";
+import { growFormSchema, type GrowFormValues } from "./schema";
 import { BasicDetailsStep } from "./steps/basic-details-step";
 import { SetupDetailsStep } from "./steps/setup-details-step";
-import { growFormSchema, GrowFormValues } from "./schema";
-import { growingMethods, growStages, steps } from "./constants";
-import { Grow, Indoor } from "@/lib/db/schema";
-import { useAuth } from "@clerk/nextjs";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { CreateGrowDto } from "@/app/api/dto";
-import { apiRequest, HttpMethods } from "@/app/api/client";
-import { CacheTags } from "@/app/api/tags";
+import { StrainGallery } from "./strains/strain-gallery";
 
 const defaultValues: Partial<GrowFormValues> = {
+  strainPlants: [],
+  name: "",
+  stage: "seedling",
+  startDate: new Date(),
+  endDate: undefined,
+  growingMethod: "soil",
   substrate: [
     { material: "Soil", percentage: 40 },
     { material: "Perlite", percentage: 20 },
@@ -46,9 +53,17 @@ const defaultValues: Partial<GrowFormValues> = {
 
 export function AddGrowForm() {
   const router = useRouter();
-  const [step, setStep] = useState(0);
   const { userId } = useAuth();
   const queryClient = useQueryClient();
+
+  const [step, setStep] = useQueryState("step", parseAsInteger.withDefault(0));
+
+  // Add this useEffect to reset step on page load
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setStep(0);
+    }
+  }, [setStep]);
 
   const form = useForm<GrowFormValues>({
     resolver: zodResolver(growFormSchema),
@@ -65,12 +80,10 @@ export function AddGrowForm() {
 
   const { mutateAsync: createGrow } = useMutation({
     mutationFn: async (newGrow: CreateGrowDto) => {
-      return await apiRequest<Grow, CreateGrowDto>(
-        "/api/grows",
-        HttpMethods.POST,
-        {},
-        newGrow
-      );
+      return await apiRequest<Grow, CreateGrowDto>("/api/grows", {
+        method: HttpMethods.POST,
+        body: newGrow,
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [CacheTags.grows] });
@@ -83,13 +96,20 @@ export function AddGrowForm() {
         throw new Error("User not found");
       }
 
+      // Upload images first if there are any
+      let uploadedImageUrls: string[] = [];
+      if (data.images && data.images.length > 0) {
+        uploadedImageUrls = await uploadImages(data.images);
+      }
+
       const { substrate, ...restData } = data;
       const growDto: CreateGrowDto = {
         ...restData,
-        images: null,
-        potSize: { size: data.potSize, unit: "L" },
+        organizationId: "516e3958-1842-4219-bf07-2a515b86df04", // TODO: get organization id from clerk
         startDate: data.startDate,
         endDate: data.endDate || undefined,
+        images: uploadedImageUrls || [],
+        potSize: String(data.potSize),
         substrateComposition: substrate.reduce(
           (acc, item) => ({
             ...acc,
@@ -97,28 +117,17 @@ export function AddGrowForm() {
           }),
           {}
         ),
+        strainPlants: data.strainPlants || [],
       };
 
-      const grow = await createGrow(growDto);
+      console.log("growDto", growDto);
 
-      console.log("Grow created", grow);
-
-      router.push("/");
+      await createGrow(growDto);
+      router.push("/grows");
     } catch (error) {
       console.error(error);
     }
   }
-
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (files) {
-      const currentImages = form.getValues("images") || [];
-      const newImages = Array.from(files).map((file) =>
-        URL.createObjectURL(file)
-      );
-      form.setValue("images", [...currentImages, ...newImages]);
-    }
-  };
 
   // Check if the current step is valid
   const isCurrentStepValid = async () => {
@@ -131,16 +140,16 @@ export function AddGrowForm() {
   const next = async () => {
     const isValid = await isCurrentStepValid();
     if (isValid) {
-      setStep((prev) => Math.min(prev + 1, steps.length - 1));
+      setStep(Math.min(step + 1, steps.length - 1));
     }
   };
 
   const prev = () => {
-    setStep((prev) => Math.max(prev - 1, 0));
+    setStep(Math.max(step - 1, 0));
   };
 
   return (
-    <div className="container max-w-2xl p-4 md:py-10  md:px-0">
+    <div className="container max-w-3xl p-4 md:py-10  md:px-0">
       <Card>
         <CardHeader>
           <div className="space-y-2">
@@ -183,6 +192,7 @@ export function AddGrowForm() {
                   control={form.control}
                   growStages={growStages}
                   growingMethods={growingMethods}
+                  setValue={form.setValue}
                 />
               )}
 
@@ -190,13 +200,18 @@ export function AddGrowForm() {
                 <SetupDetailsStep
                   control={form.control}
                   fieldArray={fieldArray}
-                  handleImageUpload={handleImageUpload}
                   watch={form.watch}
-                  setValue={form.setValue}
-                  getValues={form.getValues}
+                />
+              )}
+              {step === 2 && (
+                <StrainGallery
+                  onStrainsChange={(strains) => {
+                    form.setValue("strainPlants", strains);
+                  }}
                 />
               )}
             </CardContent>
+
             <CardFooter className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-between">
               <div className="flex w-full gap-2 sm:w-auto">
                 <Button
@@ -220,7 +235,13 @@ export function AddGrowForm() {
               </div>
               <div className="flex w-full gap-2 sm:w-auto">
                 {step < steps.length - 1 ? (
-                  <Button className="flex-1 sm:flex-none" onClick={next}>
+                  <Button
+                    className="flex-1 sm:flex-none"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      next();
+                    }}
+                  >
                     Next
                     <ChevronRight className="ml-2 size-4" />
                   </Button>

@@ -1,15 +1,15 @@
+import { Button } from "@workspace/ui/components/button";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@workspace/ui/components/tooltip";
-import { artifactDefinitions, UIArtifact } from "./artifact";
-import { Dispatch, memo, SetStateAction, useState } from "react";
-import { ArtifactActionContext } from "./create-artifact";
-import { Button } from "@workspace/ui/components/button";
+import { type Dispatch, memo, type SetStateAction, useState } from "react";
+import { artifactDefinitions, type UIArtifact } from "./artifact";
+import type { ArtifactActionContext } from "./create-artifact";
 
-import { toast } from "sonner";
 import { cn } from "@workspace/ui/lib/utils";
+import { toast } from "sonner";
 
 interface ArtifactActionsProps {
   artifact: UIArtifact;
@@ -66,7 +66,7 @@ function PureArtifactActions({
 
                 try {
                   await Promise.resolve(action.onClick(actionContext));
-                } catch (error) {
+                } catch (_error) {
                   toast.error("Failed to execute action");
                 } finally {
                   setIsLoading(false);

@@ -1,8 +1,15 @@
 // lib/db/queries/taskQueries.ts
-import postgres from "postgres";
-import { drizzle } from "drizzle-orm/postgres-js";
 import { eq } from "drizzle-orm";
-import { Task, task, product, taskProduct, plant, taskPlant } from "../schema"; // adjust the path as needed
+import { drizzle } from "drizzle-orm/postgres-js";
+import postgres from "postgres";
+import {
+  plant,
+  product,
+  type Task,
+  task,
+  taskPlant,
+  taskProduct,
+} from "../schema"; // adjust the path as needed
 
 // biome-ignore lint: Forbidden non-null assertion.
 const client = postgres(process.env.POSTGRES_URL!);
@@ -117,9 +124,7 @@ export async function getTasksByGrowId({ growId }: { growId: string }) {
             strainId: plant.strainId,
             customName: plant.customName,
             stage: plant.stage,
-            startDate: plant.startDate,
             archived: plant.archived,
-            notes: plant.notes,
             potSize: plant.potSize,
           })
           .from(taskPlant)

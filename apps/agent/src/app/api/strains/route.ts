@@ -1,14 +1,14 @@
-import { auth } from "@clerk/nextjs/server";
-import { NextResponse } from "next/server";
 import { createStrain, getAllStrains } from "@/lib/db/queries/strains";
-import { unstable_cache, revalidateTag } from "next/cache";
+import { auth } from "@clerk/nextjs/server";
+import { revalidateTag, unstable_cache } from "next/cache";
+import { NextResponse } from "next/server";
 import { CacheTags } from "../tags";
 
 /**
  * GET /api/strains
  * Retrieves all strains.
  */
-export async function GET(request: Request) {
+export async function GET(_request: Request) {
   try {
     const { userId } = await auth();
 

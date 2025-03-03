@@ -1,3 +1,5 @@
+import type { Plant } from "@/lib/db/schema";
+
 export type Environment = {
   light: string;
   temp: string;
@@ -5,11 +7,15 @@ export type Environment = {
 };
 
 export type GrowStrain = {
+  strainId: string;
   name: string;
-  count: number;
   type: string;
   thc: string;
   cbd: string;
+  genotype: string;
+  ratio: string;
+  plants: number;
+  plantsIds?: string[];
 };
 
 export type GrowView = {
@@ -18,8 +24,15 @@ export type GrowView = {
   stage: string;
   environment: Environment;
   strains: GrowStrain[];
+  plants: Plant[];
   progress: number;
   lastUpdated: Date;
-  image?: string;
+  images: string[];
   yield?: string;
+};
+
+export type GrowStrainPlants = {
+  strainId: string;
+  strain: string;
+  plants: number;
 };

@@ -1,21 +1,48 @@
-import { Indoor, Lamp, Plant, Product, Strain, Task } from "@/lib/db/schema";
+import type {
+  Indoor,
+  Lamp,
+  Plant,
+  Product,
+  Strain,
+  Task,
+} from "@/lib/db/schema";
 export interface CreateGrowDto {
+  organizationId: string;
   indoorId: string;
   name: string;
   stage: string;
   startDate: Date;
   endDate?: Date;
   substrateComposition?: Record<string, number>;
-  images: Record<string, string>[] | null;
-  potSize: {
-    size: number;
-    unit: string;
-  };
+  images: string[];
+  potSize: string;
+  potSizeUnit: string;
   growingMethod?: string;
   notes?: string;
+  progress?: string;
+  archived?: boolean;
+  strainPlants: {
+    strainId: string;
+    strain: string;
+    plants: number;
+  }[];
 }
 
-export type UpdateGrowDto = Partial<CreateGrowDto>;
+export interface UpdateGrowDto {
+  name?: string;
+  stage?: string;
+  startDate?: Date;
+  endDate?: Date;
+  growingMethod?: string;
+  substrateComposition?: Record<string, number>;
+  potSize?: string;
+  images?: string[];
+  strainPlants?: {
+    strainId: string;
+    strain: string;
+    plants: number;
+  }[];
+}
 
 export type CreateIndoorDto = Omit<Indoor, "id" | "createdAt" | "updatedAt"> & {
   lamp: Omit<Lamp, "id" | "indoorId" | "createdAt" | "updatedAt">;

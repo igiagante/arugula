@@ -24,6 +24,7 @@ import {
   BellIcon,
   ChevronsUpDownIcon,
   CreditCardIcon,
+  SettingsIcon,
 } from "lucide-react";
 import Link from "next/link";
 import { DropdownMenuItemSignOut } from "../dropdown-menu-item-sign-out";
@@ -96,7 +97,13 @@ export async function UserIndicator() {
                   Account
                 </DropdownMenuItem>
               </Link>
-              <Protect role="org:admin">
+              <Link href="/preferences">
+                <DropdownMenuItem>
+                  <SettingsIcon />
+                  Preferences
+                </DropdownMenuItem>
+              </Link>
+              <Protect>
                 <DropdownMenuItem disabled>
                   <CreditCardIcon />
                   Billing

@@ -1,5 +1,12 @@
 "use client";
 
+import { sanitizeUIMessages } from "@/lib/utils";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@workspace/ui/components/tooltip";
 import type { ChatRequestOptions, CreateMessage, Message } from "ai";
 import cx from "classnames";
 import {
@@ -8,29 +15,22 @@ import {
   useMotionValue,
   useTransform,
 } from "framer-motion";
+import { nanoid } from "nanoid";
 import {
   type Dispatch,
   memo,
-  ReactNode,
+  type ReactNode,
   type SetStateAction,
   useEffect,
   useRef,
   useState,
 } from "react";
 import { useOnClickOutside } from "usehooks-ts";
-import { nanoid } from "nanoid";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@workspace/ui/components/tooltip";
-import { sanitizeUIMessages } from "@/lib/utils";
 
+import type { UseChatHelpers } from "ai/react";
+import { artifactDefinitions, type ArtifactKind } from "./artifact";
+import type { ArtifactToolbarItem } from "./create-artifact";
 import { ArrowUpIcon, StopIcon, SummarizeIcon } from "./icons";
-import { artifactDefinitions, ArtifactKind } from "./artifact";
-import { ArtifactToolbarItem } from "./create-artifact";
-import { UseChatHelpers } from "ai/react";
 
 type ToolProps = {
   description: string;
@@ -135,7 +135,7 @@ const Tool = ({
   );
 };
 
-const randomArr = [...Array(6)].map((x) => nanoid(5));
+const randomArr = [...Array(6)].map((_) => nanoid(5));
 
 const ReadingLevelSelector = ({
   setSelectedTool,

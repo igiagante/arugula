@@ -1,11 +1,11 @@
 import { z } from "zod";
 
-import { DataStreamWriter, streamObject, tool } from "ai";
+import { type DataStreamWriter, streamObject, tool } from "ai";
 import { getDocumentById, saveSuggestions } from "@/lib/db/queries";
-import { Suggestion } from "@/lib/db/schema";
+import type { Suggestion } from "@/lib/db/schema";
 import { generateUUID } from "@/lib/utils";
 import { myProvider } from "../models";
-import { User } from "@clerk/nextjs/server";
+import type { User } from "@clerk/nextjs/server";
 
 interface RequestSuggestionsProps {
   user: User;

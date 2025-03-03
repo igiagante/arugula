@@ -1,10 +1,20 @@
 "use server";
 
-import { eq, and } from "drizzle-orm";
-import { grow, indoor, strain, plant, lamp, Grow } from "../schema";
-import { createGrowView } from "./views/grows";
+import { GrowRoles } from "@/lib/schema/types";
+import { mapImages } from "@/lib/utils";
+import { and, eq } from "drizzle-orm";
 import { db } from "../index";
-import { GrowView } from "./types/grow";
+import {
+  grow,
+  growCollaborator,
+  indoor,
+  lamp,
+  plant,
+  strain,
+  type Grow,
+} from "../schema";
+import type { GrowStrainPlants, GrowView } from "./types/grow";
+import { createGrowView } from "./views/grows";
 
 const GROW_SELECTION = {
   grow: grow,
@@ -18,14 +28,21 @@ const GROW_SELECTION = {
  * Creates a new grow cycle in the database.
  *
  * @param data - The grow cycle data of type Grow
+ * @param userId - The user performing the operation
  * @returns Promise<Grow> The newly created grow record
  * @throws {Error} If the database operation fails
  */
-export async function createGrow(data: Grow) {
+export async function createGrow(
+  data: Omit<Grow, "id" | "createdAt" | "updatedAt"> & {
+    strainPlants: GrowStrainPlants[];
+  },
+  userId: string
+) {
   try {
     // Remove any undefined values from the data object
+    const { strainPlants, ...restData } = data;
     const cleanData = Object.fromEntries(
-      Object.entries(data).filter(([_, v]) => v !== undefined)
+      Object.entries(restData).filter(([_, v]) => v !== undefined)
     ) as Grow;
 
     // Ensure startDate is a Date object
@@ -33,8 +50,43 @@ export async function createGrow(data: Grow) {
       cleanData.startDate = new Date(cleanData.startDate);
     }
 
-    const [newGrow] = await db.insert(grow).values(cleanData).returning();
-    return newGrow;
+    // Use a transaction to ensure operations succeed or fail together
+    return await db.transaction(async (tx) => {
+      // Insert the grow
+      const [newGrow] = await tx.insert(grow).values(cleanData).returning();
+
+      if (!newGrow) {
+        throw new Error("Failed to create grow");
+      }
+
+      // Add the creator as an owner collaborator
+      await tx.insert(growCollaborator).values({
+        growId: newGrow.id,
+        userId: userId,
+        role: GrowRoles.owner,
+      });
+
+      // Create plants for each strain in the grow
+      if (strainPlants && strainPlants.length > 0) {
+        const plantsToCreate = strainPlants.flatMap(
+          (strain: GrowStrainPlants) =>
+            Array.from({ length: strain.plants }, (_, index) => ({
+              growId: newGrow.id,
+              strainId: strain.strainId,
+              customName: `${strain.strain} #${index + 1}`,
+              status: "seedling",
+              potSize: cleanData.potSize,
+              potSizeUnit: cleanData.potSizeUnit,
+              createdAt: new Date(),
+              updatedAt: new Date(),
+            }))
+        );
+
+        await tx.insert(plant).values(plantsToCreate);
+      }
+
+      return newGrow;
+    });
   } catch (error) {
     console.error("Failed to create grow:", error);
     throw error;
@@ -48,20 +100,47 @@ export async function createGrow(data: Grow) {
  * @returns Promise<Grow> The updated grow record
  * @throws {Error} If the database operation fails
  */
-export async function updateGrow(data: Grow) {
+export async function updateGrow(
+  data: Grow & { strainPlants?: GrowStrainPlants[] }
+) {
   try {
-    // Remove any undefined values from the data object
+    const { strainPlants, ...restData } = data;
     const cleanData = Object.fromEntries(
-      Object.entries(data).filter(([_, v]) => v !== undefined)
+      Object.entries(restData).filter(([_, v]) => v !== undefined)
     ) as Grow;
 
-    const [updatedGrow] = await db
-      .update(grow)
-      .set(cleanData)
-      .where(eq(grow.id, data.id))
-      .returning();
+    return await db.transaction(async (tx) => {
+      const [updatedGrow] = await tx
+        .update(grow)
+        .set(cleanData)
+        .where(eq(grow.id, data.id))
+        .returning();
 
-    return updatedGrow;
+      if (!updatedGrow) {
+        throw new Error("Failed to update grow");
+      }
+
+      // Create new plants for each strain if provided
+      if (strainPlants && strainPlants.length > 0) {
+        const plantsToCreate = strainPlants.flatMap(
+          (strain: GrowStrainPlants) =>
+            Array.from({ length: strain.plants }, (_, index) => ({
+              growId: updatedGrow.id,
+              strainId: strain.strainId,
+              customName: `${strain.strain} #${index + 1}`,
+              status: "seedling",
+              potSize: cleanData.potSize,
+              potSizeUnit: cleanData.potSizeUnit,
+              createdAt: new Date(),
+              updatedAt: new Date(),
+            }))
+        );
+
+        await tx.insert(plant).values(plantsToCreate);
+      }
+
+      return updatedGrow;
+    });
   } catch (error) {
     console.error("Failed to update grow:", error);
     throw error;
@@ -72,16 +151,9 @@ export async function updateGrow(data: Grow) {
  * DELETE a grow cycle.
  *
  * @param growId - The grow cycle's UUID to delete
- * @param userId - The user performing the deletion (for optional ownership check)
  * @returns The deleted grow record
  */
-export async function deleteGrow({
-  growId,
-  userId,
-}: {
-  growId: string;
-  userId: string;
-}) {
+export async function deleteGrow({ growId }: { growId: string }) {
   try {
     const [deletedGrow] = await db
       .delete(grow)
@@ -102,13 +174,7 @@ export async function deleteGrow({
  * @param userId - The user performing the query (for optional access check)
  * @returns A list of grow records associated with the specified indoor
  */
-export async function getGrowsByIndoorId({
-  indoorId,
-  userId,
-}: {
-  indoorId: string;
-  userId: string;
-}) {
+export async function getGrowsByIndoorId({ indoorId }: { indoorId: string }) {
   try {
     const growsList = await db
       .select()
@@ -136,12 +202,16 @@ export async function getGrowsByUserId({
 }: {
   userId: string;
 }): Promise<GrowView[]> {
-  const growsList = await baseGrowQuery().where(eq(grow.userId, userId));
+  const growsList = await baseGrowQuery().innerJoin(
+    growCollaborator,
+    and(
+      eq(grow.id, growCollaborator.growId),
+      eq(growCollaborator.userId, userId)
+    )
+  );
 
-  // Create a Map to store unique grows
   const growsMap = new Map();
 
-  // Process each row and store only unique grows
   for (const row of growsList) {
     if (!growsMap.has(row.grow.id)) {
       growsMap.set(row.grow.id, [row]);
@@ -150,18 +220,19 @@ export async function getGrowsByUserId({
     }
   }
 
-  // Convert to array and create views, with error handling
-  return Array.from(growsMap.values())
-    .map((growData) => {
+  const views = await Promise.all(
+    Array.from(growsMap.values()).map(async (growData) => {
       try {
         const view = createGrowView(growData);
-        return view;
+        return view ? mapImages(view) : null;
       } catch (error) {
         console.error(`Failed to create grow view for data:`, error);
         return null;
       }
     })
-    .filter((view): view is GrowView => view !== null);
+  );
+
+  return views.filter((view): view is GrowView => view !== null);
 }
 
 export async function getGrowByIdAndUser({
@@ -171,9 +242,71 @@ export async function getGrowByIdAndUser({
   growId: string;
   userId: string;
 }): Promise<GrowView | null> {
-  const growData = await baseGrowQuery().where(
-    and(eq(grow.id, growId), eq(grow.userId, userId))
+  const growData = await baseGrowQuery().innerJoin(
+    growCollaborator,
+    and(
+      eq(grow.id, growCollaborator.growId),
+      eq(growCollaborator.userId, userId),
+      eq(grow.id, growId)
+    )
   );
 
-  return createGrowView(growData);
+  const view = createGrowView(growData);
+  return view ? mapImages(view) : null;
+}
+
+/**
+ * GET all grows for a specific organization.
+ *
+ * @param organizationId - The organization's ID
+ * @returns Promise<GrowView[]> Array of grow views with their associated data
+ */
+export async function getGrowsByOrganizationId(
+  organizationId: string
+): Promise<GrowView[]> {
+  const growsList = await db
+    .select({
+      grow: grow,
+      indoor: indoor,
+      plant: plant,
+      strain: strain,
+      lamp: lamp,
+    })
+    .from(grow)
+    .where(eq(grow.organizationId, organizationId))
+    .leftJoin(indoor, eq(grow.indoorId, indoor.id))
+    .leftJoin(plant, eq(grow.id, plant.growId))
+    .leftJoin(strain, eq(plant.strainId, strain.id))
+    .leftJoin(lamp, eq(indoor.id, lamp.indoorId))
+    .orderBy(plant.id);
+
+  const growsMap = new Map();
+
+  for (const row of growsList) {
+    if (!growsMap.has(row.grow.id)) {
+      growsMap.set(row.grow.id, [row]);
+    } else {
+      const existingRows = growsMap.get(row.grow.id);
+      const plantExists = existingRows.some(
+        (existingRow: typeof row) => existingRow.plant?.id === row.plant?.id
+      );
+      if (!plantExists) {
+        growsMap.get(row.grow.id).push(row);
+      }
+    }
+  }
+
+  const views = await Promise.all(
+    Array.from(growsMap.values()).map(async (growData) => {
+      try {
+        const view = createGrowView(growData);
+        return view ? mapImages(view) : null;
+      } catch (error) {
+        console.error(`Failed to create grow view for data:`, error);
+        return null;
+      }
+    })
+  );
+
+  return views.filter((view): view is GrowView => view !== null);
 }

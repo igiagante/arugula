@@ -1,13 +1,15 @@
 "use client";
 
+import { NuqsAdapter } from "nuqs/adapters/next/app";
+
 import {
   QueryClient,
   QueryClientProvider,
   isServer,
 } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
-import * as React from "react";
 import { ReactQueryStreamedHydration } from "@tanstack/react-query-next-experimental";
+import * as React from "react";
 
 function makeQueryClient() {
   return new QueryClient({
@@ -37,7 +39,7 @@ export function Providers(props: { children: React.ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
       <ReactQueryStreamedHydration>
-        {props.children}
+        <NuqsAdapter>{props.children}</NuqsAdapter>
       </ReactQueryStreamedHydration>
       <ReactQueryDevtools initialIsOpen={false} />
     </QueryClientProvider>

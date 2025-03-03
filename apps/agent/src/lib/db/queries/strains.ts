@@ -1,7 +1,8 @@
-import postgres from "postgres";
-import { drizzle } from "drizzle-orm/postgres-js";
+import { mapImages } from "@/lib/utils";
 import { eq } from "drizzle-orm";
-import { Strain, strain } from "../schema"; // adjust the path as needed
+import { drizzle } from "drizzle-orm/postgres-js";
+import postgres from "postgres";
+import { type Strain, strain } from "../schema"; // adjust the path as needed
 
 // biome-ignore lint: Forbidden non-null assertion.
 const client = postgres(process.env.POSTGRES_URL!);
@@ -96,7 +97,13 @@ export async function getStrainById({ strainId }: { strainId: string }) {
 export async function getAllStrains() {
   try {
     const strainsList = await db.select().from(strain);
-    return strainsList;
+
+    // Filter out strains with null images or provide a default empty array
+    return Promise.all(
+      strainsList.map(async (strain) =>
+        mapImages({ ...strain, images: strain.images || [] })
+      )
+    );
   } catch (error) {
     console.error("Failed to get strains:", error);
     throw error;

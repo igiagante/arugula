@@ -9,26 +9,26 @@ import type {
 import cx from "classnames";
 import type React from "react";
 import {
-  useRef,
-  useEffect,
-  useState,
+  memo,
   useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type ChangeEvent,
   type Dispatch,
   type SetStateAction,
-  type ChangeEvent,
-  memo,
 } from "react";
 import { toast } from "sonner";
 import { useLocalStorage, useWindowSize } from "usehooks-ts";
 
 import { sanitizeUIMessages } from "@/lib/utils";
 
-import { ArrowUpIcon, PaperclipIcon, StopIcon } from "./icons";
-import { PreviewAttachment } from "./preview-attachment";
 import { Button } from "@workspace/ui/components/button";
 import { Textarea } from "@workspace/ui/components/textarea";
-import { SuggestedActions } from "./suggested-actions";
 import equal from "fast-deep-equal";
+import { ArrowUpIcon, PaperclipIcon, StopIcon } from "./icons";
+import { PreviewAttachment } from "./preview-attachment";
+import { SuggestedActions } from "./suggested-actions";
 
 function PureMultimodalInput({
   chatId,
@@ -162,7 +162,7 @@ function PureMultimodalInput({
       }
       const { error } = await response.json();
       toast.error(error);
-    } catch (error) {
+    } catch (_error) {
       toast.error("Failed to upload file, please try again!");
     }
   };

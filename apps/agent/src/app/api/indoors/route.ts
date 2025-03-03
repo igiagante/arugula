@@ -1,9 +1,9 @@
-import { NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
 import { createIndoor, getIndoorsByUserId } from "@/lib/db/queries/indoors";
-import { unstable_cache, revalidateTag } from "next/cache";
-import { createDynamicTag, CacheTags } from "../tags";
 import { createLamp } from "@/lib/db/queries/lamps";
+import { auth } from "@clerk/nextjs/server";
+import { revalidateTag, unstable_cache } from "next/cache";
+import { NextResponse } from "next/server";
+import { CacheTags, createDynamicTag } from "../tags";
 
 /**
  * GET /api/indoors
@@ -58,16 +58,7 @@ export async function POST(request: Request) {
 
     const body = await request.json();
 
-    const {
-      name,
-      dimensions,
-      notes,
-      images,
-      temperature,
-      humidity,
-      co2,
-      lamp,
-    } = body;
+    const { name, lamp, ...rest } = body;
 
     if (!name) {
       return NextResponse.json({ error: "Name is required" }, { status: 400 });
@@ -75,12 +66,7 @@ export async function POST(request: Request) {
 
     const newIndoor = await createIndoor({
       name,
-      dimensions,
-      notes,
-      images,
-      temperature,
-      humidity,
-      co2,
+      ...rest,
       createdBy: userId,
     });
 
@@ -91,10 +77,17 @@ export async function POST(request: Request) {
       );
     }
 
-    await createLamp({
+    const newLamp = await createLamp({
       ...lamp,
       indoorId: newIndoor.id,
     });
+
+    if (!newLamp) {
+      return NextResponse.json(
+        { error: "Failed to create lamp" },
+        { status: 500 }
+      );
+    }
 
     // Invalidate the cache for this user's indoors
     revalidateTag(createDynamicTag(CacheTags.indoorsByUserId, userId));

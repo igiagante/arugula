@@ -3,7 +3,7 @@
 import { useClerk } from "@clerk/nextjs";
 import { DropdownMenuItem } from "@workspace/ui/components/dropdown-menu";
 import { LogOutIcon } from "lucide-react";
-import { ComponentProps } from "react";
+import type { ComponentProps } from "react";
 
 export function DropdownMenuItemSignOut(
   props: ComponentProps<typeof DropdownMenuItem>

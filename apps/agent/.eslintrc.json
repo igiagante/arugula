@@ -6,10 +6,21 @@
     "prettier",
     "plugin:tailwindcss/recommended"
   ],
-  "plugins": ["tailwindcss"],
+  "plugins": ["tailwindcss", "unused-imports"],
   "rules": {
     "tailwindcss/no-custom-classname": "off",
-    "tailwindcss/classnames-order": "off"
+    "tailwindcss/classnames-order": "off",
+    "unused-imports/no-unused-imports": "error",
+    "@typescript-eslint/no-non-null-assertion": "off",
+    "unused-imports/no-unused-vars": [
+      "warn",
+      {
+        "vars": "all",
+        "varsIgnorePattern": "^_",
+        "args": "after-used",
+        "argsIgnorePattern": "^_"
+      }
+    ]
   },
   "settings": {
     "import/resolver": {

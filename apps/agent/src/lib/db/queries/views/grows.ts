@@ -1,5 +1,5 @@
-import { GrowStrain, GrowView } from "../types/grow";
-import { Grow, Indoor, Plant, Strain, Lamp } from "../../schema";
+import type { Grow, Indoor, Lamp, Plant, Strain } from "../../schema";
+import type { GrowStrain, GrowView } from "../types/grow";
 
 export function createGrowView(
   growData: {
@@ -32,8 +32,12 @@ export function createGrowView(
       temp: firstRow.indoor?.temperature ?? "",
       humidity: firstRow.indoor?.humidity ?? "",
     },
+    plants: growData
+      .filter((row): row is typeof row & { plant: Plant } => row.plant !== null)
+      .map((row) => row.plant),
     progress: Number(firstRow.grow.progress) || 0,
     lastUpdated: firstRow.grow.updatedAt,
+    images: firstRow.grow.images || [],
     strains: Object.entries(
       growData.reduce(
         (acc, row) => {
@@ -46,13 +50,17 @@ export function createGrowView(
             string,
             string
           >;
-          const thcValue = profile?.THC ?? "Unknown";
-          const cbdValue = profile?.CBD ?? "Unknown";
+
+          const thcValue = profile?.thc ?? "Unknown";
+          const cbdValue = profile?.cbd ?? "Unknown";
 
           acc[strainId] = {
+            strainId: row.strain.id.toString(),
             name: row.strain.name.toString(),
-            count: strainCounts[strainId] || 0,
-            type: `${row.strain.genotype?.toString() || "Unknown"} • ${row.strain.ratio?.toString() || "Unknown"}`,
+            plants: strainCounts[strainId] || 0,
+            type: row.strain.type.toString(),
+            genotype: row.strain.genotype?.toString() || "Unknown",
+            ratio: row.strain.ratio?.toString() || "Unknown",
             thc: thcValue,
             cbd: cbdValue,
           };
