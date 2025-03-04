@@ -5,7 +5,7 @@ import type {
   Product,
   Strain,
   Task,
-} from "@/lib/db/schema";
+} from "@/lib/db/schemas";
 export interface CreateGrowDto {
   organizationId: string;
   indoorId: string;

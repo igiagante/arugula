@@ -1,5 +1,5 @@
 import crypto from "crypto";
-import { indoor, lamp, organization } from "../schema";
+import { indoor, lamp, organization } from "../schemas";
 import { DrizzleClient } from "../types";
 
 export async function seedIndoors(db: DrizzleClient, userId: string) {

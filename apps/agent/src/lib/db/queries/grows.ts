@@ -1,6 +1,6 @@
 "use server";
 
-import { GrowRoles } from "@/lib/schema/types";
+import { GrowRoles } from "@/lib/db/types";
 import { mapImages } from "@/lib/utils";
 import { and, eq } from "drizzle-orm";
 import { db } from "../index";
@@ -12,7 +12,7 @@ import {
   plant,
   strain,
   type Grow,
-} from "../schema";
+} from "../schemas";
 import type { GrowStrainPlants, GrowView } from "./types/grow";
 import { createGrowView } from "./views/grows";
 

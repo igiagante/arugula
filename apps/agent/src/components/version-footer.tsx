@@ -6,12 +6,12 @@ import { useState } from "react";
 import { useSWRConfig } from "swr";
 import { useWindowSize } from "usehooks-ts";
 
-import type { Document } from "@/lib/db/schema";
+import type { Document } from "@/lib/db/schemas";
 import { getDocumentTimestampByIndex } from "@/lib/utils";
 
-import { LoaderIcon } from "./icons";
 import { useArtifact } from "@/hooks/use-artifact";
 import { Button } from "@workspace/ui/components/button";
+import { LoaderIcon } from "./icons";
 
 interface VersionFooterProps {
   handleVersionChange: (type: "next" | "prev" | "toggle" | "latest") => void;

@@ -1,5 +1,5 @@
 import { eq } from "drizzle-orm";
-import { grow, sensorReading, task, taskPlant, taskType } from "../schema";
+import { grow, sensorReading, task, taskPlant, taskType } from "../schemas";
 import { DrizzleClient } from "../types";
 
 export async function seedTasks(

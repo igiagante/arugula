@@ -1,7 +1,7 @@
-import { lamp } from "../schema";
 import { eq } from "drizzle-orm";
-import type { Lamp } from "../schema";
 import { db } from "../index";
+import type { Lamp } from "../schemas";
+import { lamp } from "../schemas";
 
 export async function createLamp(
   data: Omit<Lamp, "id" | "createdAt" | "updatedAt">

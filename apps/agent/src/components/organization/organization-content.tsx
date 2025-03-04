@@ -29,7 +29,6 @@ import { OrganizationOverview } from "./organization-overview";
 import { OrganizationSettings } from "./organization-settings";
 
 export function OrganizationContent({ orgId }: { orgId: string }) {
-  console.log("orgId", orgId);
   const [orgDetails, setOrgDetails] = useState<OrganizationDetails | null>(
     null
   );

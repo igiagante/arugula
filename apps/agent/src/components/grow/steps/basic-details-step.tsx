@@ -11,7 +11,7 @@ import {
 
 import { Input } from "@workspace/ui/components/input";
 
-import type { Indoor } from "@/lib/db/schema";
+import type { Indoor } from "@/lib/db/schemas/indoor.schema";
 import { Button } from "@workspace/ui/components/button";
 import { Calendar } from "@workspace/ui/components/calendar";
 import {
@@ -36,7 +36,7 @@ import { apiRequest } from "@/app/api/client";
 import { CacheTags } from "@/app/api/tags";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
-import type { GrowFormValues } from "../schema";
+import { GrowFormValues } from "../forms/grow.schema";
 
 interface BasicDetailsStepProps {
   control: Control<GrowFormValues>;

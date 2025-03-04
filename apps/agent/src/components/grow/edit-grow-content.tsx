@@ -2,10 +2,10 @@
 import { apiRequest } from "@/app/api/client";
 import { CacheTags, createDynamicTag } from "@/app/api/tags";
 import { GrowView } from "@/lib/db/queries/types/grow";
-import { Grow } from "@/lib/db/schema";
+import { Grow } from "@/lib/db/schemas/grow.schema";
 import { useQuery } from "@tanstack/react-query";
 import { Skeleton } from "@workspace/ui/components/skeleton";
-import { UpdateGrowForm } from "./update-grow-form";
+import { UpdateGrowForm } from "./forms/edit-grow-form";
 
 interface EditGrowContentProps {
   growId: string;

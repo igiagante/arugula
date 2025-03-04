@@ -13,10 +13,9 @@ import {
 } from "@workspace/ui/components/form";
 import { Input } from "@workspace/ui/components/input";
 
-import ImageUploader from "@/components/image/image-uploader";
+import ImageUploader from "@/components/image-uploader/image-uploader";
 import { useUserPreferences } from "@/hooks/use-user-preferences";
-import { useQueries } from "@tanstack/react-query";
-import type { GrowFormValues } from "../schema";
+import { GrowFormValues } from "../forms/grow.schema";
 
 interface SetupDetailsStepProps {
   control: Control<GrowFormValues>;
@@ -30,37 +29,7 @@ export function SetupDetailsStep({
   watch,
 }: SetupDetailsStepProps) {
   const { preferences } = useUserPreferences();
-  const images = watch("images");
-
-  // Get the appropriate volume unit from user preferences
   const volumeUnit = preferences.measurements.volume;
-
-  const imageQueries = useQueries({
-    queries: (images || []).map((fileKey: string) => ({
-      queryKey: ["imageUrl", fileKey],
-      queryFn: async () => {
-        const response = await fetch(
-          `/api/s3/get-view-url?key=${encodeURIComponent(fileKey)}`
-        );
-        const data = await response.json();
-        return data.url as string;
-      },
-      staleTime: 1000 * 60 * 5,
-    })),
-  });
-
-  const imageUrls = (images || []).reduce(
-    (acc: Record<string, string>, fileKey: string, index: number) => {
-      const query = imageQueries[index];
-      if (query?.data) {
-        acc[fileKey] = query.data as string;
-      }
-      return acc;
-    },
-    {} as Record<string, string>
-  );
-
-  console.log("imageUrls", imageUrls);
 
   return (
     <div

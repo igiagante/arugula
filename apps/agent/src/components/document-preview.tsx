@@ -1,6 +1,6 @@
 "use client";
 
-import type { Document } from "@/lib/db/schema";
+import type { Document } from "@/lib/db/schemas";
 import { fetcher } from "@/lib/utils";
 import {
   memo,

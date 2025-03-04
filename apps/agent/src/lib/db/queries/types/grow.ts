@@ -1,4 +1,4 @@
-import type { Plant } from "@/lib/db/schema";
+import type { Plant } from "@/lib/db/schemas";
 
 export type Environment = {
   light: string;

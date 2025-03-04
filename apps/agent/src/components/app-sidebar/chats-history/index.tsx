@@ -6,7 +6,7 @@ import { type CSSProperties, useEffect, useState } from "react";
 import { toast } from "sonner";
 import useSWR from "swr";
 
-import type { Chat } from "@/lib/db/schema";
+import type { Chat } from "@/lib/db/schemas";
 import { fetcher } from "@/lib/utils";
 import { useUser } from "@clerk/nextjs";
 import {

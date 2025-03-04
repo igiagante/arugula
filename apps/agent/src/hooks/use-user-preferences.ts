@@ -9,11 +9,11 @@ import {
   TemperatureUnits,
   VolumeUnits,
   WeightUnits,
-} from "@/app/types/user/preferences";
+} from "@/components/user/user-preferences.types";
 import {
   UserPreferences,
   userPreferencesSchema,
-} from "@/components/user/schema";
+} from "@/schemas/user-preferences.schema";
 import { useAuth } from "@clerk/nextjs";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo } from "react";
@@ -138,6 +138,7 @@ export const useUserPreferences = () => {
       // Return mapped preferences even if validation fails
       return mappedPreferences;
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rawPreferences]);
 
   /**

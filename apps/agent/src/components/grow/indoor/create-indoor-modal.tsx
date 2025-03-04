@@ -9,10 +9,10 @@ import type { z } from "zod";
 import { apiRequest, HttpMethods } from "@/app/api/client";
 import type { CreateIndoorDto } from "@/app/api/dto";
 import { CacheTags } from "@/app/api/tags";
-import { uploadImages } from "@/app/utils/s3/s3-upload";
-import ImageUploader from "@/components/image/image-uploader";
+import ImageUploader from "@/components/image-uploader/image-uploader";
 import { useUserPreferences } from "@/hooks/use-user-preferences";
-import type { Indoor } from "@/lib/db/schema";
+import type { Indoor } from "@/lib/db/schemas/indoor.schema";
+import { uploadImages } from "@/lib/s3/s3-upload";
 import { useAuth } from "@clerk/nextjs";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@workspace/ui/components/button";
@@ -36,7 +36,7 @@ import {
 import { Input } from "@workspace/ui/components/input";
 import { Slider } from "@workspace/ui/components/slider";
 import { Textarea } from "@workspace/ui/components/textarea";
-import { type CreateIndoorFormValues, createIndoorSchema } from "../schema";
+import { type CreateIndoorFormValues, createIndoorSchema } from "./schema";
 
 interface CreateIndoorModalProps {
   open: boolean;

@@ -17,7 +17,7 @@ import {
   TrashIcon,
 } from "@/components/icons";
 import { useChatVisibility } from "@/hooks/use-chat-visibility";
-import type { Chat, User } from "@/lib/db/schema";
+import type { Chat, User } from "@/lib/db/schemas";
 import { fetcher } from "@/lib/utils";
 import {
   AlertDialog,

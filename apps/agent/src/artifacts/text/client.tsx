@@ -10,7 +10,7 @@ import {
   UndoIcon,
 } from "@/components/icons";
 import { Editor } from "@/components/text-editor";
-import type { Suggestion } from "@/lib/db/schema";
+import type { Suggestion } from "@/lib/db/schemas";
 import { toast } from "sonner";
 import { getSuggestions } from "../actions";
 

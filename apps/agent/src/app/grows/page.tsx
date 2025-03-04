@@ -1,5 +1,5 @@
-import { GrowsList } from "../../components/grow/grows-list";
+import { GrowList } from "@/components/grow/grow-list";
 
 export default function GrowsPage() {
-  return <GrowsList />;
+  return <GrowList />;
 }

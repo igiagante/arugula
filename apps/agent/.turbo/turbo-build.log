@@ -3,69 +3,9 @@
 > agent@0.1.0 build /Users/ignaciogiagante/projects/arugula/apps/agent
 > next build
 
- [33m[1m⚠[22m[39m Invalid next.config.ts options detected: 
- [33m[1m⚠[22m[39m     Unrecognized key(s) in object: 'optimizeFonts'
- [33m[1m⚠[22m[39m See more info here: https://nextjs.org/docs/messages/invalid-next-config
-   [1m[38;2;173;127;168m▲ Next.js 15.2.0-canary.67[39m[22m
+   [1m[38;2;173;127;168m▲ Next.js 15.2.1-canary.2[39m[22m
    - Environments: .env.local
    - Experiments (use with caution):
      [1m✓[22m ppr
 
  [37m[1m [22m[39m Creating an optimized production build ...
- [32m[1m✓[22m[39m Compiled successfully
-[?25l [37m[1m [22m[39m Linting and checking validity of types  [36m.[39m[2K[1G [37m[1m [22m[39m Linting and checking validity of types  [36m..[39m[2K[1G [37m[1m [22m[39m Linting and checking validity of types  [36m...[39m[2K[1G [37m[1m [22m[39m Linting and checking validity of types  [36m.[39m[2K[1G [37m[1m [22m[39m Linting and checking validity of types  [36m..[39m[2K[1G [37m[1m [22m[39m Linting and checking validity of types  [36m...[39m[2K[1G [37m[1m [22m[39m Linting and checking validity of types  [36m.[39m[2K[1G [37m[1m [22m[39m Linting and checking validity of types  [36m..[39m[2K[1G [37m[1m [22m[39m Linting and checking validity of types  [36m...[39m[2K[1G[?25h
-./src/components/app-sidebar/chats-history/index.tsx
-5:37  Warning: '/Users/ignaciogiagante/projects/arugula/node_modules/.pnpm/@types+react@19.0.10/node_modules/@types/react/index.d.ts' imported multiple times.  import/no-duplicates
-28:31  Warning: '/Users/ignaciogiagante/projects/arugula/node_modules/.pnpm/@types+react@19.0.10/node_modules/@types/react/index.d.ts' imported multiple times.  import/no-duplicates
-
-./src/components/app-sidebar/user-indicator.tsx
-43:23  Warning: Classnames 'h-8, w-8' could be replaced by the 'size-8' shorthand!  tailwindcss/enforces-shorthand
-71:25  Warning: Classnames 'h-8, w-8' could be replaced by the 'size-8' shorthand!  tailwindcss/enforces-shorthand
-
-./src/layouts/content-layout.tsx
-24:50  Warning: Classnames 'h-5, w-5' could be replaced by the 'size-5' shorthand!  tailwindcss/enforces-shorthand
-
-info  - Need to disable some ESLint rules? Learn more here: https://nextjs.org/docs/app/api-reference/config/eslint#disabling-rules
-[?25l [36m.[39m [2K[1G [36m..[39m [2K[1G [36m...[39m [2K[1G [36m.[39m [2K[1G [36m..[39m [2K[1G [36m...[39m [2K[1G [36m.[39m [2K[1G [36m..[39m [2K[1G [36m...[39m [2K[1G [36m.[39m [2K[1G [36m..[39m [2K[1G [36m...[39m [2K[1G [36m.[39m [2K[1G [36m..[39m [2K[1G [36m...[39m [2K[1G [36m.[39m [2K[1G [36m..[39m [2K[1G [36m...[39m [2K[1G [36m.[39m [2K[1G [36m..[39m [2K[1G [36m...[39m [2K[1G [36m.[39m [2K[1G [36m..[39m [2K[1G [36m...[39m [2K[1G [36m.[39m [2K[1G [36m..[39m [2K[1G[?25h    [32m[1m✓[22m[39m Linting and checking validity of types 
-[?25l [37m[1m [22m[39m Collecting page data  [36m.[39m[2K[1G [37m[1m [22m[39m Collecting page data  [36m..[39m[2K[1G[?25h [37m[1m [22m[39m Collecting page data     [32m[1m✓[22m[39m Collecting page data 
-[?25l [37m[1m [22m[39m Generating static pages (0/20)  [36m[    ][39m[2K[1G [37m[1m [22m[39m Generating static pages (0/20)  [36m[=   ][39m[2K[1G [37m[1m [22m[39m Generating static pages (1/20)  [36m[==  ][39m[2K[1G[?25h [32m[1m✓[22m[39m Generating static pages (20/20)
-[?25l [37m[1m [22m[39m Finalizing page optimization  [36m.[39m[?25l [37m[1m [22m[39m Collecting build traces  [36m.[39m[2K[1G [37m[1m [22m[39m Finalizing page optimization  [36m..[39m[2K[1G [37m[1m [22m[39m Collecting build traces  [36m..[39m[2K[1G [37m[1m [22m[39m Finalizing page optimization  [36m...[39m[2K[1G [37m[1m [22m[39m Collecting build traces  [36m...[39m[2K[1G [37m[1m [22m[39m Finalizing page optimization  [36m.[39m[2K[1G [37m[1m [22m[39m Collecting build traces  [36m.[39m[2K[1G [37m[1m [22m[39m Finalizing page optimization  [36m..[39m[2K[1G [37m[1m [22m[39m Collecting build traces  [36m..[39m[2K[1G [37m[1m [22m[39m Finalizing page optimization  [36m...[39m[2K[1G [37m[1m [22m[39m Collecting build traces  [36m...[39m[2K[1G [37m[1m [22m[39m Finalizing page optimization  [36m.[39m[2K[1G [37m[1m [22m[39m Collecting build traces  [36m.[39m[2K[1G [37m[1m [22m[39m Finalizing page optimization  [36m..[39m[2K[1G [37m[1m [22m[39m Collecting build traces  [36m..[39m[2K[1G [37m[1m [22m[39m Finalizing page optimization  [36m...[39m[2K[1G [37m[1m [22m[39m Collecting build traces  [36m...[39m[2K[1G [37m[1m [22m[39m Finalizing page optimization  [36m.[39m[2K[1G [37m[1m [22m[39m Collecting build traces  [36m.[39m[2K[1G [37m[1m [22m[39m Finalizing page optimization  [36m..[39m[2K[1G [37m[1m [22m[39m Collecting build traces  [36m..[39m[2K[1G [37m[1m [22m[39m Finalizing page optimization  [36m...[39m[2K[1G [37m[1m [22m[39m Collecting build traces  [36m...[39m[2K[1G [37m[1m [22m[39m Finalizing page optimization  [36m.[39m[2K[1G [37m[1m [22m[39m Collecting build traces  [36m.[39m[2K[1G [37m[1m [22m[39m Finalizing page optimization  [36m..[39m[2K[1G [37m[1m [22m[39m Collecting build traces  [36m..[39m[2K[1G[?25h [37m[1m [22m[39m Collecting build traces     [32m[1m✓[22m[39m Collecting build traces 
-[2K[1G[?25h [37m[1m [22m[39m Finalizing page optimization     [32m[1m✓[22m[39m Finalizing page optimization 
-
-[4mRoute (app)[24m                                            [4mSize[24m     [4mFirst Load JS[24m
-┌ ƒ /                                                  164 B           [37m[1m533 kB[22m[39m
-├ ○ /_not-found                                        981 B           [37m[1m119 kB[22m[39m
-├ ƒ /analytics                                         103 kB          [37m[1m229 kB[22m[39m
-├ ƒ /api/chat                                          153 B           [37m[1m119 kB[22m[39m
-├ ƒ /api/document                                      153 B           [37m[1m119 kB[22m[39m
-├ ƒ /api/history                                       153 B           [37m[1m119 kB[22m[39m
-├ ƒ /api/suggestions                                   153 B           [37m[1m119 kB[22m[39m
-├ ƒ /api/vote                                          153 B           [37m[1m119 kB[22m[39m
-├ ƒ /api/webhooks/clerk                                153 B           [37m[1m119 kB[22m[39m
-├ ◐ /chat/[id]                                         165 B           [37m[1m533 kB[22m[39m
-├   └ /chat/[id]
-├ ◐ /create-organization/[[...create-organization]]    351 B           [37m[1m148 kB[22m[39m
-├   └ /create-organization/[[...create-organization]]
-├ ○ /onboarding                                        349 B           [37m[1m148 kB[22m[39m
-├ ◐ /organization-list/[[...organization-list]]        363 B           [37m[1m148 kB[22m[39m
-├   └ /organization-list/[[...organization-list]]
-├ ○ /profile                                           2.78 kB         [37m[1m152 kB[22m[39m
-├ ◐ /sign-in/[[...sign-in]]                            2 kB            [37m[1m150 kB[22m[39m
-├   └ /sign-in/[[...sign-in]]
-├ ◐ /sign-up/[[...sign-up]]                            2 kB            [37m[1m150 kB[22m[39m
-├   └ /sign-up/[[...sign-up]]
-└ ◐ /user-profile/[[...user-profile]]                  2 kB            [37m[1m150 kB[22m[39m
-    └ /user-profile/[[...user-profile]]
-+ First Load JS shared by all                          [37m[1m118 kB[22m[39m
-  ├ chunks/473-3399cee0f0e85739.js                     59.4 kB
-  ├ chunks/d31c43d6-43a6b092503cbf89.js                56.9 kB
-  └ other shared chunks (total)                        2.03 kB
-
-
-ƒ Middleware                                           [37m[1m70.5 kB[22m[39m
-
-○  (Static)             prerendered as static content
-◐  (Partial Prerender)  prerendered as static HTML with dynamic server-streamed content
-ƒ  (Dynamic)            server-rendered on demand
-
-[?25h

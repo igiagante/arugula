@@ -1,4 +1,4 @@
-import type { Grow, Indoor, Lamp, Plant, Strain } from "../../schema";
+import type { Grow, Indoor, Lamp, Plant, Strain } from "@/lib/db/schemas";
 import type { GrowStrain, GrowView } from "../types/grow";
 
 export function createGrowView(

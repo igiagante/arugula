@@ -1,8 +1,10 @@
 "use client";
 import { ChevronUp } from "lucide-react";
-import Image from "next/image";
 import { useTheme } from "next-themes";
+import Image from "next/image";
 
+import type { User } from "@/lib/db/schemas";
+import { SignOutButton } from "@clerk/nextjs";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,8 +17,6 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@workspace/ui/components/sidebar";
-import { SignOutButton } from "@clerk/nextjs";
-import type { User } from "@/lib/db/schema";
 
 export function SidebarUserNav({ user }: { user: User }) {
   const { setTheme, theme } = useTheme();

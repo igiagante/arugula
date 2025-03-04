@@ -18,7 +18,7 @@ import { SidebarLeftIcon } from "../icons";
 import { OrganizationSidebar } from "../organization/organization-sidebar";
 import { ChatsHistory } from "./chats-history";
 import { SideBarAdmin } from "./side-bar-admin";
-import { UserIndicator } from "./user-indicator";
+import { UserMenuItem } from "./user-menu-item";
 
 export async function AppSidebar(props: ComponentProps<typeof Sidebar>) {
   return (
@@ -80,7 +80,7 @@ export async function AppSidebar(props: ComponentProps<typeof Sidebar>) {
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
-        <UserIndicator />
+        <UserMenuItem />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>

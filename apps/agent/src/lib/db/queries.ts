@@ -16,7 +16,7 @@ import {
   user,
   type User,
   vote,
-} from "./schema";
+} from "./schemas";
 
 // Optionally, if not using email/pass login, you can
 // use the Drizzle adapter for Auth.js / NextAuth

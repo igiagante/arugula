@@ -1,4 +1,4 @@
-import { product, task, taskProduct } from "../schema";
+import { product, task, taskProduct } from "../schemas";
 import { DrizzleClient } from "../types";
 
 export async function seedProducts(db: DrizzleClient) {

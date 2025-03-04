@@ -14,8 +14,6 @@ export default function PreferencesPage() {
     }
   };
 
-  // console.log("PreferencesPage preferences", preferences);
-
   return (
     <div className="container mx-auto py-6">
       <div className="mt-6">

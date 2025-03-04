@@ -1,4 +1,4 @@
-import { user } from "../schema";
+import { user } from "../schemas";
 import { DrizzleClient } from "../types";
 
 export async function seedUsers(db: DrizzleClient) {

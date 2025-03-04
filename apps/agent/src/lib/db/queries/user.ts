@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 import { db } from "../index";
-import { User, user } from "../schema";
+import { User, user } from "../schemas";
 
 /**
  * GET a User by ID.

@@ -9,7 +9,7 @@ import {
   task,
   taskPlant,
   taskProduct,
-} from "../schema"; // adjust the path as needed
+} from "../schemas"; // adjust the path as needed
 
 // biome-ignore lint: Forbidden non-null assertion.
 const client = postgres(process.env.POSTGRES_URL!);

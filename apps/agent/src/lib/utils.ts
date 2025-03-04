@@ -5,7 +5,7 @@ import type {
   ToolInvocation,
 } from "ai";
 
-import type { Message as DBMessage, Document } from "@/lib/db/schema";
+import type { Message as DBMessage, Document } from "@/lib/db/schemas";
 import { GetObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { getS3BucketName, getS3Client } from "./s3/client";

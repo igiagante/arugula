@@ -1,5 +1,9 @@
 "use client";
 
+import {
+  UserPreferences,
+  userPreferencesSchema,
+} from "@/schemas/user-preferences.schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@workspace/ui/components/button";
 import {
@@ -36,36 +40,13 @@ import { Switch } from "@workspace/ui/components/switch";
 import { Droplets, Loader2, Ruler, Scale, ThermometerIcon } from "lucide-react";
 import * as React from "react";
 import { FormProvider, useForm } from "react-hook-form";
-import { UserPreferences, userPreferencesSchema } from "./schema";
-
-const measurementSystems = [
-  { label: "Metric", value: "metric" },
-  { label: "Imperial", value: "imperial" },
-] as const;
-
-const temperatureUnits = [
-  { label: "Celsius (°C)", value: "celsius" },
-  { label: "Fahrenheit (°F)", value: "fahrenheit" },
-] as const;
-
-const volumeUnits = [
-  { label: "Liters (L)", value: "liters" },
-  { label: "Gallons (gal)", value: "gallons" },
-] as const;
-
-const distanceUnits = [
-  { label: "Centimeters (cm)", value: "cm" },
-  { label: "Meters (m)", value: "m" },
-  { label: "Inches (in)", value: "inches" },
-  { label: "Feet (ft)", value: "feet" },
-] as const;
-
-const weightUnits = [
-  { label: "Grams (g)", value: "grams" },
-  { label: "Kilograms (kg)", value: "kg" },
-  { label: "Ounces (oz)", value: "oz" },
-  { label: "Pounds (lb)", value: "lb" },
-] as const;
+import {
+  DistanceUnits,
+  MeasurementUnits,
+  TemperatureUnits,
+  VolumeUnits,
+  WeightUnits,
+} from "./user-preferences.types";
 
 const defaultPreferences: UserPreferences = {
   measurements: {
@@ -193,14 +174,13 @@ export function UserPreferencesModal({
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            {measurementSystems.map((system) => (
-                              <SelectItem
-                                key={system.value}
-                                value={system.value}
-                              >
-                                {system.label}
-                              </SelectItem>
-                            ))}
+                            {Object.entries(MeasurementUnits).map(
+                              ([key, value]) => (
+                                <SelectItem key={key} value={value}>
+                                  {key.charAt(0).toUpperCase() + key.slice(1)}
+                                </SelectItem>
+                              )
+                            )}
                           </SelectContent>
                         </Select>
                         <FormDescription>
@@ -231,11 +211,13 @@ export function UserPreferencesModal({
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              {temperatureUnits.map((unit) => (
-                                <SelectItem key={unit.value} value={unit.value}>
-                                  {unit.label}
-                                </SelectItem>
-                              ))}
+                              {Object.entries(TemperatureUnits).map(
+                                ([key, value]) => (
+                                  <SelectItem key={key} value={value}>
+                                    {key.charAt(0).toUpperCase() + key.slice(1)}
+                                  </SelectItem>
+                                )
+                              )}
                             </SelectContent>
                           </Select>
                         </FormItem>
@@ -261,11 +243,13 @@ export function UserPreferencesModal({
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              {volumeUnits.map((unit) => (
-                                <SelectItem key={unit.value} value={unit.value}>
-                                  {unit.label}
-                                </SelectItem>
-                              ))}
+                              {Object.entries(VolumeUnits).map(
+                                ([key, value]) => (
+                                  <SelectItem key={key} value={value}>
+                                    {key.charAt(0).toUpperCase() + key.slice(1)}
+                                  </SelectItem>
+                                )
+                              )}
                             </SelectContent>
                           </Select>
                         </FormItem>
@@ -291,11 +275,13 @@ export function UserPreferencesModal({
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              {distanceUnits.map((unit) => (
-                                <SelectItem key={unit.value} value={unit.value}>
-                                  {unit.label}
-                                </SelectItem>
-                              ))}
+                              {Object.entries(DistanceUnits).map(
+                                ([key, value]) => (
+                                  <SelectItem key={key} value={value}>
+                                    {key.charAt(0).toUpperCase() + key.slice(1)}
+                                  </SelectItem>
+                                )
+                              )}
                             </SelectContent>
                           </Select>
                         </FormItem>
@@ -321,11 +307,13 @@ export function UserPreferencesModal({
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              {weightUnits.map((unit) => (
-                                <SelectItem key={unit.value} value={unit.value}>
-                                  {unit.label}
-                                </SelectItem>
-                              ))}
+                              {Object.entries(WeightUnits).map(
+                                ([key, value]) => (
+                                  <SelectItem key={key} value={value}>
+                                    {value}
+                                  </SelectItem>
+                                )
+                              )}
                             </SelectContent>
                           </Select>
                         </FormItem>

@@ -4,10 +4,10 @@ import {
   TemperatureUnits,
   VolumeUnits,
   WeightUnits,
-} from "@/app/types/user/preferences";
+} from "@/components/user/user-preferences.types";
 import { db } from "@/lib/db";
 import { getUserById } from "@/lib/db/queries/user";
-import { user } from "@/lib/db/schema";
+import { user } from "@/lib/db/schemas";
 import { auth } from "@clerk/nextjs/server";
 import { eq } from "drizzle-orm";
 import { revalidateTag, unstable_cache } from "next/cache";
@@ -24,8 +24,6 @@ export async function GET(
   // Await the params object before using its properties
   const { id } = await params;
   const { userId } = await auth();
-
-  console.log("GET /api/users/[id]/preferences", userId, id);
 
   if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

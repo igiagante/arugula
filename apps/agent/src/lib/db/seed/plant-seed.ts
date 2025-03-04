@@ -1,4 +1,4 @@
-import { plant, plantNote } from "../schema";
+import { plant, plantNote } from "../schemas";
 import { DrizzleClient } from "../types";
 
 export async function seedPlants(

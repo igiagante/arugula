@@ -185,11 +185,6 @@ export async function fetchOrganizations(): Promise<Organization[]> {
   try {
     await delay(800); // Simulate network delay
 
-    // Simulate potential errors
-    if (Math.random() < 0.1) {
-      throw new Error("Network error");
-    }
-
     return [...mockOrganizations];
   } catch (error) {
     console.error("Error fetching organizations:", error);

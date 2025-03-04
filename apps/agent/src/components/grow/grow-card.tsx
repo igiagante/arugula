@@ -220,7 +220,7 @@ export function GrowCard({
         </div>
         <div className="space-y-3 rounded-lg bg-neutral-50 p-3">
           {strains.map((strain, index) => (
-            <div key={strain.name}>
+            <div key={`${strain.name}-${index}`}>
               {index > 0 && <Separator className="my-3" />}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">

@@ -1,6 +1,6 @@
 import Image from "next/image";
 import { useMemo, useState } from "react";
-import { MockImage } from "./strains/mock-image";
+import { MockImage } from "./mocks/mock-image";
 
 export function GrowImage({
   imageUrl,

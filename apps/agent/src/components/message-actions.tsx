@@ -3,9 +3,8 @@ import { toast } from "sonner";
 import { useSWRConfig } from "swr";
 import { useCopyToClipboard } from "usehooks-ts";
 
-import type { Vote } from "@/lib/db/schema";
+import type { Vote } from "@/lib/db/schemas";
 
-import { CopyIcon, ThumbDownIcon, ThumbUpIcon } from "./icons";
 import { Button } from "@workspace/ui/components/button";
 import {
   Tooltip,
@@ -13,8 +12,9 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@workspace/ui/components/tooltip";
-import { memo } from "react";
 import equal from "fast-deep-equal";
+import { memo } from "react";
+import { CopyIcon, ThumbDownIcon, ThumbUpIcon } from "./icons";
 
 export function PureMessageActions({
   chatId,

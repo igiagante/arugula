@@ -1,9 +1,9 @@
-import { uploadImageToS3ForSeed } from "@/app/utils/s3/s3-upload";
+import { uploadImageToS3ForSeed } from "@/lib/s3/s3-upload";
 import { mapImages } from "@/lib/utils";
 import fs, { readFileSync } from "fs";
 import path from "path";
 import postgres from "postgres";
-import { strain } from "../schema";
+import { strain } from "../schemas";
 import { DrizzleClient } from "../types";
 
 export async function seedStrains(db: DrizzleClient) {

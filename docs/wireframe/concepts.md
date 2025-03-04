@@ -87,7 +87,7 @@ Below is an example using React (with TypeScript and, for instance, React Query 
 ```tsx
 // components/GrowCard.tsx
 import React from "react";
-import { Grow } from "@/lib/db/schema"; // Adjust path to your type
+import { Grow } from "@/lib/db/schemas"; // Adjust path to your type
 
 interface GrowCardProps {
   grow: Grow;

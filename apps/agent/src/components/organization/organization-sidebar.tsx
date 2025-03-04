@@ -23,7 +23,7 @@ export function OrganizationSidebar() {
   const [organizations, setOrganizations] = useState<Organization[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, _setSearchQuery] = useState("");
   const [selectedOrg, setSelectedOrg] = useState<Organization | null>(null);
 
   useEffect(() => {
