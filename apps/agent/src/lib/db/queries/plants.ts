@@ -3,6 +3,7 @@ import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import { type Plant, plant, strain } from "../schemas"; // adjust the path as needed
+import { PlantWithStrain } from "./types/plant";
 
 // biome-ignore lint: Forbidden non-null assertion.
 const client = postgres(process.env.POSTGRES_URL!);
@@ -115,13 +116,38 @@ export async function getPlantById({ plantId }: { plantId: string }) {
  * @param growId - The grow cycle's UUID
  * @returns An array of plant records for the specified grow.
  */
-export async function getPlantsByGrowId({ growId }: { growId: string }) {
+export async function getPlantsByGrowId({
+  growId,
+}: {
+  growId: string;
+}): Promise<PlantWithStrain[]> {
   try {
     const plantsList = await db
-      .select()
+      .select({
+        id: plant.id,
+        growId: plant.growId,
+        strainId: plant.strainId,
+        customName: plant.customName,
+        stage: plant.stage,
+        archived: plant.archived,
+        potSize: plant.potSize,
+        createdAt: plant.createdAt,
+        updatedAt: plant.updatedAt,
+        strain: {
+          id: strain.id,
+          name: strain.name,
+          type: strain.type,
+          cannabinoidProfile: strain.cannabinoidProfile,
+          description: strain.description,
+          ratio: strain.ratio,
+          images: strain.images,
+        },
+      })
       .from(plant)
+      .leftJoin(strain, eq(plant.strainId, strain.id))
       .where(eq(plant.growId, growId));
-    return plantsList;
+
+    return plantsList as unknown as PlantWithStrain[];
   } catch (error) {
     console.error("Failed to get plants by grow id:", error);
     throw error;

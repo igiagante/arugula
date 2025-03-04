@@ -1,8 +1,8 @@
+import { CacheTags, createDynamicTag } from "@/app/api/tags";
 import { createPlant, getPlantsByGrowId } from "@/lib/db/queries/plants";
 import { auth } from "@clerk/nextjs/server";
 import { revalidateTag, unstable_cache } from "next/cache";
 import { NextResponse } from "next/server";
-import { CacheTags, createDynamicTag } from "../tags";
 
 /**
  * GET /api/plants?growId=...

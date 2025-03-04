@@ -11,13 +11,14 @@ import {
   SidebarSeparator,
   SidebarTrigger,
 } from "@workspace/ui/components/sidebar";
-import { CalendarDays, Leaf, Package, Sprout } from "lucide-react";
+import { CalendarDays, Leaf, Package } from "lucide-react";
 import Link from "next/link";
 import type { ComponentProps } from "react";
 import { SidebarLeftIcon } from "../icons";
 import { OrganizationSidebar } from "../organization/organization-sidebar";
 import { ChatsHistory } from "./chats-history";
 import { SideBarAdmin } from "./side-bar-admin";
+import { SidebarActiveGrows } from "./sidebar-active-grows";
 import { UserMenuItem } from "./user-menu-item";
 
 export async function AppSidebar(props: ComponentProps<typeof Sidebar>) {
@@ -43,14 +44,7 @@ export async function AppSidebar(props: ComponentProps<typeof Sidebar>) {
       <SidebarContent className="mt-2">
         <SidebarGroup>
           <SidebarMenu className="flex flex-col gap-2 px-2">
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild>
-                <Link href="/grows">
-                  <Sprout />
-                  <span>Active Grows</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
+            <SidebarActiveGrows />
             <SidebarMenuItem>
               <SidebarMenuButton asChild>
                 <Link href="/calendar">

@@ -2,27 +2,31 @@ import Image from "next/image";
 import { useMemo, useState } from "react";
 import { MockImage } from "./mocks/mock-image";
 
-export function GrowImage({
+export function ImageWithFallback({
   imageUrl,
   alt,
+  className,
 }: {
   imageUrl: string;
   alt: string;
+  className?: string;
 }) {
   const [imageError, setImageError] = useState(false);
 
   // Clean and validate the URL
   const cleanImageUrl = useMemo(() => {
+    if (!imageUrl) return null;
+
     try {
-      if (!imageUrl) return "";
+      // Handle absolute URLs
       if (imageUrl.startsWith("http")) {
-        const url = new URL(imageUrl);
-        return url.toString();
+        return new URL(imageUrl).toString();
       }
-      return imageUrl;
+      // Add API base URL for relative paths
+      return `/api/images/${imageUrl}`; // Adjust this path to match your image API endpoint
     } catch (error) {
-      console.error("Error processing image URL:", error);
-      return "";
+      console.error("Invalid image URL:", imageUrl, error);
+      return null;
     }
   }, [imageUrl]);
 
@@ -32,7 +36,7 @@ export function GrowImage({
         _src="/api/placeholder/400/320"
         alt={alt || "Grow image"}
         fill
-        className="object-cover rounded-md"
+        className={`object-cover rounded-md rounded-b-none ${className}`}
       />
     );
   }
@@ -43,7 +47,7 @@ export function GrowImage({
         src={cleanImageUrl}
         alt={alt || "Grow image"}
         fill
-        className="object-cover rounded-md"
+        className={`object-cover rounded-md rounded-b-none ${className}`}
         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
         onError={() => setImageError(true)}
       />

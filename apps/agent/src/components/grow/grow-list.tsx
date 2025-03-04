@@ -2,14 +2,16 @@
 
 import { useQuery } from "@tanstack/react-query";
 
-import { GrowCard, GrowCardSkeleton } from "@/components/grow/grow-card";
+import { CacheTags } from "@/app/api/tags";
+import { GrowCard } from "@/components/grow/grow-card";
+import { GrowCardSkeleton } from "@/components/grow/grow-card-skeleton";
 import type { GrowView } from "@/lib/db/queries/types/grow";
 import { toast } from "sonner";
 import { apiRequest } from "../../app/api/client";
 
 export function GrowList() {
   const { data, isLoading, error } = useQuery({
-    queryKey: ["grows"],
+    queryKey: [CacheTags.grows],
     queryFn: async () => {
       return await apiRequest<GrowView[]>("/api/grows");
     },

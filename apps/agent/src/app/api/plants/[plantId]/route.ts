@@ -1,3 +1,4 @@
+import { CacheTags, createDynamicTag } from "@/app/api/tags";
 import {
   deletePlant,
   getPlantById,
@@ -7,7 +8,6 @@ import {
 import { auth } from "@clerk/nextjs/server";
 import { revalidateTag, unstable_cache } from "next/cache";
 import { NextResponse } from "next/server";
-import { CacheTags, createDynamicTag } from "../../tags";
 
 /**
  * GET /api/plants/[id]
@@ -23,7 +23,7 @@ import { CacheTags, createDynamicTag } from "../../tags";
  *
  * @example
  * // Fetch plant only
- * GET /api/plants/123
+ * GET /api/grows/123/plants/123
  *
  * // Fetch plant with strain data
  * GET /api/plants/123?includeStrain=true
