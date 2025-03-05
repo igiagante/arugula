@@ -15,6 +15,7 @@ import {
 } from "@workspace/ui/components/dropdown-menu";
 import { Edit, Eye, MoreVertical, Trash2 } from "lucide-react";
 import { ImageWithFallback } from "../grow/image-with-fallback";
+import { getStageBadgeColor } from "./plant-utils";
 
 interface PlantCardProps {
   plant: PlantWithStrain;
@@ -24,20 +25,6 @@ interface PlantCardProps {
 }
 
 export function PlantCard({ plant, onView, onEdit, onDelete }: PlantCardProps) {
-  const getStageBadgeColor = (stage: string) => {
-    const colors = {
-      seedling: "bg-green-100 text-green-800 hover:bg-green-100/80",
-      veg: "bg-emerald-100 text-emerald-800 hover:bg-emerald-100/80",
-      flowering: "bg-purple-100 text-purple-800 hover:bg-purple-100/80",
-      harvested: "bg-amber-100 text-amber-800 hover:bg-amber-100/80",
-      curing: "bg-blue-100 text-blue-800 hover:bg-blue-100/80",
-      archived: "bg-gray-100 text-gray-800 hover:bg-gray-100/80",
-    };
-    return (
-      colors[stage.toLowerCase() as keyof typeof colors] || colors.archived
-    );
-  };
-
   return (
     <Card className="overflow-hidden">
       <CardHeader className="p-0">

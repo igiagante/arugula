@@ -6,9 +6,6 @@ import type {
 } from "ai";
 
 import type { Message as DBMessage, Document } from "@/lib/db/schemas";
-import { GetObjectCommand } from "@aws-sdk/client-s3";
-import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import { getS3BucketName, getS3Client } from "./s3/client";
 
 interface ApplicationError extends Error {
   info: string;
@@ -231,30 +228,11 @@ export async function mapImages<T extends { images: string[] }>(
 ): Promise<T & { images: string[] }> {
   return {
     ...entity,
-    images: await Promise.all(
-      entity.images.map(async (image) => {
-        try {
-          // Clean the image key first
-          const cleanKey = decodeURIComponent(image);
-
-          const signedUrl = await getSignedUrl(
-            getS3Client(),
-            new GetObjectCommand({
-              Bucket: getS3BucketName(),
-              Key: cleanKey,
-            }),
-            { expiresIn: forSeed ? 60 * 60 * 24 * 60 : 60 * 60 * 24 } // 60 days for seed, 1 day for regular
-          );
-
-          // Ensure the URL is properly formatted
-          const url = new URL(signedUrl);
-          return url.toString();
-        } catch (error) {
-          console.error("Error generating signed URL:", error);
-          return image; // Return original key if URL generation fails
-        }
-      })
-    ),
+    images: entity.images.map((imageKey) => {
+      // The imageKey already contains all the information we need
+      // Example key format: "14edc6d3-6560-4d89-a0b1-abb8d42db3f4-gsc.jpg"
+      return `/api/images/${encodeURIComponent(imageKey)}`;
+    }),
   };
 }
 

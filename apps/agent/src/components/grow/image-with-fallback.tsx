@@ -2,35 +2,63 @@ import Image from "next/image";
 import { useMemo, useState } from "react";
 import { MockImage } from "./mocks/mock-image";
 
-export function ImageWithFallback({
-  imageUrl,
-  alt,
-  className,
-}: {
-  imageUrl: string;
+interface ImageWithFallbackProps {
+  imageUrl: string | null;
+  fallbackUrl?: string;
   alt: string;
   className?: string;
-}) {
-  const [imageError, setImageError] = useState(false);
+}
 
-  // Clean and validate the URL
+export function ImageWithFallback({
+  imageUrl,
+  fallbackUrl = "/placeholder.jpg",
+  alt,
+  className,
+}: ImageWithFallbackProps) {
+  const [error, setError] = useState(false);
+
   const cleanImageUrl = useMemo(() => {
-    if (!imageUrl) return null;
+    if (!imageUrl) return fallbackUrl;
 
     try {
-      // Handle absolute URLs
-      if (imageUrl.startsWith("http")) {
-        return new URL(imageUrl).toString();
+      // Validate URL format
+      const isValidUrl = (urlString: string) => {
+        try {
+          if (urlString.startsWith("/")) return true; // Allow relative paths
+          new URL(urlString);
+          return true;
+        } catch {
+          return false;
+        }
+      };
+
+      // If it's an S3 URL that failed (contains the S3 bucket name),
+      // use our API endpoint instead
+      if (error && imageUrl.includes("arugula-store.s3")) {
+        const key = imageUrl.split("/").pop()?.split("?")[0];
+        return key ? `/api/images/${key}` : fallbackUrl;
       }
-      // Add API base URL for relative paths
-      return `/api/images/${imageUrl}`; // Adjust this path to match your image API endpoint
+
+      // For new requests, if it's already a relative path or API URL, use as is
+      if (imageUrl.startsWith("/api/") || !imageUrl.startsWith("http")) {
+        return isValidUrl(imageUrl) ? imageUrl : fallbackUrl;
+      }
+
+      // For S3 URLs, convert to API endpoint immediately
+      if (imageUrl.includes("arugula-store.s3")) {
+        const key = imageUrl.split("/").pop()?.split("?")[0];
+        return key ? `/api/images/${key}` : fallbackUrl;
+      }
+
+      // For other URLs (e.g., external images), validate before using
+      return isValidUrl(imageUrl) ? imageUrl : fallbackUrl;
     } catch (error) {
       console.error("Invalid image URL:", imageUrl, error);
-      return null;
+      return fallbackUrl;
     }
-  }, [imageUrl]);
+  }, [imageUrl, error, fallbackUrl]);
 
-  if (!cleanImageUrl || imageError) {
+  if (!cleanImageUrl || error) {
     return (
       <MockImage
         _src="/api/placeholder/400/320"
@@ -49,7 +77,7 @@ export function ImageWithFallback({
         fill
         className={`object-cover rounded-md rounded-b-none ${className}`}
         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-        onError={() => setImageError(true)}
+        onError={() => setError(true)}
       />
     </div>
   );

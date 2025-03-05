@@ -1,113 +1,132 @@
+import { GrowStages } from "@/lib/constants";
 import { PlantWithStrain } from "@/lib/db/queries/types/plant";
-import { Calendar, Clock, Droplet, Info, Leaf, Ruler } from "lucide-react";
+import { Badge } from "@workspace/ui/components/badge";
+import { Progress } from "@workspace/ui/components/progress";
+import { Droplets, Ruler, Thermometer } from "lucide-react";
+import { getStageIcon } from "./plant-utils";
 
-export default function PlantDetails({ plant }: { plant: PlantWithStrain }) {
+interface PlantDetailsProps {
+  plant?: PlantWithStrain;
+  getStageBadgeColor: (stage: string) => string;
+}
+
+export function PlantDetails({ plant, getStageBadgeColor }: PlantDetailsProps) {
   return (
-    <div className="max-w-3xl mx-auto rounded-lg overflow-hidden shadow-md bg-white">
-      {/* Main Content */}
-      <div className="p-6">
-        <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center">
-          <Info className="size-5 mr-2 text-green-600" />
-          Plant Details
-        </h2>
+    <div className="space-y-6">
+      {/* Current Stage */}
+      <div className="bg-muted/50 rounded-lg p-4">
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-2">
+            {getStageIcon(plant?.stage || "")}
+            <h3 className="font-medium">
+              Current Stage:{" "}
+              <span className="text-primary">{plant?.stage || "Unknown"}</span>
+            </h3>
+          </div>
+          <Badge className={getStageBadgeColor(plant?.stage || "")}>
+            15 days
+          </Badge>
+        </div>
+        <div className="space-y-2">
+          <div className="flex justify-between text-xs">
+            <span>Progress</span>
+            <span>60%</span>
+          </div>
+          <Progress value={60} className="h-2" />
+          <p className="text-xs text-muted-foreground mt-2">
+            {plant?.stage === GrowStages.vegetative
+              ? "Plant is developing strong stems and foliage. Estimated 10 more days until flowering."
+              : plant?.stage === GrowStages.flowering
+                ? "Flowers are developing well. Watch for nutrient needs and maintain proper lighting."
+                : "Current stage is progressing as expected."}
+          </p>
+        </div>
+      </div>
 
-        <div className="mb-8">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="bg-gray-50 p-3 rounded-lg">
-              <div className="text-gray-500 text-sm mb-1">Name</div>
-              <div className="font-semibold text-gray-800">
-                {plant.customName}
-              </div>
+      {/* Plant Vitals */}
+      <div>
+        <h3 className="font-medium text-sm mb-3">Plant Vitals</h3>
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+          <div className="bg-muted/50 rounded-lg p-3 flex flex-col">
+            <div className="flex items-center gap-1.5 mb-1">
+              <Ruler className="size-4 text-emerald-600" />
+              <span className="text-xs font-medium">Height</span>
             </div>
+            <span className="text-lg font-semibold">24 cm</span>
+            <span className="text-xs text-muted-foreground">
+              +2cm last week
+            </span>
+          </div>
 
-            <div className="bg-gray-50 p-3 rounded-lg">
-              <div className="text-gray-500 text-sm mb-1">Stage</div>
-              <div className="font-semibold text-green-600">{plant.stage}</div>
+          <div className="bg-muted/50 rounded-lg p-3 flex flex-col">
+            <div className="flex items-center gap-1.5 mb-1">
+              <Droplets className="size-4 text-blue-600" />
+              <span className="text-xs font-medium">Last Watered</span>
             </div>
+            <span className="text-lg font-semibold">2 days ago</span>
+            <span className="text-xs text-muted-foreground">
+              Next: Tomorrow
+            </span>
+          </div>
 
-            <div className="bg-gray-50 p-3 rounded-lg">
-              <div className="text-gray-500 text-sm mb-1">Strain</div>
-              <div className="font-semibold text-gray-800">
-                {plant.strain?.name}
-              </div>
+          <div className="bg-muted/50 rounded-lg p-3 flex flex-col">
+            <div className="flex items-center gap-1.5 mb-1">
+              <Thermometer className="size-4 text-red-600" />
+              <span className="text-xs font-medium">Environment</span>
             </div>
+            <span className="text-lg font-semibold">24°C / 55%</span>
+            <span className="text-xs text-muted-foreground">
+              Temp / Humidity
+            </span>
+          </div>
+        </div>
+      </div>
 
-            <div className="bg-gray-50 p-3 rounded-lg">
-              <div className="text-gray-500 text-sm mb-1">Pot Size</div>
-              <div className="font-semibold text-gray-800">{plant.potSize}</div>
+      {/* Plant Details */}
+      <div>
+        <h3 className="font-medium text-sm mb-3">Plant Information</h3>
+        <div className="bg-muted/50 rounded-lg p-4">
+          <div className="grid grid-cols-2 gap-y-3 text-sm">
+            <div>
+              <span className="text-muted-foreground">Name:</span>
+              <p className="font-medium">{plant?.customName}</p>
             </div>
-
-            <div className="bg-gray-50 p-3 rounded-lg">
-              <div className="text-gray-500 text-sm mb-1">Added</div>
-              <div className="font-semibold text-gray-800 flex items-center">
-                <Calendar className="size-4 mr-1 text-green-600" />
-                {new Date(plant.createdAt).toLocaleDateString()}
-              </div>
+            <div>
+              <span className="text-muted-foreground">Strain:</span>
+              <p className="font-medium">{plant?.strain?.name || "—"}</p>
+            </div>
+            <div>
+              <span className="text-muted-foreground">Pot Size:</span>
+              <p className="font-medium">{plant?.potSize || "—"}</p>
+            </div>
+            <div>
+              <span className="text-muted-foreground">Added:</span>
+              <p className="font-medium">
+                {new Date(plant?.createdAt || new Date()).toLocaleDateString()}
+              </p>
+            </div>
+            <div>
+              <span className="text-muted-foreground">Total Age:</span>
+              <p className="font-medium">45 days</p>
+            </div>
+            <div>
+              <span className="text-muted-foreground">Grow Medium:</span>
+              <p className="font-medium">Coco coir + perlite</p>
             </div>
           </div>
         </div>
+      </div>
 
-        <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center">
-          <Leaf className="size-5 mr-2 text-green-600" />
-          Growth Statistics
-        </h2>
-
-        <div className="mb-8">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="bg-gray-50 p-3 rounded-lg">
-              <div className="text-gray-500 text-sm mb-1">
-                Days in current stage
-              </div>
-              <div className="font-semibold text-gray-800 flex items-center">
-                <Clock className="size-4 mr-1 text-green-600" />
-                15
-              </div>
-            </div>
-
-            <div className="bg-gray-50 p-3 rounded-lg">
-              <div className="text-gray-500 text-sm mb-1">Total age</div>
-              <div className="font-semibold text-gray-800">45 days</div>
-            </div>
-
-            <div className="bg-gray-50 p-3 rounded-lg">
-              <div className="text-gray-500 text-sm mb-1">Height</div>
-              <div className="font-semibold text-gray-800 flex items-center">
-                <Ruler className="size-4 mr-1 text-green-600" />
-                24 cm
-              </div>
-            </div>
-
-            <div className="bg-gray-50 p-3 rounded-lg">
-              <div className="text-gray-500 text-sm mb-1">Last watered</div>
-              <div className="font-semibold text-gray-800 flex items-center">
-                <Droplet className="size-4 mr-1 text-blue-500" />2 days ago
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <h2 className="text-xl font-bold text-gray-800 mb-4">Notes</h2>
-        <div className="bg-gray-50 p-4 rounded-lg border border-gray-100">
-          <p className="text-gray-700">
+      {/* Notes */}
+      <div>
+        <h3 className="font-medium text-sm mb-2">Notes</h3>
+        <div className="bg-muted/50 rounded-lg p-4">
+          <p className="text-sm">
             This plant has been showing excellent growth in the vegetative
             stage. The leaves are a vibrant green color and the structure is
             developing well. Planning to switch to flowering stage in about 1
             week.
           </p>
-        </div>
-
-        {/* Visual Growth Indicator */}
-        <div className="mt-6">
-          <div className="flex justify-between text-sm text-gray-600 mb-1">
-            <span>Growth Progress</span>
-            <span>45 days</span>
-          </div>
-          <div className="w-full bg-gray-200 rounded-full h-2.5">
-            <div
-              className="bg-green-600 h-2 rounded-full"
-              style={{ width: "60%" }}
-            ></div>
-          </div>
         </div>
       </div>
     </div>

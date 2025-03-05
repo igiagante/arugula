@@ -2,9 +2,9 @@
 
 import { apiRequest } from "@/app/api/client";
 import { CacheTags, createDynamicTag } from "@/app/api/tags";
-import { GridViewPlants } from "@/components/plants/grid-view-plants";
-import { ListViewPlants } from "@/components/plants/list-view-plants";
-import { PlantDetailModal } from "@/components/plants/plant-detail-modal";
+import { PlantDetailModal } from "@/components/plants/modals/plant-detail-modal";
+import { GridViewPlants } from "@/components/plants/views/grid-view-plants";
+import { ListViewPlants } from "@/components/plants/views/list-view-plants";
 import { PlantWithStrain } from "@/lib/db/queries/types/plant";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@workspace/ui/components/button";
@@ -21,8 +21,9 @@ import { PlusCircle, Search } from "lucide-react";
 import { useParams } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
-import { PlantEditModal } from "./edit-plant-modal";
-import { PlantCardSkeleton } from "./plant-card-skeleton";
+import { PlantCardSkeleton } from "../skeletons/plant-card-skeleton";
+import { AddPlantModal } from "./modals/add-plant-modal";
+import { PlantEditModal } from "./modals/edit-plant-modal";
 
 export function PlantDashboard() {
   const { id: growId } = useParams<{ id: string }>();
@@ -33,6 +34,7 @@ export function PlantDashboard() {
   const [selectedPlant, setSelectedPlant] = useState<any | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [plantToEdit, setPlantToEdit] = useState<any | null>(null);
 
   const { data, isLoading, error } = useQuery({
@@ -42,8 +44,6 @@ export function PlantDashboard() {
       return await apiRequest<PlantWithStrain[]>(`/api/grows/${growId}/plants`);
     },
   });
-
-  console.log("data", data);
 
   // Filter plants based on search query and stage filter
   const filteredPlants =
@@ -65,7 +65,8 @@ export function PlantDashboard() {
 
   const handleAddNewPlant = () => {
     setPlantToEdit(null);
-    setIsEditModalOpen(true);
+    setIsEditModalOpen(false);
+    setIsAddModalOpen(true);
   };
 
   const handleEditPlant = (plant: any) => {
@@ -76,8 +77,6 @@ export function PlantDashboard() {
 
   const handleSavePlant = (updatedPlant: any, images: any[]) => {
     console.log("Saving plant:", updatedPlant, images);
-    // In a real app, you would update the plant in your data store
-    // For now, we'll just close the modal
   };
 
   if (isLoading) {
@@ -189,6 +188,11 @@ export function PlantDashboard() {
         isOpen={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
         onSave={handleSavePlant}
+      />
+
+      <AddPlantModal
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
       />
     </div>
   );

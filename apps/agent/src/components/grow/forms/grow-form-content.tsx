@@ -1,3 +1,4 @@
+import { growingMethods, growStages } from "@/lib/constants";
 import { CardContent } from "@workspace/ui/components/card";
 import {
   Control,
@@ -5,7 +6,6 @@ import {
   UseFormSetValue,
   UseFormWatch,
 } from "react-hook-form";
-import { growingMethods, growStages } from "../constants";
 import { AddPlantsStep } from "../steps/add-plants-step";
 import { BasicDetailsStep } from "../steps/basic-details-step";
 import { SetupDetailsStep } from "../steps/setup-details-step";

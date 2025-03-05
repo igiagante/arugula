@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 
 import { CacheTags } from "@/app/api/tags";
 import { GrowCard } from "@/components/grow/grow-card";
-import { GrowCardSkeleton } from "@/components/grow/grow-card-skeleton";
+import { GrowCardSkeleton } from "@/components/skeletons/grow-card-skeleton";
 import type { GrowView } from "@/lib/db/queries/types/grow";
 import { toast } from "sonner";
 import { apiRequest } from "../../app/api/client";

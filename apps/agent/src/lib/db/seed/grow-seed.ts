@@ -1,7 +1,6 @@
-import { GrowRoles } from "@/lib/db/types";
 import { config } from "dotenv";
 import { grow, growCollaborator } from "../schemas";
-import { DrizzleClient } from "../types";
+import { DrizzleClient, GrowRoles } from "../types";
 config({
   path: ".env.local",
 });

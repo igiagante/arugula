@@ -16,7 +16,8 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Form } from "@workspace/ui/components/form";
 import { parseAsInteger, useQueryState } from "nuqs";
 import { useFieldArray, useForm } from "react-hook-form";
-import { steps } from "../constants";
+
+import { steps } from "@/lib/constants";
 import { GrowFormContent } from "./grow-form-content";
 import { GrowFormFooter } from "./grow-form-footer";
 import { GrowFormHeader } from "./grow-form-header";

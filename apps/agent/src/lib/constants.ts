@@ -8,7 +8,22 @@ export const growStages = [
   { label: "Seedling", value: "seedling" },
   { label: "Vegetative", value: "vegetative" },
   { label: "Flowering", value: "flowering" },
+  { label: "Harvested", value: "harvested" },
+  { label: "Curing", value: "curing" },
+  { label: "Archived", value: "archived" },
 ] as const;
+
+export const GrowStages = {
+  seedling: "seedling",
+  vegetative: "vegetative",
+  flowering: "flowering",
+  growing: "growing",
+  harvested: "harvested",
+  curing: "curing",
+  archived: "archived",
+} as const;
+
+export type GrowStages = (typeof GrowStages)[keyof typeof GrowStages];
 
 export const growMethods = [
   { label: "Soil", value: "soil" },

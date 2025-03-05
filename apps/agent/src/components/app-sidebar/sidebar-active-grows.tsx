@@ -30,8 +30,6 @@ export function SidebarActiveGrows() {
     return null;
   }
 
-  console.log("grows", grows);
-
   return (
     <SidebarMenuItem>
       <SidebarMenuButton

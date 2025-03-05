@@ -8,33 +8,19 @@ import {
   DialogContent,
   DialogFooter,
 } from "@workspace/ui/components/dialog";
-import { Progress } from "@workspace/ui/components/progress";
 import {
   Tabs,
   TabsContent,
   TabsList,
   TabsTrigger,
 } from "@workspace/ui/components/tabs";
-import {
-  Calendar,
-  Clock,
-  Droplets,
-  Edit,
-  Leaf,
-  Ruler,
-  Scale,
-  Sprout,
-  Star,
-  Sun,
-  Thermometer,
-  X,
-  ZoomIn,
-} from "lucide-react";
+import { Calendar, Clock, Edit, Ruler, Star, X, ZoomIn } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { PlantTimeline } from "./plant-timeline";
-
+import { PlantDetails } from "../plant-details";
+import { PlantTimeline } from "../plant-timeline";
+import { getStageBadgeColor } from "../plant-utils";
 interface PlantImage {
   id: string;
   url: string;
@@ -68,49 +54,6 @@ export function PlantDetailModal({
 
   const primaryImage =
     allImages.find((img) => img.isPrimary)?.url || allImages[0]?.url;
-
-  const getStageBadgeColor = (stage: string | null) => {
-    console.log("stage", stage);
-    if (!stage) return "bg-gray-100 text-gray-800 hover:bg-gray-100/80";
-
-    switch (stage.toLowerCase()) {
-      case "seedling":
-        return "bg-green-100 text-green-800 hover:bg-green-100/80";
-      case "vegetative":
-        return "bg-emerald-100 text-emerald-800 hover:bg-emerald-100/80";
-      case "flowering":
-        return "bg-purple-100 text-purple-800 hover:bg-purple-100/80";
-      case "harvested":
-        return "bg-amber-100 text-amber-800 hover:bg-amber-100/80";
-      case "curing":
-        return "bg-blue-100 text-blue-800 hover:bg-blue-100/80";
-      case "archived":
-        return "bg-gray-100 text-gray-800 hover:bg-gray-100/80";
-      default:
-        return "bg-gray-100 text-gray-800 hover:bg-gray-100/80";
-    }
-  };
-
-  const getStageIcon = (stage: string | null) => {
-    if (!stage) return <Leaf className="size-4" />;
-
-    switch (stage.toLowerCase()) {
-      case "seedling":
-        return <Sprout className="size-4" />;
-      case "veg":
-        return <Leaf className="size-4" />;
-      case "flowering":
-        return <Sun className="size-4" />;
-      case "harvested":
-        return <Scale className="size-4" />;
-      case "curing":
-        return <Thermometer className="size-4" />;
-      case "archived":
-        return <Calendar className="size-4" />;
-      default:
-        return <Leaf className="size-4" />;
-    }
-  };
 
   const handleEditPlant = () => {
     router.push(`/plants/${plant.id}/edit`);
@@ -174,7 +117,7 @@ export function PlantDetailModal({
   return (
     <>
       <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-        <DialogContent className="w-[calc(100vw-32px)] sm:max-w-[700px] max-h-[90vh] overflow-y-auto p-0">
+        <DialogContent className="w-[calc(100vw-32px)] sm:max-w-[700px] max-h-[90vh] overflow-y-auto p-0 gap-0">
           {/* Enhanced Header */}
           <div className="relative">
             <div className="absolute top-4 right-4 z-10">
@@ -203,7 +146,7 @@ export function PlantDetailModal({
                   </h2>
                   <div className="flex flex-wrap items-center gap-2 mt-1">
                     <Badge
-                      className={`${getStageBadgeColor(plant.stage)} border border-white/20`}
+                      className={`${getStageBadgeColor(plant.stage || "")} border border-white/20`}
                     >
                       {plant.stage || "Unknown"}
                     </Badge>
@@ -218,7 +161,7 @@ export function PlantDetailModal({
             )}
           </div>
 
-          <div className="p-4 sm:p-6">
+          <div className="px-4 sm:px-6 sm:py-4">
             {/* Plant Quick Stats */}
             <div className="flex flex-wrap gap-4 mb-6 mt-2">
               <div className="flex items-center gap-1.5">
@@ -296,144 +239,10 @@ export function PlantDetailModal({
                 <PlantTimeline items={timelineItems} />
               </TabsContent>
               <TabsContent value="details" className="pt-4">
-                <div className="space-y-6">
-                  {/* Current Stage */}
-                  <div className="bg-muted/50 rounded-lg p-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-2">
-                        {getStageIcon(plant.stage)}
-                        <h3 className="font-medium">
-                          Current Stage:{" "}
-                          <span className="text-primary">
-                            {plant.stage || "Unknown"}
-                          </span>
-                        </h3>
-                      </div>
-                      <Badge className={getStageBadgeColor(plant.stage)}>
-                        15 days
-                      </Badge>
-                    </div>
-                    <div className="space-y-2">
-                      <div className="flex justify-between text-xs">
-                        <span>Progress</span>
-                        <span>60%</span>
-                      </div>
-                      <Progress value={60} className="h-2" />
-                      <p className="text-xs text-muted-foreground mt-2">
-                        {plant.stage === "veg"
-                          ? "Plant is developing strong stems and foliage. Estimated 10 more days until flowering."
-                          : plant.stage === "flowering"
-                            ? "Flowers are developing well. Watch for nutrient needs and maintain proper lighting."
-                            : "Current stage is progressing as expected."}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Plant Vitals */}
-                  <div>
-                    <h3 className="font-medium text-sm mb-3">Plant Vitals</h3>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                      <div className="bg-muted/50 rounded-lg p-3 flex flex-col">
-                        <div className="flex items-center gap-1.5 mb-1">
-                          <Ruler className="size-4 text-emerald-600" />
-                          <span className="text-xs font-medium">Height</span>
-                        </div>
-                        <span className="text-lg font-semibold">24 cm</span>
-                        <span className="text-xs text-muted-foreground">
-                          +2cm last week
-                        </span>
-                      </div>
-
-                      <div className="bg-muted/50 rounded-lg p-3 flex flex-col">
-                        <div className="flex items-center gap-1.5 mb-1">
-                          <Droplets className="size-4 text-blue-600" />
-                          <span className="text-xs font-medium">
-                            Last Watered
-                          </span>
-                        </div>
-                        <span className="text-lg font-semibold">
-                          2 days ago
-                        </span>
-                        <span className="text-xs text-muted-foreground">
-                          Next: Tomorrow
-                        </span>
-                      </div>
-
-                      <div className="bg-muted/50 rounded-lg p-3 flex flex-col">
-                        <div className="flex items-center gap-1.5 mb-1">
-                          <Thermometer className="size-4 text-red-600" />
-                          <span className="text-xs font-medium">
-                            Environment
-                          </span>
-                        </div>
-                        <span className="text-lg font-semibold">
-                          24°C / 55%
-                        </span>
-                        <span className="text-xs text-muted-foreground">
-                          Temp / Humidity
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Plant Details */}
-                  <div>
-                    <h3 className="font-medium text-sm mb-3">
-                      Plant Information
-                    </h3>
-                    <div className="bg-muted/50 rounded-lg p-4">
-                      <div className="grid grid-cols-2 gap-y-3 text-sm">
-                        <div>
-                          <span className="text-muted-foreground">Name:</span>
-                          <p className="font-medium">{plant.customName}</p>
-                        </div>
-                        <div>
-                          <span className="text-muted-foreground">Strain:</span>
-                          <p className="font-medium">
-                            {plant.strain?.name || "—"}
-                          </p>
-                        </div>
-                        <div>
-                          <span className="text-muted-foreground">
-                            Pot Size:
-                          </span>
-                          <p className="font-medium">{plant.potSize || "—"}</p>
-                        </div>
-                        <div>
-                          <span className="text-muted-foreground">Added:</span>
-                          <p className="font-medium">
-                            {new Date(plant.createdAt).toLocaleDateString()}
-                          </p>
-                        </div>
-                        <div>
-                          <span className="text-muted-foreground">
-                            Total Age:
-                          </span>
-                          <p className="font-medium">45 days</p>
-                        </div>
-                        <div>
-                          <span className="text-muted-foreground">
-                            Grow Medium:
-                          </span>
-                          <p className="font-medium">Coco coir + perlite</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Notes */}
-                  <div>
-                    <h3 className="font-medium text-sm mb-2">Notes</h3>
-                    <div className="bg-muted/50 rounded-lg p-4">
-                      <p className="text-sm">
-                        This plant has been showing excellent growth in the
-                        vegetative stage. The leaves are a vibrant green color
-                        and the structure is developing well. Planning to switch
-                        to flowering stage in about 1 week.
-                      </p>
-                    </div>
-                  </div>
-                </div>
+                <PlantDetails
+                  plant={plant}
+                  getStageBadgeColor={getStageBadgeColor}
+                />
               </TabsContent>
             </Tabs>
           </div>

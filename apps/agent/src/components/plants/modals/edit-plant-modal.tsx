@@ -1,5 +1,6 @@
 "use client";
 
+import { growingMethods, GrowStages } from "@/lib/constants";
 import { PlantWithStrain } from "@/lib/db/queries/types/plant";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Badge } from "@workspace/ui/components/badge";
@@ -33,21 +34,23 @@ import {
   TabsTrigger,
 } from "@workspace/ui/components/tabs";
 import { Textarea } from "@workspace/ui/components/textarea";
+import { formatDistanceToNow } from "date-fns";
 import {
   Calendar,
   Leaf,
-  Ruler,
   Save,
   Scale,
   Sprout,
   Sun,
   Thermometer,
 } from "lucide-react";
+import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
-import { ImageGallery } from "./plant-image-gallery";
-import { ImageUploader } from "./plant-image-uploader";
+import { ImageGallery } from "../plant-image-gallery";
+import { ImageUploader } from "../plant-image-uploader";
+import { getStageBadgeColor, getStageIcon } from "../plant-utils";
 
 // Define the form schema
 const plantFormSchema = z.object({
@@ -56,6 +59,9 @@ const plantFormSchema = z.object({
   }),
   stage: z.string({
     required_error: "Please select a growth stage.",
+  }),
+  growingMethod: z.string({
+    required_error: "Please select a growing method.",
   }),
   strain: z.string().optional(),
   potSize: z.string().optional(),
@@ -100,7 +106,9 @@ export function PlantEditModal({
     convertStrainImagesToPlantImages(plant)
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [previewStage, setPreviewStage] = useState(plant?.stage || "seedling");
+  const [previewStage, setPreviewStage] = useState<GrowStages>(
+    (plant?.stage as GrowStages) || GrowStages.seedling
+  );
   const fileInputRef = useRef<HTMLInputElement>(null!);
   const isEditing = !!plant?.id;
 
@@ -127,7 +135,7 @@ export function PlantEditModal({
         notes: plant.notes || "",
       });
       setImages(convertStrainImagesToPlantImages(plant));
-      setPreviewStage(plant.stage || "seedling");
+      setPreviewStage(plant.stage as GrowStages);
     }
   }, [plant, form]);
 
@@ -135,7 +143,7 @@ export function PlantEditModal({
   useEffect(() => {
     const subscription = form.watch((value, { name }) => {
       if (name === "stage" && value.stage) {
-        setPreviewStage(value.stage as string);
+        setPreviewStage(value.stage as GrowStages);
       }
     });
     return () => subscription.unsubscribe();
@@ -190,101 +198,83 @@ export function PlantEditModal({
     }
   };
 
-  const getStageBadgeColor = (stage: string) => {
-    switch (stage.toLowerCase()) {
-      case "seedling":
-        return "bg-green-100 text-green-800 hover:bg-green-100/80";
-      case "veg":
-        return "bg-emerald-100 text-emerald-800 hover:bg-emerald-100/80";
-      case "flowering":
-        return "bg-purple-100 text-purple-800 hover:bg-purple-100/80";
-      case "harvested":
-        return "bg-amber-100 text-amber-800 hover:bg-amber-100/80";
-      case "curing":
-        return "bg-blue-100 text-blue-800 hover:bg-blue-100/80";
-      case "archived":
-        return "bg-gray-100 text-gray-800 hover:bg-gray-100/80";
-      default:
-        return "bg-gray-100 text-gray-800 hover:bg-gray-100/80";
-    }
-  };
-
-  const getStageIcon = (stage: string) => {
-    switch (stage.toLowerCase()) {
-      case "seedling":
-        return <Sprout className="size-5" />;
-      case "veg":
-        return <Leaf className="size-5" />;
-      case "flowering":
-        return <Sun className="size-5" />;
-      case "harvested":
-        return <Scale className="size-5" />;
-      case "curing":
-        return <Thermometer className="size-5" />;
-      case "archived":
-        return <Calendar className="size-5" />;
-      default:
-        return <Leaf className="size-5" />;
-    }
-  };
-
+  // Convert strain images to PlantImage format
+  const allImages = convertStrainImagesToPlantImages(plant);
+  const primaryImage =
+    allImages.find((img) => img.isPrimary)?.url || allImages[0]?.url;
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="w-[calc(100vw-32px)] sm:max-w-[700px] max-h-[90vh] overflow-y-auto p-0">
-        {/* Header */}
-        <div className="relative bg-muted/50">
-          <div className="p-4 sm:p-6">
-            <h2 className="text-xl sm:text-2xl font-bold mb-2">
-              {isEditing ? `Edit ${plant?.customName}` : "Add New Plant"}
-            </h2>
+        {/* Enhanced Header */}
+        <div className="relative">
+          <h2 className="text-xl sm:text-2xl font-bold mb-2 p-4">
+            {isEditing ? `Edit ${plant?.customName}` : "Add New Plant"}
+          </h2>
 
-            {/* Preview Card */}
-            <div className="bg-background rounded-lg p-4 border border-border/50">
-              <div className="flex items-center gap-3 mb-3">
-                <div
-                  className={`rounded-full p-2 ${getStageBadgeColor(previewStage)}`}
-                >
-                  {getStageIcon(previewStage)}
-                </div>
-                <div>
-                  <h3 className="font-medium text-lg">
-                    {form.watch("customName") || "New Plant"}
-                  </h3>
-                  <div className="flex items-center gap-2 mt-1">
-                    <Badge className={getStageBadgeColor(previewStage)}>
-                      {previewStage}
-                    </Badge>
-                    {form.watch("strain") && (
-                      <span className="text-sm text-muted-foreground">
-                        {form.watch("strain")}
-                      </span>
-                    )}
-                  </div>
-                </div>
+          {/* Preview Card */}
+          <div className="bg-background rounded-lg p-4 border border-border/50">
+            <div className="flex items-center gap-3 mb-3">
+              <div
+                className={`rounded-full p-2 ${getStageBadgeColor(previewStage)}`}
+              >
+                {getStageIcon(previewStage)}
               </div>
-
-              <div className="flex flex-wrap gap-3 text-sm">
-                {form.watch("potSize") && (
-                  <div className="flex items-center gap-1.5">
-                    <Ruler className="size-4 text-muted-foreground" />
-                    <span>Pot: {form.watch("potSize")}</span>
-                  </div>
-                )}
-
-                <div className="flex items-center gap-1.5">
-                  <Calendar className="size-4 text-muted-foreground" />
-                  <span>
-                    Added:{" "}
-                    {plant?.createdAt
-                      ? new Date(plant.createdAt).toLocaleDateString()
-                      : new Date().toLocaleDateString()}
-                  </span>
+              <div>
+                <h3 className="font-medium text-lg">
+                  {form.watch("customName") || "New Plant"}
+                </h3>
+                <div className="flex items-center gap-2 mt-1">
+                  <Badge className={getStageBadgeColor(previewStage)}>
+                    {previewStage}
+                  </Badge>
+                  {form.watch("strain") && (
+                    <span className="text-sm text-muted-foreground">
+                      {form.watch("strain")}
+                    </span>
+                  )}
                 </div>
               </div>
             </div>
           </div>
         </div>
 
+        {allImages.length > 0 && (
+          <div className="relative h-40 sm:h-48 w-full">
+            <Image
+              src={primaryImage || "/placeholder.svg"}
+              alt={plant?.customName || ""}
+              fill
+              className="object-cover brightness-[0.85]"
+            />
+            <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/20 to-transparent" />
+            <div className="absolute bottom-0 inset-x-0 p-4 sm:p-6 text-white">
+              <h2 className="text-xl sm:text-2xl font-bold">
+                {plant?.customName}
+              </h2>
+              <div className="flex flex-wrap items-center gap-2 mt-1">
+                <Badge
+                  className={`${getStageBadgeColor(plant?.stage || "")} border border-white/20`}
+                >
+                  {plant?.stage || "Unknown"}
+                </Badge>
+                {plant?.strain?.name && (
+                  <span className="text-xs sm:text-sm opacity-90">
+                    {plant?.strain.name}
+                  </span>
+                )}
+              </div>
+              <div className="flex items-center gap-1.5 mt-1">
+                <span className="text-xs sm:text-sm opacity-90">
+                  Updated{" "}
+                  {formatDistanceToNow(
+                    new Date(plant?.updatedAt || new Date()),
+                    { addSuffix: true }
+                  )}
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
         <div className="p-4 sm:p-6">
           <Tabs
             defaultValue="details"
@@ -340,37 +330,37 @@ export function PlantEditModal({
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="seedling">
+                              <SelectItem value={GrowStages.seedling}>
                                 <div className="flex items-center gap-2">
                                   <Sprout className="size-4" />
                                   <span>Seedling</span>
                                 </div>
                               </SelectItem>
-                              <SelectItem value="veg">
+                              <SelectItem value={GrowStages.vegetative}>
                                 <div className="flex items-center gap-2">
                                   <Leaf className="size-4" />
                                   <span>Vegetative</span>
                                 </div>
                               </SelectItem>
-                              <SelectItem value="flowering">
+                              <SelectItem value={GrowStages.growing}>
                                 <div className="flex items-center gap-2">
                                   <Sun className="size-4" />
-                                  <span>Flowering</span>
+                                  <span>Growing</span>
                                 </div>
                               </SelectItem>
-                              <SelectItem value="harvested">
+                              <SelectItem value={GrowStages.harvested}>
                                 <div className="flex items-center gap-2">
                                   <Scale className="size-4" />
                                   <span>Harvested</span>
                                 </div>
                               </SelectItem>
-                              <SelectItem value="curing">
+                              <SelectItem value={GrowStages.curing}>
                                 <div className="flex items-center gap-2">
                                   <Thermometer className="size-4" />
                                   <span>Curing</span>
                                 </div>
                               </SelectItem>
-                              <SelectItem value="archived">
+                              <SelectItem value={GrowStages.archived}>
                                 <div className="flex items-center gap-2">
                                   <Calendar className="size-4" />
                                   <span>Archived</span>
@@ -385,35 +375,32 @@ export function PlantEditModal({
                         </FormItem>
                       )}
                     />
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="strain"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Strain</FormLabel>
-                          <FormControl>
-                            <Input
-                              placeholder="e.g., Northern Lights"
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
 
                     <FormField
-                      control={form.control}
-                      name="potSize"
+                      name="growingMethod"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Pot Size</FormLabel>
-                          <FormControl>
-                            <Input placeholder="e.g., 5L" {...field} />
-                          </FormControl>
+                          <FormLabel>Growing Method</FormLabel>
+                          <Select
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select a method" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {growingMethods.map((method) => (
+                                <SelectItem
+                                  key={method.value}
+                                  value={method.value}
+                                >
+                                  {method.label}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -479,7 +466,6 @@ export function PlantEditModal({
             </Form>
           </Tabs>
         </div>
-
         <DialogFooter className="p-4 sm:px-6 border-t">
           <div className="flex justify-between w-full">
             <Button type="button" variant="outline" onClick={onClose}>

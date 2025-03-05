@@ -1,10 +1,9 @@
 "use client";
 
 import { PlantWithStrain } from "@/lib/db/queries/types/plant";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { DeletePlantDialog } from "./delete-plant-dialog";
-import { PlantCard } from "./plant-card";
+import { DeletePlantDialog } from "../delete-plant-dialog";
+import { PlantCard } from "../plant-card";
 
 interface GridViewPlantsProps {
   plants: PlantWithStrain[];
@@ -17,7 +16,6 @@ export function GridViewPlants({
   onViewDetails,
   onEditPlant,
 }: GridViewPlantsProps) {
-  const router = useRouter();
   const [plantToDelete, setPlantToDelete] = useState<PlantWithStrain | null>(
     null
   );
@@ -35,8 +33,6 @@ export function GridViewPlants({
     console.log(`Deleting plant: ${plantToDelete?.id}`);
     setPlantToDelete(null);
   };
-
-  console.log(plants);
 
   return (
     <>
