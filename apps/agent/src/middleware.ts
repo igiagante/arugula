@@ -2,14 +2,16 @@ import { clerkMiddleware } from "@clerk/nextjs/server";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
-const isPublicRoute = (path: string) => {
-  return (
-    path.startsWith("/sign-in") || path.startsWith("/sign-up") || path === "/"
+const publicPaths = ["/", "/sign-in*", "/sign-up*"];
+
+const isPublic = (path: string) => {
+  return publicPaths.find((x) =>
+    path.match(new RegExp(`^${x.replace("*", ".*")}$`))
   );
 };
 
 export default clerkMiddleware(async (auth, req: NextRequest) => {
-  if (isPublicRoute(req.nextUrl.pathname)) {
+  if (isPublic(req.nextUrl.pathname)) {
     return NextResponse.next();
   }
 
@@ -19,10 +21,9 @@ export default clerkMiddleware(async (auth, req: NextRequest) => {
     signInUrl.searchParams.set("redirect_url", req.url);
     return NextResponse.redirect(signInUrl);
   }
-
   return NextResponse.next();
 });
 
 export const config = {
-  matcher: ["/((?!.*\\..*|_next).*)", "/", "/(api|trpc)(.*)"],
+  matcher: ["/((?!.+\\.[\\w]+$|_next).*)", "/", "/(api|trpc)(.*)"],
 };

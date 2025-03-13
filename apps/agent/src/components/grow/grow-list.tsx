@@ -38,6 +38,9 @@ export function GrowList() {
     <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
       {data?.map((grow) => {
         const { id, lastUpdated, images, strains, ...rest } = grow;
+        const {
+          plants: {},
+        } = grow;
         return (
           <GrowCard
             key={id}

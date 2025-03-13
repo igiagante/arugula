@@ -11,6 +11,10 @@ import { Separator } from "@workspace/ui/components/separator";
 import { formatDistanceToNow } from "date-fns";
 import { AlertCircle, Droplets, Sprout, Thermometer, Zap } from "lucide-react";
 import { useRouter } from "next/navigation";
+import {
+  getStageBadgeColor,
+  getStageBadgeVariant,
+} from "../plants/plant-utils";
 import { ImageWithFallback } from "./image-with-fallback";
 
 interface Strain {
@@ -41,37 +45,11 @@ interface GrowCardProps {
   yield?: string;
 }
 
-function getStageColor(stage: string) {
-  switch (stage.toLowerCase()) {
-    case "vegetative":
-      return "bg-emerald-500";
-    case "flowering":
-      return "bg-amber-500";
-    case "completed":
-      return "bg-blue-500";
-    default:
-      return "bg-neutral-500";
-  }
-}
-
-function getStageBadgeVariant(stage: string) {
-  switch (stage.toLowerCase()) {
-    case "vegetative":
-      return "secondary";
-    case "flowering":
-      return "secondary";
-    case "completed":
-      return "secondary";
-    default:
-      return "outline";
-  }
-}
-
 function StageProgress({ value, stage }: { value: number; stage: string }) {
   return (
     <div className="relative h-1.5 w-full overflow-hidden rounded-full bg-secondary">
       <div
-        className={`absolute left-0 top-0 h-full ${getStageColor(stage)}`}
+        className={`absolute left-0 top-0 h-full ${getStageBadgeColor(stage)}`}
         style={{ width: `${value}%` }}
       />
     </div>
@@ -89,7 +67,6 @@ export function GrowCard({
   images,
 }: GrowCardProps) {
   const router = useRouter();
-
   return (
     <Card className="flex flex-col overflow-hidden max-w-96">
       <CardHeader className="relative p-0">
@@ -181,7 +158,7 @@ export function GrowCard({
         <Button
           className="flex-1"
           variant="outline"
-          onClick={() => router.push(`/grows/${id}`)}
+          onClick={() => router.push(`/grows/${id}/plants`)}
         >
           View Details
         </Button>

@@ -6,7 +6,6 @@ export type PlantWithStrain = {
   stage: string | null;
   archived: boolean;
   potSize: string | null;
-  notes: string | null;
   createdAt: Date;
   updatedAt: Date;
   strain: {
@@ -17,5 +16,10 @@ export type PlantWithStrain = {
     description: string | null;
     ratio: string | null;
     images: string[] | null;
+  } | null;
+  notes: {
+    content: string | null;
+    images: string[] | null;
+    createdAt: Date;
   } | null;
 };

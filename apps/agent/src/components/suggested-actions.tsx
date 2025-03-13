@@ -1,8 +1,8 @@
 "use client";
 
-import { motion } from "framer-motion";
 import { Button } from "@workspace/ui/components/button";
 import type { ChatRequestOptions, CreateMessage, Message } from "ai";
+import { motion } from "framer-motion";
 import { memo } from "react";
 
 interface SuggestedActionsProps {
@@ -16,24 +16,28 @@ interface SuggestedActionsProps {
 function PureSuggestedActions({ chatId, append }: SuggestedActionsProps) {
   const suggestedActions = [
     {
-      title: "What are the advantages",
-      label: "of using Next.js?",
-      action: "What are the advantages of using Next.js?",
+      title: "What are the best practices",
+      label: "for vegetative stage?",
+      action:
+        "What are the best practices for cannabis plants in vegetative stage?",
     },
     {
-      title: "Write code to",
-      label: `demonstrate djikstra's algorithm`,
-      action: `Write code to demonstrate djikstra's algorithm`,
+      title: "How to identify",
+      label: "nutrient deficiencies",
+      action:
+        "How to identify common nutrient deficiencies in cannabis plants?",
     },
     {
-      title: "Help me write an essay",
-      label: `about silicon valley`,
-      action: `Help me write an essay about silicon valley`,
+      title: "Tips for optimal",
+      label: "humidity and temperature",
+      action:
+        "What are the optimal humidity and temperature levels for growing cannabis?",
     },
     {
-      title: "What is the weather",
-      label: "in San Francisco?",
-      action: "What is the weather in San Francisco?",
+      title: "When should I",
+      label: "switch to flowering?",
+      action:
+        "When is the best time to switch cannabis plants from veg to flowering stage?",
     },
   ];
 

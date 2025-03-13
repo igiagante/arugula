@@ -1,5 +1,12 @@
 import { GrowStages } from "@/lib/constants";
 import { Calendar, Leaf, Scale, Sprout, Sun, Thermometer } from "lucide-react";
+import { PlantImage } from "./types";
+
+export const allowedStages = [
+  GrowStages.seedling,
+  GrowStages.vegetative,
+  GrowStages.flowering,
+] as const;
 
 export const PLANT_STAGES = {
   [GrowStages.seedling]: {
@@ -46,4 +53,32 @@ export const getStageIcon = (stage: PlantStage | string) => {
   const Icon =
     PLANT_STAGES[stage as PlantStage]?.icon ?? PLANT_STAGES.seedling.icon;
   return <Icon className="size-5" />;
+};
+
+export function getStageBadgeVariant(stage: string) {
+  switch (stage.toLowerCase()) {
+    case GrowStages.vegetative:
+      return "secondary";
+    case GrowStages.flowering:
+      return "secondary";
+    case GrowStages.harvested:
+      return "secondary";
+    case GrowStages.curing:
+      return "secondary";
+    case GrowStages.archived:
+      return "secondary";
+    default:
+      return "outline";
+  }
+}
+
+export const convertImagesToPlantImages = (images?: string[]): PlantImage[] => {
+  return (
+    images?.map((url, index) => ({
+      id: `image-${index}`,
+      url,
+      isPrimary: index === 0,
+      createdAt: new Date().toISOString(),
+    })) || []
+  );
 };

@@ -9,12 +9,14 @@ interface GridViewPlantsProps {
   plants: PlantWithStrain[];
   onViewDetails: (plant: PlantWithStrain) => void;
   onEditPlant: (plant: PlantWithStrain) => void;
+  onDeletePlant: (plant: PlantWithStrain) => void;
 }
 
 export function GridViewPlants({
   plants,
   onViewDetails,
   onEditPlant,
+  onDeletePlant,
 }: GridViewPlantsProps) {
   const [plantToDelete, setPlantToDelete] = useState<PlantWithStrain | null>(
     null
@@ -29,9 +31,10 @@ export function GridViewPlants({
   };
 
   const confirmDelete = () => {
-    // Here you would call your API to delete the plant
-    console.log(`Deleting plant: ${plantToDelete?.id}`);
-    setPlantToDelete(null);
+    if (plantToDelete) {
+      onDeletePlant(plantToDelete);
+      setPlantToDelete(null);
+    }
   };
 
   return (

@@ -52,12 +52,14 @@ interface ListViewPlantsProps {
   plants: PlantWithStrain[];
   onViewDetails: (plant: PlantWithStrain) => void;
   onEditPlant: (plant: PlantWithStrain) => void;
+  onDeletePlant: (plant: PlantWithStrain) => void;
 }
 
 export function ListViewPlants({
   plants,
   onViewDetails,
   onEditPlant,
+  onDeletePlant,
 }: ListViewPlantsProps) {
   const [plantToDelete, setPlantToDelete] = useState<PlantWithStrain | null>(
     null
@@ -219,9 +221,10 @@ export function ListViewPlants({
   };
 
   const confirmDelete = () => {
-    // Here you would call your API to delete the plant
-    console.log(`Deleting plant: ${plantToDelete?.id}`);
-    setPlantToDelete(null);
+    if (plantToDelete) {
+      onDeletePlant(plantToDelete);
+      setPlantToDelete(null);
+    }
   };
 
   return (
@@ -257,7 +260,7 @@ export function ListViewPlants({
                 <TableRow key={plant.id} className="hover:bg-muted/30">
                   <TableCell className="py-3">
                     <div className="flex flex-col">
-                      <span className="text-base font-normal">
+                      <span className="text-base font-medium">
                         {plant.customName}
                       </span>
                       <div className="sm:hidden text-xs text-muted-foreground mt-1 space-y-1">

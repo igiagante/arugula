@@ -37,7 +37,6 @@ export const uploadImageToS3 = async (file: File): Promise<string> => {
           throw new Error("Failed to upload file");
         }
 
-        // Return the fileKey for the uploaded file
         resolve(fileKey);
       } catch (error) {
         reject(error);

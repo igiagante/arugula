@@ -24,9 +24,12 @@ import { UserMenuItem } from "./user-menu-item";
 export async function AppSidebar(props: ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar collapsible="icon" {...props}>
-      <SidebarHeader className="p-4">
+      <SidebarHeader className="mt-2">
         <SidebarMenu className="gap-2 mb-2">
-          <Link href="/" className="flex items-center gap-2">
+          <Link
+            href="/"
+            className="flex group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:justify-center gap-2 px-2"
+          >
             <Leaf className="size-6 text-emerald-600 shrink-0 flex items-center justify-center" />
             <span className="font-semibold group-data-[collapsible=icon]:hidden">
               GrowTracker
@@ -43,7 +46,7 @@ export async function AppSidebar(props: ComponentProps<typeof Sidebar>) {
       <SidebarSeparator className="group-data-[collapsible=icon]:hidden" />
       <SidebarContent className="mt-2">
         <SidebarGroup>
-          <SidebarMenu className="flex flex-col gap-2 px-2">
+          <SidebarMenu className="flex flex-col gap-2 group-data-[collapsible=icon]:items-center">
             <SidebarActiveGrows />
             <SidebarMenuItem>
               <SidebarMenuButton asChild>

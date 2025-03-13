@@ -18,6 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui/components/select";
+import { Textarea } from "@workspace/ui/components/textarea";
 import { Loader2 } from "lucide-react";
 import { UseFormReturn } from "react-hook-form";
 import { FloweringType, StrainType } from "../types";
@@ -146,75 +147,53 @@ export function AddStrainForm({
 
             <FormField
               control={form.control}
-              name="ratio"
+              name="sativaPercentage"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-xs font-medium text-gray-700">
-                    Ratio
-                  </FormLabel>
+                  <FormLabel>Sativa %</FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="e.g. Indica 70%"
-                      className="px-2 py-1.5 text-sm"
+                      type="number"
                       {...field}
-                      value={field.value ?? ""}
+                      onChange={(e) => {
+                        field.onChange(Number(e.target.value));
+                        // Optionally auto-calculate indica
+                        form.setValue(
+                          "indicaPercentage",
+                          100 - Number(e.target.value)
+                        );
+                      }}
                     />
                   </FormControl>
+                  <FormMessage />
                 </FormItem>
               )}
             />
 
-            <div>
-              <FormField
-                control={form.control}
-                name="sativaPercentage"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Sativa %</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        {...field}
-                        onChange={(e) => {
-                          field.onChange(Number(e.target.value));
-                          // Optionally auto-calculate indica
-                          form.setValue(
-                            "indicaPercentage",
-                            100 - Number(e.target.value)
-                          );
-                        }}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="indicaPercentage"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Indica %</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        {...field}
-                        onChange={(e) => {
-                          field.onChange(Number(e.target.value));
-                          // Optionally auto-calculate sativa
-                          form.setValue(
-                            "sativaPercentage",
-                            100 - Number(e.target.value)
-                          );
-                        }}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+            <FormField
+              control={form.control}
+              name="indicaPercentage"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Indica %</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      {...field}
+                      onChange={(e) => {
+                        field.onChange(Number(e.target.value));
+                        // Optionally auto-calculate sativa
+                        form.setValue(
+                          "sativaPercentage",
+                          100 - Number(e.target.value)
+                        );
+                      }}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             <FormField
               control={form.control}
@@ -361,6 +340,26 @@ export function AddStrainForm({
               )}
             />
           </div>
+
+          <FormField
+            control={form.control}
+            name="description"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-xs font-medium text-gray-700">
+                  Description
+                </FormLabel>
+                <FormControl>
+                  <Textarea
+                    placeholder="Add a description of the strain..."
+                    className="min-h-[120px] text-sm"
+                    {...field}
+                    value={field.value ?? ""}
+                  />
+                </FormControl>
+              </FormItem>
+            )}
+          />
 
           {/* Image Upload Section */}
           <FormField

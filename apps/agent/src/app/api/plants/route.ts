@@ -1,5 +1,7 @@
 import { CacheTags, createDynamicTag } from "@/app/api/tags";
+import { db } from "@/lib/db";
 import { createPlant, getPlantsByGrowId } from "@/lib/db/queries/plants";
+import { plantNote } from "@/lib/db/schemas/plant.schema";
 import { auth } from "@clerk/nextjs/server";
 import { revalidateTag, unstable_cache } from "next/cache";
 import { NextResponse } from "next/server";
@@ -9,9 +11,11 @@ import { NextResponse } from "next/server";
  * Returns all plants for the specified grow.
  * Requires growId query parameter.
  */
-export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const growId = searchParams.get("growId");
+export async function GET(
+  _request: Request,
+  { params }: { params: Promise<{ growId: string }> }
+) {
+  const { growId } = await params;
 
   const { userId } = await auth();
   if (!userId) {
@@ -58,41 +62,59 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
     const body = await request.json();
+
     const {
       growId,
       strainId,
       customName,
       stage,
-      startDate,
-      notes,
+      quantity,
       potSize,
       potSizeUnit,
+      notes,
     } = body;
 
-    if (!growId || !customName || !stage || !startDate) {
+    if (!growId || !customName || !stage) {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }
       );
     }
 
-    const newPlant = await createPlant({
-      growId,
-      strainId,
-      customName,
-      stage,
-      potSize,
-      potSizeUnit,
-      harvestedAt: null,
-    });
+    // Create multiple plants based on quantity
+    const createdPlants = [];
+    for (let i = 0; i < quantity; i++) {
+      const newPlant = await createPlant({
+        growId,
+        strainId,
+        customName: quantity > 1 ? `${customName || ""} #${i + 1}` : customName,
+        stage,
+        potSize,
+        potSizeUnit,
+        harvestedAt: null,
+      });
 
-    if (newPlant) {
-      revalidateTag(createDynamicTag(CacheTags.plantByUserId, newPlant.id));
+      if (!newPlant) {
+        throw new Error("Failed to create plant");
+      }
+
+      // Create initial plant note
+      await db.insert(plantNote).values({
+        plantId: newPlant.id,
+        content: notes?.content || "",
+        images: notes?.images || [],
+        createdAt: notes?.createdAt ? new Date(notes.createdAt) : new Date(),
+      });
+
+      createdPlants.push(newPlant);
     }
 
+    // Invalidate the cache using revalidateTag
     revalidateTag(createDynamicTag(CacheTags.getPlantsByGrowId, growId));
+    revalidateTag(createDynamicTag(CacheTags.growById, growId));
 
-    return NextResponse.json(newPlant, { status: 201 });
+    // Return all created plants instead of just one
+    return NextResponse.json(createdPlants);
   } catch (error) {
     console.error("POST /api/plants error:", error);
     return NextResponse.json(

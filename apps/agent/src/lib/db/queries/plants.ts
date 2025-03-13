@@ -1,13 +1,40 @@
 // lib/db/queries/plantQueries.ts
-import { eq } from "drizzle-orm";
+import { mapImages } from "@/lib/utils";
+import { and, eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
-import { type Plant, plant, strain } from "../schemas"; // adjust the path as needed
+import { type Plant, plant, plantNote, strain } from "../schemas"; // adjust the path as needed
 import { PlantWithStrain } from "./types/plant";
 
 // biome-ignore lint: Forbidden non-null assertion.
 const client = postgres(process.env.POSTGRES_URL!);
 const db = drizzle(client);
+
+const plantSelection = {
+  id: plant.id,
+  growId: plant.growId,
+  strainId: plant.strainId,
+  customName: plant.customName,
+  stage: plant.stage,
+  archived: plant.archived,
+  potSize: plant.potSize,
+  createdAt: plant.createdAt,
+  updatedAt: plant.updatedAt,
+  notes: {
+    content: plantNote.content,
+    images: plantNote.images,
+    createdAt: plantNote.createdAt,
+  },
+  strain: {
+    id: strain.id,
+    name: strain.name,
+    type: strain.type,
+    cannabinoidProfile: strain.cannabinoidProfile,
+    description: strain.description,
+    ratio: strain.ratio,
+    images: strain.images,
+  },
+} as const;
 
 /**
  * CREATE a Plant.
@@ -19,7 +46,6 @@ const db = drizzle(client);
  * @param startDate - Date when the plant was started
  * @param archived - Whether the plant is archived
  * @param notes - Additional notes for the plant
- * @param potSize - Optional pot size override for this plant
  * @returns The newly inserted plant record.
  */
 export async function createPlant({
@@ -110,6 +136,19 @@ export async function getPlantById({ plantId }: { plantId: string }) {
   }
 }
 
+async function mapPlantImages(plantData: any) {
+  if (plantData?.notes?.images) {
+    return {
+      ...plantData,
+      notes: {
+        ...plantData.notes,
+        images: (await mapImages({ images: plantData.notes.images })).images,
+      },
+    };
+  }
+  return plantData;
+}
+
 /**
  * GET all Plants for a given Grow.
  *
@@ -123,31 +162,15 @@ export async function getPlantsByGrowId({
 }): Promise<PlantWithStrain[]> {
   try {
     const plantsList = await db
-      .select({
-        id: plant.id,
-        growId: plant.growId,
-        strainId: plant.strainId,
-        customName: plant.customName,
-        stage: plant.stage,
-        archived: plant.archived,
-        potSize: plant.potSize,
-        createdAt: plant.createdAt,
-        updatedAt: plant.updatedAt,
-        strain: {
-          id: strain.id,
-          name: strain.name,
-          type: strain.type,
-          cannabinoidProfile: strain.cannabinoidProfile,
-          description: strain.description,
-          ratio: strain.ratio,
-          images: strain.images,
-        },
-      })
+      .select(plantSelection)
       .from(plant)
       .leftJoin(strain, eq(plant.strainId, strain.id))
+      .leftJoin(plantNote, eq(plant.id, plantNote.plantId))
       .where(eq(plant.growId, growId));
 
-    return plantsList as unknown as PlantWithStrain[];
+    return Promise.all(plantsList.map(mapPlantImages)) as Promise<
+      PlantWithStrain[]
+    >;
   } catch (error) {
     console.error("Failed to get plants by grow id:", error);
     throw error;
@@ -171,6 +194,32 @@ export async function getPlantWithStrain({ plantId }: { plantId: string }) {
     return plants[0];
   } catch (error) {
     console.error("Failed to get plant with strain:", error);
+    throw error;
+  }
+}
+
+export async function getPlantByGrowId({
+  growId,
+  plantId,
+}: {
+  growId: string;
+  plantId: string;
+}): Promise<PlantWithStrain | null> {
+  try {
+    const [plantData] = await db
+      .select(plantSelection)
+      .from(plant)
+      .leftJoin(strain, eq(plant.strainId, strain.id))
+      .leftJoin(plantNote, eq(plant.id, plantNote.plantId))
+      .where(and(eq(plant.growId, growId), eq(plant.id, plantId)));
+
+    if (!plantData) return null;
+
+    return plantData
+      ? (mapPlantImages(plantData) as Promise<PlantWithStrain>)
+      : null;
+  } catch (error) {
+    console.error("Failed to get plant:", error);
     throw error;
   }
 }

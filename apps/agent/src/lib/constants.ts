@@ -1,3 +1,10 @@
+export const viewModes = {
+  grid: "grid",
+  list: "list",
+} as const;
+
+export type ViewModes = (typeof viewModes)[keyof typeof viewModes];
+
 export const growingMethods = [
   { label: "Soil", value: "soil" },
   { label: "Hydroponic", value: "hydroponic" },

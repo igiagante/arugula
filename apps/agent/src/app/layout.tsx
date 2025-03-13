@@ -1,15 +1,14 @@
+import { currentUser } from "@clerk/nextjs/server";
 import type { Metadata } from "next";
 import { Toaster } from "sonner";
 
-import { ThemeProvider } from "@/components/theme-provider";
-
-import { AppSidebar } from "@/components/app-sidebar";
 import { ClerkProvider } from "@clerk/nextjs";
-import { SidebarProvider } from "@workspace/ui/components/sidebar";
-import { cookies } from "next/headers";
 import "./globals.css";
 
+import { AppSidebar } from "@/components/app-sidebar";
+import { ThemeProvider } from "@/components/theme-provider";
 import { Separator } from "@workspace/ui/components/separator";
+import { SidebarProvider } from "@workspace/ui/components/sidebar";
 import ChatContainer from "./(chat)/chat";
 import { Providers } from "./providers";
 
@@ -45,11 +44,11 @@ const THEME_COLOR_SCRIPT = `\
 
 export default async function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
-  const [cookieStore] = await Promise.all([cookies()]);
-  const isCollapsed = cookieStore.get("sidebar:state")?.value !== "true";
+}) {
+  const user = await currentUser();
+  const isAuthenticated = !!user;
 
   return (
     <ClerkProvider>
@@ -68,7 +67,7 @@ export default async function RootLayout({
             }}
           />
         </head>
-        <body className="antialiased">
+        <body className="min-h-screen bg-background antialiased">
           <Providers>
             <ThemeProvider
               attribute="class"
@@ -76,15 +75,19 @@ export default async function RootLayout({
               enableSystem
               disableTransitionOnChange
             >
-              <Toaster position="top-center" />
-              <SidebarProvider defaultOpen={!isCollapsed}>
-                <div className="flex w-full">
-                  <AppSidebar className="lg:w-64 shrink-0" />
-                  <main className="flex-1">{children}</main>
-                  <Separator orientation="vertical" className="h-full" />
-                  <ChatContainer className="lg:w-64 shrink-0" />
-                </div>
-              </SidebarProvider>
+              {isAuthenticated ? (
+                <SidebarProvider>
+                  <div className="flex w-full">
+                    <AppSidebar className="w-64 shrink-0" />
+                    <main className="flex-1">{children}</main>
+                    <Separator orientation="vertical" className="h-full" />
+                    <ChatContainer className="w-64 shrink-0" />
+                  </div>
+                </SidebarProvider>
+              ) : (
+                <main className="flex-1">{children}</main>
+              )}
+              <Toaster />
             </ThemeProvider>
           </Providers>
         </body>

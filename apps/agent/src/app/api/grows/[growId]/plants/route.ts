@@ -5,15 +5,15 @@ import { unstable_cache } from "next/cache";
 import { NextResponse } from "next/server";
 
 /**
- * GET /api/grows/[growId]/plants
+ * GET /api/plants?growId=...
  * Returns all plants for the specified grow.
  * Requires growId query parameter.
  */
 export async function GET(
   _request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ growId: string }> }
 ) {
-  const { id: growId } = await params;
+  const { growId } = await params;
 
   const { userId } = await auth();
   if (!userId) {

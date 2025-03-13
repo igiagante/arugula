@@ -1,5 +1,3 @@
-"use client";
-
 import { PlantWithStrain } from "@/lib/db/queries/types/plant";
 import { Badge } from "@workspace/ui/components/badge";
 import { Button } from "@workspace/ui/components/button";
@@ -21,19 +19,14 @@ import { useState } from "react";
 import { PlantDetails } from "../plant-details";
 import { PlantTimeline } from "../plant-timeline";
 import { getStageBadgeColor } from "../plant-utils";
-interface PlantImage {
-  id: string;
-  url: string;
-  isPrimary: boolean;
-  createdAt: string;
-}
+import { PlantImage } from "../types";
+import { PlantHeaderImage } from "./plant-header-image";
 
 interface PlantDetailModalProps {
   plant: PlantWithStrain;
   isOpen: boolean;
   onClose: () => void;
 }
-
 export function PlantDetailModal({
   plant,
   isOpen,
@@ -44,20 +37,27 @@ export function PlantDetailModal({
   const [selectedImage, setSelectedImage] = useState<PlantImage | null>(null);
 
   // Convert strain images to PlantImage format
-  const allImages =
-    plant.strain?.images?.map((url, index) => ({
-      id: `image-${index}`,
-      url,
-      isPrimary: index === 0,
-      createdAt: plant.createdAt.toString(),
-    })) || [];
+  const images = plant.strain?.images?.length
+    ? plant.strain.images.map((url, index) => ({
+        id: `image-${index}`,
+        url,
+        isPrimary: index === 0,
+        createdAt: plant.createdAt.toString(),
+      }))
+    : plant.notes?.images?.map((url, index) => ({
+        id: `note-image-${index}`,
+        url,
+        isPrimary: index === 0,
+        createdAt:
+          plant.notes?.createdAt?.toString() || plant.createdAt.toString(),
+      })) || [];
 
   const primaryImage =
-    allImages.find((img) => img.isPrimary)?.url || allImages[0]?.url;
+    images.find((img) => img.isPrimary)?.url || images[0]?.url;
 
-  const handleEditPlant = () => {
+  const handleEditPlant = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent modal from opening
     router.push(`/plants/${plant.id}/edit`);
-    onClose();
   };
 
   // Mock data for timeline
@@ -117,49 +117,19 @@ export function PlantDetailModal({
   return (
     <>
       <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-        <DialogContent className="w-[calc(100vw-32px)] sm:max-w-[700px] max-h-[90vh] overflow-y-auto p-0 gap-0">
-          {/* Enhanced Header */}
-          <div className="relative">
-            <div className="absolute top-4 right-4 z-10">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={onClose}
-                className="size-8 rounded-full bg-background/60 hover:bg-background/80"
-              >
-                <X className="size-4" />
-              </Button>
-            </div>
-
-            {allImages.length > 0 && (
-              <div className="relative h-40 sm:h-48 w-full">
-                <Image
-                  src={primaryImage || "/placeholder.svg"}
-                  alt={plant.customName}
-                  fill
-                  className="object-cover brightness-[0.85]"
-                />
-                <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/20 to-transparent" />
-                <div className="absolute bottom-0 inset-x-0 p-4 sm:p-6 text-white">
-                  <h2 className="text-xl sm:text-2xl font-bold">
-                    {plant.customName}
-                  </h2>
-                  <div className="flex flex-wrap items-center gap-2 mt-1">
-                    <Badge
-                      className={`${getStageBadgeColor(plant.stage || "")} border border-white/20`}
-                    >
-                      {plant.stage || "Unknown"}
-                    </Badge>
-                    {plant.strain?.name && (
-                      <span className="text-xs sm:text-sm opacity-90">
-                        {plant.strain.name}
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
+        <DialogContent className="w-[calc(100vw-32px)] sm:max-w-[700px] max-h-[90vh] overflow-y-auto p-0">
+          {images.length > 0 && (
+            <PlantHeaderImage
+              imageUrl={primaryImage}
+              title={plant.customName}
+              stage={plant.stage || ""}
+              strain={plant.strain?.name}
+              updatedAt={
+                plant.updatedAt ? new Date(plant.updatedAt) : undefined
+              }
+              onClose={onClose}
+            />
+          )}
 
           <div className="px-4 sm:px-6 sm:py-4">
             {/* Plant Quick Stats */}
@@ -183,9 +153,9 @@ export function PlantDetailModal({
             </div>
 
             {/* Image Grid */}
-            {allImages.length > 0 && (
+            {images.length > 0 && (
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-6">
-                {allImages.map((image, index) => (
+                {images.map((image, index) => (
                   <div
                     key={image.id}
                     className={`relative aspect-square rounded-md overflow-hidden cursor-pointer group ${

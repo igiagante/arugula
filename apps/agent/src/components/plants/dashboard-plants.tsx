@@ -1,12 +1,12 @@
 "use client";
 
-import { apiRequest } from "@/app/api/client";
+import { apiRequest, HttpMethods } from "@/app/api/client";
 import { CacheTags, createDynamicTag } from "@/app/api/tags";
-import { PlantDetailModal } from "@/components/plants/modals/plant-detail-modal";
 import { GridViewPlants } from "@/components/plants/views/grid-view-plants";
 import { ListViewPlants } from "@/components/plants/views/list-view-plants";
+import { GrowStages, ViewModes, viewModes } from "@/lib/constants";
 import { PlantWithStrain } from "@/lib/db/queries/types/plant";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@workspace/ui/components/button";
 import { Input } from "@workspace/ui/components/input";
 import {
@@ -24,24 +24,52 @@ import { toast } from "sonner";
 import { PlantCardSkeleton } from "../skeletons/plant-card-skeleton";
 import { AddPlantModal } from "./modals/add-plant-modal";
 import { PlantEditModal } from "./modals/edit-plant-modal";
+import { PlantDetailModal } from "./modals/plant-detail-modal";
 
 export function PlantDashboard() {
   const { id: growId } = useParams<{ id: string }>();
 
-  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [viewMode, setViewMode] = useState<ViewModes>(viewModes.grid);
   const [searchQuery, setSearchQuery] = useState("");
   const [stageFilter, setStageFilter] = useState("all");
-  const [selectedPlant, setSelectedPlant] = useState<any | null>(null);
+  const [selectedPlant, setSelectedPlant] = useState<PlantWithStrain | null>(
+    null
+  );
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [plantToEdit, setPlantToEdit] = useState<any | null>(null);
+  const [editPlant, setEditPlant] = useState<PlantWithStrain | null>(null);
+
+  const queryClient = useQueryClient();
 
   const { data, isLoading, error } = useQuery({
     queryKey: [createDynamicTag(CacheTags.getPlantsByGrowId, growId as string)],
     queryFn: async () => {
-      if (!growId) throw new Error("Grow ID is required");
+      if (!growId) {
+        throw new Error("Grow ID is required");
+      }
       return await apiRequest<PlantWithStrain[]>(`/api/grows/${growId}/plants`);
+    },
+  });
+
+  const { mutate: deletePlant } = useMutation({
+    mutationFn: async (plantId: string) => {
+      await apiRequest(`/api/plants/${plantId}`, {
+        method: HttpMethods.DELETE,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: [
+          createDynamicTag(CacheTags.getPlantsByGrowId, growId as string),
+        ],
+      });
+      toast.success("Plant deleted successfully");
+    },
+    onError: (error) => {
+      toast.error("Failed to delete plant", {
+        description: error.message,
+      });
     },
   });
 
@@ -58,25 +86,25 @@ export function PlantDashboard() {
       return matchesSearch && matchesStage;
     }) || [];
 
-  const handleViewPlantDetails = (plant: any) => {
+  const handleViewPlantDetails = (plant: PlantWithStrain) => {
     setSelectedPlant(plant);
     setIsDetailModalOpen(true);
   };
 
   const handleAddNewPlant = () => {
-    setPlantToEdit(null);
+    setSelectedPlant(null);
     setIsEditModalOpen(false);
     setIsAddModalOpen(true);
   };
 
-  const handleEditPlant = (plant: any) => {
-    setPlantToEdit(plant);
+  const handleEditPlant = (plant: PlantWithStrain) => {
+    setEditPlant(plant);
     setIsEditModalOpen(true);
     setIsDetailModalOpen(false);
   };
 
-  const handleSavePlant = (updatedPlant: any, images: any[]) => {
-    console.log("Saving plant:", updatedPlant, images);
+  const handleDeletePlant = (plant: PlantWithStrain) => {
+    deletePlant(plant.id);
   };
 
   if (isLoading) {
@@ -92,7 +120,7 @@ export function PlantDashboard() {
   }
 
   if (error) {
-    toast.error("Error loading grows", {
+    toast.error("Error loading plants", {
       description: error.message,
     });
     return null;
@@ -133,22 +161,22 @@ export function PlantDashboard() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Stages</SelectItem>
-              <SelectItem value="seedling">Seedling</SelectItem>
-              <SelectItem value="veg">Vegetative</SelectItem>
-              <SelectItem value="flowering">Flowering</SelectItem>
-              <SelectItem value="harvested">Harvested</SelectItem>
-              <SelectItem value="curing">Curing</SelectItem>
-              <SelectItem value="archived">Archived</SelectItem>
+              <SelectItem value={GrowStages.seedling}>Seedling</SelectItem>
+              <SelectItem value={GrowStages.vegetative}>Vegetative</SelectItem>
+              <SelectItem value={GrowStages.flowering}>Flowering</SelectItem>
+              <SelectItem value={GrowStages.harvested}>Harvested</SelectItem>
+              <SelectItem value={GrowStages.curing}>Curing</SelectItem>
+              <SelectItem value={GrowStages.archived}>Archived</SelectItem>
             </SelectContent>
           </Select>
 
           <Tabs
             defaultValue={viewMode}
-            onValueChange={(value) => setViewMode(value as "grid" | "list")}
+            onValueChange={(value) => setViewMode(value as ViewModes)}
           >
             <TabsList>
-              <TabsTrigger value="grid">Grid</TabsTrigger>
-              <TabsTrigger value="list">List</TabsTrigger>
+              <TabsTrigger value={viewModes.grid}>Grid</TabsTrigger>
+              <TabsTrigger value={viewModes.list}>List</TabsTrigger>
             </TabsList>
           </Tabs>
         </div>
@@ -161,17 +189,19 @@ export function PlantDashboard() {
             Add your first plant
           </Button>
         </div>
-      ) : viewMode === "grid" ? (
+      ) : viewMode === viewModes.grid ? (
         <GridViewPlants
           plants={filteredPlants}
           onViewDetails={handleViewPlantDetails}
           onEditPlant={handleEditPlant}
+          onDeletePlant={handleDeletePlant}
         />
       ) : (
         <ListViewPlants
           plants={filteredPlants}
           onViewDetails={handleViewPlantDetails}
           onEditPlant={handleEditPlant}
+          onDeletePlant={handleDeletePlant}
         />
       )}
 
@@ -183,14 +213,16 @@ export function PlantDashboard() {
         />
       )}
 
-      <PlantEditModal
-        plant={plantToEdit}
-        isOpen={isEditModalOpen}
-        onClose={() => setIsEditModalOpen(false)}
-        onSave={handleSavePlant}
-      />
+      {editPlant && (
+        <PlantEditModal
+          plant={editPlant}
+          isOpen={isEditModalOpen}
+          onClose={() => setIsEditModalOpen(false)}
+        />
+      )}
 
       <AddPlantModal
+        growId={growId as string}
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
       />

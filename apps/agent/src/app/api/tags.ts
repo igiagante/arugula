@@ -19,6 +19,7 @@ export const CacheTags = {
   tasksByGrowId: (growId: string) => `tasks-by-grow:${growId}`,
   getTaskById: (id: string) => `task:${id}`,
   getUserById: (id: string) => `user:${id}`,
+  plantById: (id: string) => `plant:${id}`,
   // Add more cache tags here as needed
 } as const;
 
