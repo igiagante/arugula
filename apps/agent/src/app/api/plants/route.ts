@@ -1,7 +1,9 @@
 import { CacheTags, createDynamicTag } from "@/app/api/tags";
-import { db } from "@/lib/db";
-import { createPlant, getPlantsByGrowId } from "@/lib/db/queries/plants";
-import { plantNote } from "@/lib/db/schemas/plant.schema";
+import {
+  createPlant,
+  createPlantNote,
+  getPlantsByGrowId,
+} from "@/lib/db/queries/plants";
 import { auth } from "@clerk/nextjs/server";
 import { revalidateTag, unstable_cache } from "next/cache";
 import { NextResponse } from "next/server";
@@ -98,13 +100,13 @@ export async function POST(request: Request) {
         throw new Error("Failed to create plant");
       }
 
-      // Create initial plant note
-      await db.insert(plantNote).values({
-        plantId: newPlant.id,
-        content: notes?.content || "",
-        images: notes?.images || [],
-        createdAt: notes?.createdAt ? new Date(notes.createdAt) : new Date(),
-      });
+      if (notes) {
+        await createPlantNote({
+          plantId: newPlant.id,
+          content: notes.content,
+          images: notes.images,
+        });
+      }
 
       createdPlants.push(newPlant);
     }

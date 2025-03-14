@@ -23,13 +23,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
-
-interface PlantImage {
-  id: string;
-  url: string;
-  isPrimary: boolean;
-  createdAt: string;
-}
+import { PlantImage } from "./types";
 
 interface ImageGalleryProps {
   images: PlantImage[];

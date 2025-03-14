@@ -2,6 +2,7 @@ import {
   deletePlant,
   getPlantById,
   updatePlant,
+  updatePlantNote,
 } from "@/lib/db/queries/plants";
 import { auth } from "@clerk/nextjs/server";
 import { revalidateTag } from "next/cache";
@@ -32,34 +33,45 @@ export async function GET(
 }
 
 /**
- * PATCH /api/plants/[plantId]
+ * PATCH /api/[growId]/plants
  * Updates an existing plant record.
  */
-export async function PATCH(
-  request: Request,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function PATCH(request: Request) {
   const { userId } = await auth();
   if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   try {
-    const { id: plantId } = await params;
     const data = await request.json();
-
-    const updatedPlant = await updatePlant({
-      plantId,
+    // First update the plant
+    await updatePlant({
+      plantId: data.id,
       data: { ...data, updatedAt: new Date() },
+    });
+
+    // Then fetch the updated plant with notes
+    const updatedPlant = await getPlantById({
+      plantId: data.id,
     });
 
     if (!updatedPlant) {
       return NextResponse.json({ error: "Plant not found" }, { status: 404 });
     }
 
+    if (data.notes && updatedPlant.notes) {
+      await updatePlantNote({
+        noteId: updatedPlant.notes.id,
+        content: data.notes.content,
+        images: data.notes.images,
+      });
+    }
+
+    // Only invalidate the tags we actually use
     revalidateTag(
       createDynamicTag(CacheTags.getPlantsByGrowId, updatedPlant.growId)
     );
+    revalidateTag(createDynamicTag(CacheTags.growById, updatedPlant.growId));
 
     return NextResponse.json(updatedPlant);
   } catch (error) {

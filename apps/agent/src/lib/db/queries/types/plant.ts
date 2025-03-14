@@ -18,6 +18,7 @@ export type PlantWithStrain = {
     images: string[] | null;
   } | null;
   notes: {
+    id: string;
     content: string | null;
     images: string[] | null;
     createdAt: Date;

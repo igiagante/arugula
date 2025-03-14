@@ -161,7 +161,14 @@ export function PlantDetailModal({
                     className={`relative aspect-square rounded-md overflow-hidden cursor-pointer group ${
                       image.isPrimary ? "ring-2 ring-primary" : ""
                     }`}
-                    onClick={() => setSelectedImage(image)}
+                    onClick={() =>
+                      setSelectedImage({
+                        id: image.id,
+                        url: image.url,
+                        isPrimary: image.isPrimary,
+                        createdAt: new Date(image.createdAt),
+                      })
+                    }
                   >
                     <Image
                       src={image.url || "/placeholder.svg"}

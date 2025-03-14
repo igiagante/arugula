@@ -7,6 +7,7 @@ import { StrainFormValues } from "@/components/grow/steps/strains/form/add-strai
 import ImageUploader from "@/components/image-uploader/image-uploader";
 import { useUserPreferences } from "@/hooks/use-user-preferences";
 import { growStages, GrowStages } from "@/lib/constants";
+import { PlantWithStrain } from "@/lib/db/queries/types/plant";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@workspace/ui/components/button";
 import {
@@ -44,15 +45,13 @@ import { Textarea } from "@workspace/ui/components/textarea";
 import { cn } from "@workspace/ui/lib/utils";
 import { Check, ChevronsUpDown, Plus, Save } from "lucide-react";
 import { useEffect, useState } from "react";
-import {
-  DefaultValues,
-  Path,
-  PathValue,
-  useForm,
-  UseFormReturn,
-} from "react-hook-form";
+import { Path, PathValue, useForm, UseFormReturn } from "react-hook-form";
 import { ImageGallery } from "../plant-image-gallery";
-import { allowedStages, PLANT_STAGES } from "../plant-utils";
+import {
+  allowedStages,
+  convertImagesToPlantImages,
+  PLANT_STAGES,
+} from "../plant-utils";
 import { PlantImage, Strain, StrainOption } from "../types";
 import { CreatePlantSchema, EditPlantSchema } from "./add-plant.schema";
 import { PlantHeaderImage } from "./plant-header-image";
@@ -64,6 +63,7 @@ interface PlantDialogProps<T extends CreatePlantSchema | EditPlantSchema> {
   onClose: () => void;
   isOpen: boolean;
   isEditing?: boolean;
+  plant?: PlantWithStrain;
 }
 
 export function PlantDialog<T extends CreatePlantSchema | EditPlantSchema>({
@@ -73,6 +73,7 @@ export function PlantDialog<T extends CreatePlantSchema | EditPlantSchema>({
   onClose,
   isOpen,
   isEditing = false,
+  plant,
 }: PlantDialogProps<T>) {
   const [images, setImages] = useState<PlantImage[]>([]);
   const [open, setOpen] = useState(false);
@@ -81,16 +82,30 @@ export function PlantDialog<T extends CreatePlantSchema | EditPlantSchema>({
   // Reset form when modal opens/closes
   useEffect(() => {
     if (isOpen) {
-      form.reset({
-        customName: "",
-        strainId: "",
-        stage: GrowStages.seedling,
-        quantity: 1,
-        notes: "",
-        images: [],
-      } as DefaultValues<T>);
+      if (isEditing && plant) {
+        // Set each field individually
+        form.reset({
+          id: plant.id,
+          customName: plant.customName,
+          strainId: plant.strainId || "",
+          stage: plant.stage || GrowStages.seedling,
+          potSize: plant.potSize ? Number(plant.potSize) : undefined,
+          notes: plant.notes?.content || "",
+          images: convertImagesToPlantImages(plant.notes?.images || []),
+        } as unknown as T);
+      } else {
+        // Reset to default values for CreatePlantSchema
+        form.reset({
+          customName: "",
+          strainId: "",
+          stage: GrowStages.seedling,
+          quantity: 1,
+          notes: "",
+          images: [],
+        } as unknown as T);
+      }
     }
-  }, [isOpen, form]);
+  }, [isOpen, form, isEditing, plant]);
 
   const { data: strains } = useQuery<Strain[]>({
     queryKey: [CacheTags.strains],
@@ -141,7 +156,7 @@ export function PlantDialog<T extends CreatePlantSchema | EditPlantSchema>({
   return (
     <>
       <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-        <DialogContent className="w-[calc(100vw-32px)] sm:max-w-[700px] max-h-[90vh] overflow-y-auto p-0">
+        <DialogContent className="w-[calc(100vw-32px)] sm:max-w-[700px] max-h-[90vh] overflow-y-auto p-0 [&>button]:hidden">
           <PlantHeaderImage
             imageUrl={coverImage?.url}
             title={isEditing ? "Edit Plant" : "Add New Plant"}
@@ -154,6 +169,14 @@ export function PlantDialog<T extends CreatePlantSchema | EditPlantSchema>({
                 onSubmit={form.handleSubmit(onSubmit)}
                 className="space-y-6"
               >
+                {isEditing && (
+                  <FormField
+                    control={form.control}
+                    name={"id" as Path<T>}
+                    render={({ field }) => <input type="hidden" {...field} />}
+                  />
+                )}
+
                 <FormField
                   control={form.control}
                   name={"customName" as Path<T>}
@@ -310,7 +333,7 @@ export function PlantDialog<T extends CreatePlantSchema | EditPlantSchema>({
                     control={form.control}
                     name={"potSize" as Path<T>}
                     render={({ field }) => (
-                      <FormItem className="col-span-4 md:col-span-3">
+                      <FormItem className="col-span-4 md:col-span-4">
                         <FormLabel>Pot Size</FormLabel>
                         <div className="flex gap-2">
                           <FormControl>
@@ -333,26 +356,28 @@ export function PlantDialog<T extends CreatePlantSchema | EditPlantSchema>({
                     )}
                   />
 
-                  <FormField
-                    control={form.control}
-                    name={"quantity" as Path<T>}
-                    render={({ field }) => (
-                      <FormItem className="col-span-4 md:col-span-2">
-                        <FormLabel>Quantity</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="number"
-                            min={1}
-                            {...field}
-                            onChange={(e) =>
-                              field.onChange(Number.parseInt(e.target.value))
-                            }
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  {!isEditing && (
+                    <FormField
+                      control={form.control}
+                      name={"quantity" as Path<T>}
+                      render={({ field }) => (
+                        <FormItem className="col-span-4 md:col-span-2">
+                          <FormLabel>Quantity</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              min={1}
+                              {...field}
+                              onChange={(e) =>
+                                field.onChange(Number.parseInt(e.target.value))
+                              }
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  )}
                 </div>
 
                 <FormField

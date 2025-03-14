@@ -78,7 +78,7 @@ export const convertImagesToPlantImages = (images?: string[]): PlantImage[] => {
       id: `image-${index}`,
       url,
       isPrimary: index === 0,
-      createdAt: new Date().toISOString(),
+      createdAt: new Date(),
     })) || []
   );
 };

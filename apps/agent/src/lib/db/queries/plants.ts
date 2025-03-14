@@ -21,6 +21,7 @@ const plantSelection = {
   createdAt: plant.createdAt,
   updatedAt: plant.updatedAt,
   notes: {
+    id: plantNote.id,
     content: plantNote.content,
     images: plantNote.images,
     createdAt: plantNote.createdAt,
@@ -74,6 +75,58 @@ export async function createPlant({
   }
 }
 
+export async function createPlantNote({
+  plantId,
+  content,
+  images,
+}: {
+  plantId: string;
+  content: string;
+  images: string[];
+}) {
+  try {
+    const [newNote] = await db
+      .insert(plantNote)
+      .values({
+        plantId,
+        content,
+        images,
+        createdAt: new Date(),
+      })
+      .returning();
+    return newNote;
+  } catch (error) {
+    console.error("Failed to create plant note:", error);
+    throw error;
+  }
+}
+
+export async function updatePlantNote({
+  noteId,
+  content,
+  images,
+}: {
+  noteId: string;
+  content: string;
+  images: string[];
+}) {
+  try {
+    const [updatedNote] = await db
+      .update(plantNote)
+      .set({
+        content,
+        images,
+        updatedAt: new Date(),
+      })
+      .where(eq(plantNote.id, noteId))
+      .returning();
+    return updatedNote;
+  } catch (error) {
+    console.error("Failed to update plant note:", error);
+    throw error;
+  }
+}
+
 /**
  * UPDATE a Plant.
  *
@@ -88,12 +141,14 @@ export async function updatePlant({
   plantId: string;
   data: Partial<Plant>;
 }) {
+  const { createdAt, updatedAt, ...restData } = data;
   try {
     const [updatedPlant] = await db
       .update(plant)
-      .set(data)
+      .set({ ...restData, updatedAt: new Date() })
       .where(eq(plant.id, plantId))
       .returning();
+
     return updatedPlant;
   } catch (error) {
     console.error("Failed to update plant:", error);
@@ -128,8 +183,14 @@ export async function deletePlant({ plantId }: { plantId: string }) {
  */
 export async function getPlantById({ plantId }: { plantId: string }) {
   try {
-    const plants = await db.select().from(plant).where(eq(plant.id, plantId));
-    return plants[0];
+    const [plantData] = await db
+      .select(plantSelection)
+      .from(plant)
+      .leftJoin(strain, eq(plant.strainId, strain.id))
+      .leftJoin(plantNote, eq(plant.id, plantNote.plantId))
+      .where(eq(plant.id, plantId));
+
+    return plantData ? mapPlantImages(plantData) : null;
   } catch (error) {
     console.error("Failed to get plant by id:", error);
     throw error;

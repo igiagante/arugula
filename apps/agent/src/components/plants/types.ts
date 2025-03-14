@@ -2,7 +2,7 @@ export type Image = {
   id: string;
   url: string;
   isPrimary: boolean;
-  createdAt: string;
+  createdAt?: Date;
 };
 
 export type PlantImage = Image;
@@ -17,7 +17,6 @@ export type CreatePlantPayload = {
   notes?: {
     content: string;
     images?: string[];
-    createdAt: string;
   } | null;
   images?: string[];
   quantity?: number;
@@ -27,8 +26,6 @@ export type CreatePlantPayload = {
 
 export type EditPlantPayload = CreatePlantPayload & {
   id: string;
-  createdAt: string;
-  updatedAt: string;
 };
 
 export type StrainOption = {

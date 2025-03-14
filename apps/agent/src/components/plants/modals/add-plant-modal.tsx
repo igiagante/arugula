@@ -114,7 +114,6 @@ export function AddPlantModal({
           ? {
               content: data.notes,
               images: uploadedImageUrls,
-              createdAt: new Date().toISOString(),
             }
           : null,
       });
