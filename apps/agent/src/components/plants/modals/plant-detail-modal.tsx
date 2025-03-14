@@ -5,6 +5,7 @@ import {
   Dialog,
   DialogContent,
   DialogFooter,
+  DialogTitle,
 } from "@workspace/ui/components/dialog";
 import {
   Tabs,
@@ -118,6 +119,9 @@ export function PlantDetailModal({
     <>
       <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
         <DialogContent className="w-[calc(100vw-32px)] sm:max-w-[700px] max-h-[90vh] overflow-y-auto p-0">
+          <DialogTitle className="sr-only">
+            Plant Details: {plant.customName}
+          </DialogTitle>
           {images.length > 0 && (
             <PlantHeaderImage
               imageUrl={primaryImage}
@@ -240,6 +244,9 @@ export function PlantDetailModal({
           onOpenChange={() => setSelectedImage(null)}
         >
           <DialogContent className="max-w-7xl p-0 overflow-hidden bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+            <DialogTitle className="sr-only">
+              Plant Image: {plant.customName}
+            </DialogTitle>
             <div className="relative h-[90vh]">
               <Image
                 src={selectedImage.url || "/placeholder.svg"}

@@ -12,7 +12,11 @@ import {
 } from "@workspace/ui/components/alert-dialog";
 import { Button } from "@workspace/ui/components/button";
 import { Card, CardContent } from "@workspace/ui/components/card";
-import { Dialog, DialogContent } from "@workspace/ui/components/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+} from "@workspace/ui/components/dialog";
 import {
   ChevronLeft,
   ChevronRight,
@@ -150,6 +154,7 @@ export function ImageGallery({ images, setImages }: ImageGalleryProps) {
       {/* Image Lightbox */}
       <Dialog open={lightboxOpen} onOpenChange={setLightboxOpen}>
         <DialogContent className="max-w-4xl p-0 overflow-hidden bg-background/95 backdrop-blur-sm">
+          <DialogTitle className="sr-only">Image Gallery</DialogTitle>
           <div className="relative h-[80vh] w-full">
             {images.length > 0 && lightboxIndex < images.length && (
               <Image

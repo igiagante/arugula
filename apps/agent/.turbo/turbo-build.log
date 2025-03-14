@@ -3,9 +3,118 @@
 > agent@0.1.0 build /Users/ignaciogiagante/projects/arugula/apps/agent
 > next build
 
-   [1m[38;2;173;127;168m▲ Next.js 15.2.1-canary.2[39m[22m
+   [1m[38;2;173;127;168m▲ Next.js 15.2.2-canary.1[39m[22m
    - Environments: .env.local
    - Experiments (use with caution):
      [1m✓[22m ppr
 
  [37m[1m [22m[39m Creating an optimized production build ...
+ [32m[1m✓[22m[39m Compiled successfully
+[?25l [37m[1m [22m[39m Linting and checking validity of types  [36m.[39m[2K[1G [37m[1m [22m[39m Linting and checking validity of types  [36m..[39m[2K[1G [37m[1m [22m[39m Linting and checking validity of types  [36m...[39m[2K[1G [37m[1m [22m[39m Linting and checking validity of types  [36m.[39m[2K[1G [37m[1m [22m[39m Linting and checking validity of types  [36m..[39m[2K[1G [37m[1m [22m[39m Linting and checking validity of types  [36m...[39m[2K[1G [37m[1m [22m[39m Linting and checking validity of types  [36m.[39m[2K[1G [37m[1m [22m[39m Linting and checking validity of types  [36m..[39m[2K[1G [37m[1m [22m[39m Linting and checking validity of types  [36m...[39m[2K[1G [37m[1m [22m[39m Linting and checking validity of types  [36m.[39m[2K[1G [37m[1m [22m[39m Linting and checking validity of types  [36m..[39m[2K[1G [37m[1m [22m[39m Linting and checking validity of types  [36m...[39m[2K[1G [37m[1m [22m[39m Linting and checking validity of types  [36m.[39m[2K[1G [37m[1m [22m[39m Linting and checking validity of types  [36m..[39m[2K[1G [37m[1m [22m[39m Linting and checking validity of types  [36m...[39m[2K[1G [37m[1m [22m[39m Linting and checking validity of types  [36m.[39m[2K[1G[?25h
+./src/app/(chat)/api/chat/route.ts
+153:12  Warning: 'error' is defined but never used.  unused-imports/no-unused-vars
+
+./src/app/api/images/[key]/route.ts
+1:33  Warning: '/Users/ignaciogiagante/projects/arugula/apps/agent/src/lib/s3/client.ts' imported multiple times.  import/no-duplicates
+3:29  Warning: '/Users/ignaciogiagante/projects/arugula/apps/agent/src/lib/s3/client.ts' imported multiple times.  import/no-duplicates
+
+./src/components/artifact-actions.tsx
+69:26  Warning: '_error' is defined but never used.  unused-imports/no-unused-vars
+
+./src/components/grow/steps/add-plants-step.tsx
+225:13  Warning: Classname 'transform' is not needed in Tailwind CSS v3!  tailwindcss/migration-from-tailwind-2
+
+./src/components/multimodal-input.tsx
+165:14  Warning: '_error' is defined but never used.  unused-imports/no-unused-vars
+
+./src/components/plants/plant-image-gallery.tsx
+38:10  Warning: 'selectedImage' is assigned a value but never used. Allowed unused vars must match /^_/u.  unused-imports/no-unused-vars
+38:25  Warning: 'setSelectedImage' is assigned a value but never used. Allowed unused vars must match /^_/u.  unused-imports/no-unused-vars
+
+./src/hooks/use-user-preferences.ts
+81:16  Warning: 'error' is defined but never used.  unused-imports/no-unused-vars
+137:14  Warning: 'error' is defined but never used.  unused-imports/no-unused-vars
+
+./src/lib/db/queries/plants.ts
+144:11  Warning: 'createdAt' is assigned a value but never used. Allowed unused vars must match /^_/u.  unused-imports/no-unused-vars
+144:22  Warning: 'updatedAt' is assigned a value but never used. Allowed unused vars must match /^_/u.  unused-imports/no-unused-vars
+
+./src/lib/editor/diff.js
+305:44  Warning: 'node1' is defined but never used. Allowed unused args must match /^_/u.  unused-imports/no-unused-vars
+305:51  Warning: 'node2' is defined but never used. Allowed unused args must match /^_/u.  unused-imports/no-unused-vars
+
+./src/lib/utils.ts
+227:3  Warning: 'forSeed' is assigned a value but never used. Allowed unused args must match /^_/u.  unused-imports/no-unused-vars
+
+info  - Need to disable some ESLint rules? Learn more here: https://nextjs.org/docs/app/api-reference/config/eslint#disabling-rules
+[?25l [36m.[39m [2K[1G [36m..[39m [2K[1G [36m...[39m [2K[1G [36m.[39m [2K[1G [36m..[39m [2K[1G [36m...[39m [2K[1G [36m.[39m [2K[1G [36m..[39m [2K[1G [36m...[39m [2K[1G [36m.[39m [2K[1G [36m..[39m [2K[1G [36m...[39m [2K[1G [36m.[39m [2K[1G [36m..[39m [2K[1G [36m...[39m [2K[1G [36m.[39m [2K[1G [36m..[39m [2K[1G [36m...[39m [2K[1G [36m.[39m [2K[1G [36m..[39m [2K[1G [36m...[39m [2K[1G [36m.[39m [2K[1G [36m..[39m [2K[1G [36m...[39m [2K[1G [36m.[39m [2K[1G [36m..[39m [2K[1G [36m...[39m [2K[1G [36m.[39m [2K[1G [36m..[39m [2K[1G [36m...[39m [2K[1G [36m.[39m [2K[1G [36m..[39m [2K[1G[?25h    [32m[1m✓[22m[39m Linting and checking validity of types 
+[?25l [37m[1m [22m[39m Collecting page data  [36m.[39m[2K[1G [37m[1m [22m[39m Collecting page data  [36m..[39m[2K[1G [37m[1m [22m[39m Collecting page data  [36m...[39m[2K[1G[?25h [37m[1m [22m[39m Collecting page data     [32m[1m✓[22m[39m Collecting page data 
+[?25l [37m[1m [22m[39m Generating static pages (0/35)  [36m[    ][39m[2K[1G [37m[1m [22m[39m Generating static pages (0/35)  [36m[=   ][39m[2K[1G [37m[1m [22m[39m Generating static pages (15/35)  [36m[==  ][39m[2K[1G[?25h [32m[1m✓[22m[39m Generating static pages (35/35)
+[?25l [37m[1m [22m[39m Finalizing page optimization  [36m.[39m[?25l [37m[1m [22m[39m Collecting build traces  [36m.[39m[2K[1G [37m[1m [22m[39m Finalizing page optimization  [36m..[39m[2K[1G [37m[1m [22m[39m Collecting build traces  [36m..[39m[2K[1G [37m[1m [22m[39m Finalizing page optimization  [36m...[39m[2K[1G [37m[1m [22m[39m Collecting build traces  [36m...[39m[2K[1G [37m[1m [22m[39m Finalizing page optimization  [36m.[39m[2K[1G [37m[1m [22m[39m Collecting build traces  [36m.[39m[2K[1G [37m[1m [22m[39m Finalizing page optimization  [36m..[39m[2K[1G [37m[1m [22m[39m Collecting build traces  [36m..[39m[2K[1G [37m[1m [22m[39m Finalizing page optimization  [36m...[39m[2K[1G [37m[1m [22m[39m Collecting build traces  [36m...[39m[2K[1G [37m[1m [22m[39m Finalizing page optimization  [36m.[39m[2K[1G [37m[1m [22m[39m Collecting build traces  [36m.[39m[2K[1G [37m[1m [22m[39m Finalizing page optimization  [36m..[39m[2K[1G [37m[1m [22m[39m Collecting build traces  [36m..[39m[2K[1G [37m[1m [22m[39m Finalizing page optimization  [36m...[39m[2K[1G [37m[1m [22m[39m Collecting build traces  [36m...[39m[2K[1G [37m[1m [22m[39m Finalizing page optimization  [36m.[39m[2K[1G [37m[1m [22m[39m Collecting build traces  [36m.[39m[2K[1G [37m[1m [22m[39m Finalizing page optimization  [36m..[39m[2K[1G [37m[1m [22m[39m Collecting build traces  [36m..[39m[2K[1G [37m[1m [22m[39m Finalizing page optimization  [36m...[39m[2K[1G [37m[1m [22m[39m Collecting build traces  [36m...[39m[2K[1G [37m[1m [22m[39m Finalizing page optimization  [36m.[39m[2K[1G [37m[1m [22m[39m Collecting build traces  [36m.[39m[2K[1G [37m[1m [22m[39m Finalizing page optimization  [36m..[39m[2K[1G [37m[1m [22m[39m Collecting build traces  [36m..[39m[2K[1G [37m[1m [22m[39m Finalizing page optimization  [36m...[39m[2K[1G [37m[1m [22m[39m Collecting build traces  [36m...[39m[2K[1G [37m[1m [22m[39m Finalizing page optimization  [36m.[39m[2K[1G [37m[1m [22m[39m Collecting build traces  [36m.[39m[2K[1G [37m[1m [22m[39m Finalizing page optimization  [36m..[39m[2K[1G [37m[1m [22m[39m Collecting build traces  [36m..[39m[2K[1G [37m[1m [22m[39m Finalizing page optimization  [36m...[39m[2K[1G [37m[1m [22m[39m Collecting build traces  [36m...[39m[2K[1G [37m[1m [22m[39m Finalizing page optimization  [36m.[39m[2K[1G [37m[1m [22m[39m Collecting build traces  [36m.[39m[2K[1G[?25h [37m[1m [22m[39m Collecting build traces     [32m[1m✓[22m[39m Collecting build traces 
+[2K[1G[?25h [37m[1m [22m[39m Finalizing page optimization     [32m[1m✓[22m[39m Finalizing page optimization 
+
+[4mRoute (app)[24m                                               [4mSize[24m  [4mFirst Load JS[24m  [4m[24m  [4m[24m
+┌ ƒ /                                                    214 B         [37m[1m107 kB[22m[39m
+├ ○ /_not-found                                          985 B         [37m[1m107 kB[22m[39m
+├ ƒ /analytics                                         3.99 kB         [37m[1m217 kB[22m[39m
+├ ƒ /api/chat                                            214 B         [37m[1m107 kB[22m[39m
+├ ƒ /api/document                                        214 B         [37m[1m107 kB[22m[39m
+├ ƒ /api/grows                                           214 B         [37m[1m107 kB[22m[39m
+├ ƒ /api/grows/[growId]                                  214 B         [37m[1m107 kB[22m[39m
+├ ƒ /api/grows/[growId]/plants                           214 B         [37m[1m107 kB[22m[39m
+├ ƒ /api/history                                         214 B         [37m[1m107 kB[22m[39m
+├ ƒ /api/images/[key]                                    214 B         [37m[1m107 kB[22m[39m
+├ ƒ /api/indoors                                         214 B         [37m[1m107 kB[22m[39m
+├ ƒ /api/indoors/[id]                                    214 B         [37m[1m107 kB[22m[39m
+├ ƒ /api/plants                                          214 B         [37m[1m107 kB[22m[39m
+├ ƒ /api/plants/[plantId]                                214 B         [37m[1m107 kB[22m[39m
+├ ƒ /api/products                                        214 B         [37m[1m107 kB[22m[39m
+├ ƒ /api/products/[id]                                   214 B         [37m[1m107 kB[22m[39m
+├ ƒ /api/s3/get-upload-url                               214 B         [37m[1m107 kB[22m[39m
+├ ƒ /api/s3/get-view-url                                 214 B         [37m[1m107 kB[22m[39m
+├ ƒ /api/strains                                         214 B         [37m[1m107 kB[22m[39m
+├ ƒ /api/strains/[id]                                    214 B         [37m[1m107 kB[22m[39m
+├ ƒ /api/suggestions                                     214 B         [37m[1m107 kB[22m[39m
+├ ƒ /api/tasks                                           214 B         [37m[1m107 kB[22m[39m
+├ ƒ /api/tasks/[id]                                      214 B         [37m[1m107 kB[22m[39m
+├ ƒ /api/users/[id]/preferences                          214 B         [37m[1m107 kB[22m[39m
+├ ƒ /api/vote                                            214 B         [37m[1m107 kB[22m[39m
+├ ƒ /api/webhooks/clerk                                  214 B         [37m[1m107 kB[22m[39m
+├ ◐ /chat/[id]                                           238 B         [37m[1m532 kB[22m[39m
+├   └ /chat/[id]
+├ ◐ /create-organization/[[...create-organization]]      351 B         [37m[1m136 kB[22m[39m
+├   └ /create-organization/[[...create-organization]]
+├ ƒ /grows                                              7.3 kB         [37m[1m147 kB[22m[39m
+├ ◐ /grows/[id]/edit                                   1.76 kB         [37m[1m280 kB[22m[39m
+├   └ /grows/[id]/edit
+├ ◐ /grows/[id]/plants                                 22.5 kB         [37m[1m282 kB[22m[39m
+├   └ /grows/[id]/plants
+├ ƒ /grows/new                                         1.41 kB         [37m[1m280 kB[22m[39m
+├ ◐ /members/[id]                                       2.6 kB         [37m[1m177 kB[22m[39m
+├   └ /members/[id]
+├ ƒ /members/new                                       2.59 kB         [37m[1m177 kB[22m[39m
+├ ƒ /onboarding                                          352 B         [37m[1m136 kB[22m[39m
+├ ◐ /organization-list/[[...organization-list]]          365 B         [37m[1m136 kB[22m[39m
+├   └ /organization-list/[[...organization-list]]
+├ ◐ /organizations/[id]                                17.7 kB         [37m[1m267 kB[22m[39m
+├   └ /organizations/[id]
+├ ƒ /preferences                                       4.07 kB         [37m[1m211 kB[22m[39m
+├ ◐ /sign-in/[[...sign-in]]                            2.05 kB         [37m[1m138 kB[22m[39m
+├   └ /sign-in/[[...sign-in]]
+├ ◐ /sign-up/[[...sign-up]]                            2.03 kB         [37m[1m138 kB[22m[39m
+├   └ /sign-up/[[...sign-up]]
+└ ◐ /user-profile/[[...user-profile]]                  2.04 kB         [37m[1m138 kB[22m[39m
+    └ /user-profile/[[...user-profile]]
++ First Load JS shared by all                           [37m[1m106 kB[22m[39m
+  ├ chunks/106-2a8a17b43c91366b.js                     46.1 kB
+  ├ chunks/3ba55e0b-52d8dd956bf711bb.js                58.2 kB
+  └ other shared chunks (total)                        2.15 kB
+
+
+ƒ Middleware                                           [37m[1m71.4 kB[22m[39m
+
+○  (Static)             prerendered as static content
+◐  (Partial Prerender)  prerendered as static HTML with dynamic server-streamed content
+ƒ  (Dynamic)            server-rendered on demand
+
+[?25h

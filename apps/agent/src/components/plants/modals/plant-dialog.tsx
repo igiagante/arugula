@@ -18,7 +18,11 @@ import {
   CommandItem,
   CommandList,
 } from "@workspace/ui/components/command";
-import { Dialog, DialogContent } from "@workspace/ui/components/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+} from "@workspace/ui/components/dialog";
 import {
   Form,
   FormControl,
@@ -157,6 +161,9 @@ export function PlantDialog<T extends CreatePlantSchema | EditPlantSchema>({
     <>
       <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
         <DialogContent className="w-[calc(100vw-32px)] sm:max-w-[700px] max-h-[90vh] overflow-y-auto p-0 [&>button]:hidden">
+          <DialogTitle className="sr-only">
+            {isEditing ? "Edit Plant" : "Add New Plant"}
+          </DialogTitle>
           <PlantHeaderImage
             imageUrl={coverImage?.url}
             title={isEditing ? "Edit Plant" : "Add New Plant"}
@@ -468,6 +475,7 @@ export function PlantDialog<T extends CreatePlantSchema | EditPlantSchema>({
         onOpenChange={setIsAddStrainModalOpen}
       >
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogTitle className="sr-only">Add New Strain</DialogTitle>
           <AddStrainForm
             form={addStrainForm}
             onSubmit={handleAddNewStrain}
