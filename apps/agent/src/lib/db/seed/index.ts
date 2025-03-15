@@ -37,7 +37,8 @@ async function main() {
     // Seed indoors and organization
     const { indoors, organization: seededOrg } = await seedIndoors(
       db,
-      seededUser.id
+      seededUser.id,
+      "516e3958-1842-4219-bf07-2a515b86df04"
     );
 
     if (!indoors || !seededOrg) {

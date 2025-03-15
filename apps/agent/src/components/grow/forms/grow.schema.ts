@@ -2,6 +2,7 @@ import { VolumeUnits } from "@/components/user/user-preferences.types";
 import { FileSchema } from "@/schemas/common.schema";
 import { z } from "zod";
 
+// Define a schema for strain plants
 const growStrainPlantsSchema = z.object({
   strainId: z.string().min(1, "Strain is required"),
   strain: z.string().min(1, "Strain name is required"),
@@ -9,7 +10,7 @@ const growStrainPlantsSchema = z.object({
   plantsIds: z.array(z.string()).optional(),
 });
 
-export const growFormSchema = z.object({
+export const createGrowSchema = z.object({
   indoorId: z.string().min(1, "Indoor space is required"),
   name: z.string().min(1, "Name is required"),
   stage: z.string().min(1, "Stage is required"),
@@ -32,7 +33,13 @@ export const growFormSchema = z.object({
   potSizeUnit: z.string().default(VolumeUnits.liters),
   growingMethod: z.string().min(1, "Growing method is required"),
   images: z.array(z.union([z.string(), FileSchema])).optional(),
-  strainPlants: z.array(growStrainPlantsSchema).optional(),
+  strainPlants: z.array(growStrainPlantsSchema).default([]),
 });
 
-export type GrowFormValues = z.infer<typeof growFormSchema>;
+export type CreateGrowSchema = z.infer<typeof createGrowSchema>;
+
+export const editGrowSchema = createGrowSchema.extend({
+  id: z.string().min(1, { message: "Grow ID is required" }),
+});
+
+export type EditGrowSchema = z.infer<typeof editGrowSchema>;

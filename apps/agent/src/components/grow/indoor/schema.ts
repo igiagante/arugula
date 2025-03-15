@@ -15,4 +15,4 @@ export const createIndoorSchema = z.object({
   notes: z.string().optional(),
 });
 
-export type CreateIndoorFormValues = z.infer<typeof createIndoorSchema>;
+export type CreateIndoorSchema = z.infer<typeof createIndoorSchema>;

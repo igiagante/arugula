@@ -223,16 +223,19 @@ export async function getGrowsByUserId({
   const views = await Promise.all(
     Array.from(growsMap.values()).map(async (growData) => {
       try {
-        const view = createGrowView(growData);
-        return view ? mapImages(view) : null;
+        return createGrowView(growData);
       } catch (error) {
-        console.error(`Failed to create grow view for data:`, error);
         return null;
       }
     })
   );
 
-  return views.filter((view): view is GrowView => view !== null);
+  const filteredViews = views.filter((view): view is GrowView => view !== null);
+  const result = await Promise.all(
+    filteredViews.map((view) => mapImages(view))
+  );
+
+  return result;
 }
 
 export async function getGrowByIdAndUser({
@@ -241,18 +244,66 @@ export async function getGrowByIdAndUser({
 }: {
   growId: string;
   userId: string;
-}): Promise<GrowView | null> {
-  const growData = await baseGrowQuery().innerJoin(
-    growCollaborator,
-    and(
-      eq(grow.id, growCollaborator.growId),
-      eq(growCollaborator.userId, userId),
-      eq(grow.id, growId)
-    )
-  );
+}): Promise<GrowView | { error: string; code: string; status: number } | null> {
+  try {
+    const growData = await baseGrowQuery().innerJoin(
+      growCollaborator,
+      and(
+        eq(grow.id, growCollaborator.growId),
+        eq(growCollaborator.userId, userId),
+        eq(grow.id, growId)
+      )
+    );
 
-  const view = createGrowView(growData);
-  return view ? mapImages(view) : null;
+    // If no data was found, check if the grow exists at all
+    if (growData.length === 0) {
+      const growExists = await db
+        .select({ id: grow.id })
+        .from(grow)
+        .where(eq(grow.id, growId));
+
+      // Check if the user has access to this grow
+      if (growExists.length > 0) {
+        const userHasAccess = await db
+          .select({ id: growCollaborator.id })
+          .from(growCollaborator)
+          .where(
+            and(
+              eq(growCollaborator.growId, growId),
+              eq(growCollaborator.userId, userId)
+            )
+          );
+
+        if (!userHasAccess.length) {
+          return {
+            error: "You don't have permission to access this grow",
+            code: "UNAUTHORIZED",
+            status: 403,
+          };
+        }
+      } else {
+        return {
+          error: "Grow not found",
+          code: "NOT_FOUND",
+          status: 404,
+        };
+      }
+
+      return null;
+    }
+
+    const view = createGrowView(growData);
+    const result = view ? mapImages(view) : null;
+
+    return result;
+  } catch (error) {
+    console.error("Error fetching grow:", error);
+    return {
+      error: "An error occurred while fetching the grow",
+      code: "INTERNAL_SERVER_ERROR",
+      status: 500,
+    };
+  }
 }
 
 /**
@@ -299,14 +350,17 @@ export async function getGrowsByOrganizationId(
   const views = await Promise.all(
     Array.from(growsMap.values()).map(async (growData) => {
       try {
-        const view = createGrowView(growData);
-        return view ? mapImages(view) : null;
+        return createGrowView(growData);
       } catch (error) {
-        console.error(`Failed to create grow view for data:`, error);
         return null;
       }
     })
   );
 
-  return views.filter((view): view is GrowView => view !== null);
+  const filteredViews = views.filter((view): view is GrowView => view !== null);
+  const result = await Promise.all(
+    filteredViews.map((view) => mapImages(view))
+  );
+
+  return result;
 }

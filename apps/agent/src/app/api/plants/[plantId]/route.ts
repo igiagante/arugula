@@ -89,7 +89,6 @@ export async function DELETE(
 
   try {
     const { plantId } = await params;
-    console.log("plantId", plantId);
     const deletedPlant = await deletePlant({ plantId });
 
     if (!deletedPlant) {

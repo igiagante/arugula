@@ -5,6 +5,7 @@ import { CacheTags } from "@/app/api/tags";
 import { AddStrainForm } from "@/components/grow/steps/strains/form/add-strain-form";
 import { StrainFormValues } from "@/components/grow/steps/strains/form/add-strain.schema";
 import ImageUploader from "@/components/image-uploader/image-uploader";
+import { useImageUploader } from "@/hooks/use-image-uploader";
 import { useUserPreferences } from "@/hooks/use-user-preferences";
 import {
   growStages,
@@ -13,8 +14,6 @@ import {
   MeasurementUnit,
 } from "@/lib/constants";
 import { PlantWithStrain } from "@/lib/db/queries/types/plant";
-import { deleteImageFromS3 } from "@/lib/s3/s3-delete";
-import { uploadImages } from "@/lib/s3/s3-upload";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@workspace/ui/components/button";
 import {
@@ -65,8 +64,8 @@ import {
   PLANT_STAGES,
 } from "../plant-utils";
 import { PlantImage, Strain, StrainOption } from "../types";
-import { CreatePlantSchema, EditPlantSchema } from "./add-plant.schema";
 import { PlantHeaderImage } from "./plant-header-image";
+import { CreatePlantSchema, EditPlantSchema } from "./plant.schema";
 
 interface PlantDialogProps<T extends CreatePlantSchema | EditPlantSchema> {
   form: UseFormReturn<T>;
@@ -89,11 +88,9 @@ export function PlantDialog<T extends CreatePlantSchema | EditPlantSchema>({
 }: PlantDialogProps<T>) {
   const isEditing = !!plant?.id;
   const [images, setImages] = useState<PlantImage[]>([]);
-  const [deletedImages, setDeletedImages] = useState<string[]>([]);
   const [open, setOpen] = useState(false);
   const queryClient = useQueryClient();
   const { preferences } = useUserPreferences();
-  const [isUploadingImages, setIsUploadingImages] = useState(false);
 
   // Reset form when modal opens/closes
   useEffect(() => {
@@ -162,115 +159,54 @@ export function PlantDialog<T extends CreatePlantSchema | EditPlantSchema>({
     }
   };
 
+  const {
+    isUploadingImages: customIsUploadingImages,
+    trackDeletedImage,
+    resetDeletedImages,
+    processImages,
+  } = useImageUploader();
+
   const handleImageRemove = async (index: number) => {
-    const removedImage = images[index];
-    if (removedImage?.url) {
-      setDeletedImages((prev) => [...prev, removedImage.url]);
+    const imageToRemove = form.getValues("images" as Path<T>)[index];
+    if (typeof imageToRemove === "string") {
+      trackDeletedImage(imageToRemove);
     }
-
-    // Update both states with filtered arrays
-    const newImages = images.filter((_, i) => i !== index);
-    setImages(newImages);
-
-    // Update form with just the URLs/Files
-    const formImages = newImages.map((img) => img.url);
-    form.setValue("images" as Path<T>, formImages as PathValue<T, Path<T>>);
+    // Remove from form
+    const currentImages = form.getValues("images" as Path<T>) as (
+      | string
+      | File
+    )[];
+    currentImages.splice(index, 1);
+    form.setValue("images" as Path<T>, currentImages as PathValue<T, Path<T>>);
   };
 
   const handleSubmit = async (values: T) => {
     try {
-      // Handle image deletions first
-      const s3ImagesToDelete = deletedImages.filter(
-        (imageUrl) =>
-          imageUrl.includes(".s3.") || imageUrl.startsWith("https://s3.")
-      );
+      // Process all images (handle deletions and uploads)
+      const processedImages = await processImages(values.images || []);
 
-      if (s3ImagesToDelete.length > 0) {
-        await Promise.all(
-          s3ImagesToDelete.map((imageUrl) => deleteImageFromS3(imageUrl))
-        );
-      }
+      // Update the values with processed images
+      const updatedValues = {
+        ...values,
+        images: processedImages,
+        // Include growId when creating a new plant (not editing)
+        ...(growId && !isEditing ? { growId } : {}),
+      };
 
-      // Set uploading state specifically for images
-      setIsUploadingImages(true);
+      // Call the parent's onSubmit with updated values
+      await onSubmit(updatedValues as unknown as T);
 
-      // Handle new file uploads
-      const fileObjects = ((values.images || []) as (string | File)[]).filter(
-        (img): img is File => img instanceof File
-      );
-
-      const uploadedImageUrls =
-        fileObjects.length > 0 ? await uploadImages(fileObjects) : [];
-
-      setIsUploadingImages(false);
-
-      // Clean existing image keys (remove /api/images/ prefix and blob URLs)
-      const existingS3Keys = images
-        .filter((img) => !deletedImages.includes(img.url))
-        .map((img) => {
-          const url = img.url;
-          if (url.startsWith("blob:")) return null;
-          // Extract just the filename from any URL format
-          return url.split("/").pop() || null;
-        })
-        .filter((key): key is string => key !== null);
-
-      // Clean new uploaded image keys
-      const newImageKeys = uploadedImageUrls
-        .map((url) => url.split("/").pop() || null)
-        .filter((key): key is string => key !== null);
-
-      // Combine existing and new image keys
-      const finalImages = [...existingS3Keys, ...newImageKeys];
-
-      const baseData = isEditing
-        ? {
-            customName: values.customName,
-            strainId: values.strainId || null,
-            stage: values.stage || null,
-            potSize: values.potSize?.toString() || null,
-            potSizeUnit: preferences.measurements.volume,
-            notes: values.notes || null,
-            images: finalImages,
-          }
-        : {
-            customName: values.customName,
-            strainId: values.strainId || null,
-            stage: values.stage || null,
-            potSize: values.potSize?.toString() || null,
-            potSizeUnit: preferences.measurements.volume,
-            notes: values.notes || null,
-            images: finalImages,
-            quantity: Number((values as CreatePlantSchema).quantity) || 1,
-          };
-
-      const submitData = isEditing
-        ? {
-            ...baseData,
-            id: (values as EditPlantSchema).id,
-            growId: plant!.growId,
-            archived: plant!.archived,
-          }
-        : {
-            ...baseData,
-            growId,
-            archived: false,
-          };
-
-      await onSubmit(submitData as unknown as T);
+      // Reset tracking after successful submission
+      resetDeletedImages();
     } catch (error) {
-      setIsUploadingImages(false);
-      // Handle errors
-      console.error("Error uploading images:", error);
-      toast.error("Failed to upload images. Please try again.");
-      throw error; // Rethrow to let form know submission failed
+      console.error("Error submitting form:", error);
+      toast.error("Failed to save. Please try again.");
     }
   };
 
   const volumeUnit = preferences?.measurements?.volume;
 
   const [newStrainValue, setNewStrainValue] = useState("");
-
   const [isAddStrainModalOpen, setIsAddStrainModalOpen] = useState(false);
   const addStrainForm = useForm<StrainFormValues>();
 
@@ -584,10 +520,10 @@ export function PlantDialog<T extends CreatePlantSchema | EditPlantSchema>({
                   </Button>
                   <Button
                     type="submit"
-                    disabled={isSubmitting || isUploadingImages}
+                    disabled={isSubmitting || customIsUploadingImages}
                   >
                     <Save className="mr-2 size-4" />
-                    {isUploadingImages
+                    {customIsUploadingImages
                       ? "Uploading Images..."
                       : isSubmitting
                         ? "Saving..."

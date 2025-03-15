@@ -10,8 +10,8 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { CreatePlantPayload } from "../types";
-import { createPlantSchema, CreatePlantSchema } from "./add-plant.schema";
 import { PlantDialog } from "./plant-dialog";
+import { createPlantSchema, CreatePlantSchema } from "./plant.schema";
 
 interface AddPlantModalProps {
   isOpen: boolean;

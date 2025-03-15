@@ -73,8 +73,6 @@ export async function POST(request: Request) {
       images,
     } = body;
 
-    console.log("body", body);
-
     if (!growId || !customName || !stage) {
       return NextResponse.json(
         { error: "Missing required fields" },

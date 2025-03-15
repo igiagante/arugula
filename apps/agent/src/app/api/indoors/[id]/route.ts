@@ -19,13 +19,16 @@ export async function GET(
   const { userId } = await auth();
   const { id: indoorId } = await params;
 
+  // TODO: Remove this once we have a real organization ID
+  const organizationId = "516e3958-1842-4219-bf07-2a515b86df04";
+
   if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   try {
     const getIndoorWithCache = unstable_cache(
-      async () => getIndoorById({ userId, indoorId }),
+      async () => getIndoorById({ userId, indoorId, organizationId }),
       [createDynamicTag(CacheTags.indoorByUserId, userId)],
       {
         tags: [createDynamicTag(CacheTags.indoorByUserId, userId)],

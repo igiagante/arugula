@@ -27,22 +27,20 @@ import {
   SelectValue,
 } from "@workspace/ui/components/select";
 import { cn } from "@workspace/ui/lib/utils";
-import { CalendarIcon, Plus } from "lucide-react";
+import { CalendarIcon } from "lucide-react";
 import { useState } from "react";
 import type { Control, UseFormSetValue } from "react-hook-form";
-import { CreateIndoorModal } from "../indoor/create-indoor-modal";
 
 import { apiRequest } from "@/app/api/client";
-import { CacheTags } from "@/app/api/tags";
+import { CacheTags, createDynamicTag } from "@/app/api/tags";
 import { useQuery } from "@tanstack/react-query";
-import { toast } from "sonner";
-import { GrowFormValues } from "../forms/grow.schema";
-
+import { CreateGrowSchema } from "../forms/grow.schema";
+import { CreateIndoorModal } from "../indoor/create-indoor-modal";
 interface BasicDetailsStepProps {
-  control: Control<GrowFormValues>;
+  control: Control<CreateGrowSchema>;
   growStages: readonly { label: string; value: string }[];
   growingMethods: readonly { label: string; value: string }[];
-  setValue: UseFormSetValue<GrowFormValues>;
+  setValue: UseFormSetValue<CreateGrowSchema>;
 }
 
 export function BasicDetailsStep({
@@ -51,37 +49,23 @@ export function BasicDetailsStep({
   growingMethods,
   setValue,
 }: BasicDetailsStepProps) {
-  const [createIndoorOpen, setCreateIndoorOpen] = useState(false);
   const [startDateOpen, setStartDateOpen] = useState(false);
   const [endDateOpen, setEndDateOpen] = useState(false);
+  const [isCreateIndoorModalOpen, setIsCreateIndoorModalOpen] = useState(false);
 
-  const {
-    data: indoors,
-    isLoading,
-    error,
-    refetch,
-  } = useQuery({
-    queryKey: [CacheTags.indoors],
+  //  const { organization } = useOrganization();
+
+  const organizationId = "516e3958-1842-4219-bf07-2a515b86df04";
+
+  const { data: indoors, refetch } = useQuery({
+    queryKey: [
+      CacheTags.indoors,
+      createDynamicTag(CacheTags.indoorsByOrganizationId, organizationId),
+    ],
     queryFn: async () => {
-      return await apiRequest<Indoor[]>("/api/indoors");
+      return await apiRequest<Indoor[]>(`/api/indoors`);
     },
   });
-
-  const handleCreateIndoorSuccess = async (id: string) => {
-    await refetch();
-    // Set the newly created indoor as the selected value
-    setValue("indoorId", id, {
-      shouldValidate: false, // Change this to false to prevent validation
-    });
-    setCreateIndoorOpen(false);
-  };
-
-  if (error) {
-    toast.error("Error loading indoor spaces", {
-      description: error.message,
-    });
-    return null;
-  }
 
   return (
     <div className="space-y-6">
@@ -95,51 +79,55 @@ export function BasicDetailsStep({
                 <FormLabel>Indoor Space</FormLabel>
                 <div className="flex items-center gap-2">
                   <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
+                    onValueChange={(value) => {
+                      if (value === "create-new") {
+                        setIsCreateIndoorModalOpen(true);
+                        setTimeout(() => field.onChange(field.value), 0);
+                      } else {
+                        field.onChange(value);
+                      }
+                    }}
+                    value={field.value || ""}
                   >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select an indoor space" />
-                      </SelectTrigger>
-                    </FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select an indoor space" />
+                    </SelectTrigger>
                     <SelectContent>
-                      {isLoading ? (
-                        <div className="p-2 text-sm text-muted-foreground text-center">
-                          Loading indoor spaces...
-                        </div>
-                      ) : indoors?.length === 0 ? (
-                        <div className="p-2 text-sm text-muted-foreground text-center">
-                          No indoor spaces found
-                        </div>
-                      ) : (
-                        indoors?.map((indoor) => (
+                      {indoors && indoors.length > 0 ? (
+                        indoors.map((indoor) => (
                           <SelectItem key={indoor.id} value={indoor.id}>
                             {indoor.name}
                           </SelectItem>
                         ))
+                      ) : (
+                        <SelectItem
+                          value="no-indoors"
+                          disabled
+                          className="text-muted-foreground"
+                        >
+                          No indoor spaces found
+                        </SelectItem>
                       )}
+                      <SelectItem
+                        value="create-new"
+                        className="text-primary font-medium"
+                      >
+                        + Create new indoor space
+                      </SelectItem>
                     </SelectContent>
                   </Select>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="icon"
-                    className="shrink-0"
-                    onClick={() => setCreateIndoorOpen(true)}
-                  >
-                    <Plus className="size-4" />
-                  </Button>
                 </div>
-                <FormMessage />
               </FormItem>
             )}
           />
         </div>
         <CreateIndoorModal
-          open={createIndoorOpen}
-          onOpenChange={setCreateIndoorOpen}
-          onSuccess={handleCreateIndoorSuccess}
+          open={isCreateIndoorModalOpen}
+          onOpenChange={setIsCreateIndoorModalOpen}
+          onSuccess={(id: string) => {
+            setValue("indoorId", id);
+            refetch();
+          }}
         />
         <FormField
           control={control}

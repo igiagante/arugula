@@ -45,7 +45,7 @@ export function ImageWithFallback({
         <img
           src={imageUrl}
           alt={alt}
-          className={`object-cover rounded-md w-full h-full ${className}`}
+          className={`object-cover rounded-md size-full ${className}`}
         />
       </div>
     );

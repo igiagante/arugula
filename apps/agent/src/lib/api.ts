@@ -196,7 +196,6 @@ export async function fetchOrganizationDetails(
   orgId: string
 ): Promise<OrganizationDetails> {
   try {
-    console.log("fetching org details", orgId);
     await delay(1000); // Simulate network delay
 
     // Simulate potential errors
@@ -208,8 +207,6 @@ export async function fetchOrganizationDetails(
     if (!org) {
       throw new Error("Organization not found");
     }
-
-    console.log(org);
 
     return {
       ...org,

@@ -1,4 +1,4 @@
-import type { Plant } from "@/lib/db/schemas";
+import type { Indoor, Plant } from "@/lib/db/schemas";
 
 export type Environment = {
   light: string;
@@ -22,6 +22,7 @@ export type GrowView = {
   id: string;
   name: string;
   stage: string;
+  indoor: Indoor;
   environment: Environment;
   strains: GrowStrain[];
   plants: Plant[];

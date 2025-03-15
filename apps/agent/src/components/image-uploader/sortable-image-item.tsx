@@ -63,7 +63,7 @@ export function SortableImageItem({
         transition,
       }}
     >
-      <div className="relative w-full h-full">
+      <div className="relative size-full">
         <ImageWithFallback
           imageUrl={blobUrl || url}
           alt={`Image ${index + 1}`}

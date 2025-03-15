@@ -40,6 +40,13 @@ export function SidebarActiveGrows() {
     }
   };
 
+  // Add a new function that only handles mobile sidebar closing
+  const handleLinkClick = () => {
+    if (isMobile) {
+      setOpen(false);
+    }
+  };
+
   if (grows === null) {
     toast.error("Error loading grows", {
       description: "An error occurred while loading grows",
@@ -54,7 +61,7 @@ export function SidebarActiveGrows() {
         className="group justify-start group-data-[collapsible=icon]:justify-center"
         data-state={isOpen ? "open" : "closed"}
       >
-        <Link href="/grows" onClick={handleClick}>
+        <Link href="/grows">
           <Sprout className="shrink-0 stroke-[1.5px]" />
         </Link>
         <span className="group-data-[collapsible=icon]:hidden">
@@ -77,7 +84,7 @@ export function SidebarActiveGrows() {
                   <Link
                     href="/grows"
                     className="flex items-center gap-2"
-                    onClick={handleClick}
+                    onClick={handleLinkClick}
                   >
                     <span>All Grows</span>
                     {grows?.length && grows.length > 0 && (

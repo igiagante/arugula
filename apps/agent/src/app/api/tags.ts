@@ -12,6 +12,8 @@ export const CacheTags = {
   growsByOrganizationId: (organizationId: string) =>
     `grows-by-organization:${organizationId}`,
   indoorByUserId: (userId: string) => `indoor-by-user:${userId}`,
+  indoorsByOrganizationId: (organizationId: string) =>
+    `indoors-by-organization:${organizationId}`,
   plantByUserId: (userId: string) => `plant-by-user:${userId}`,
   getPlantsByGrowId: (growId: string) => `plants-by-grow:${growId}`,
   getProductsByUserId: (userId: string) => `products-by-user:${userId}`,

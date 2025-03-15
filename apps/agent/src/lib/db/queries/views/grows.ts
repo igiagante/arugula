@@ -10,9 +10,11 @@ export function createGrowView(
     lamp: Lamp | null;
   }[]
 ): GrowView | null {
-  if (!growData.length) return null;
+  if (!growData.length) {
+    return null;
+  }
 
-  const firstRow = growData[0]!; // Safe assertion
+  const firstRow = growData[0]!;
 
   // Group plants by strain and count them
   const strainCounts = growData.reduce(
@@ -27,11 +29,30 @@ export function createGrowView(
 
   return {
     ...firstRow.grow,
+    stage: firstRow.grow.stage || "unknown", // Add default stage if missing
+    indoor: firstRow.indoor || {
+      id: "",
+      name: "",
+      organizationId: "",
+      height: null,
+      width: null,
+      length: null,
+      dimensionUnit: "cm",
+      temperature: null,
+      humidity: null,
+      co2: null,
+      images: [],
+      notes: null,
+      createdBy: "system",
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
     environment: {
       light: firstRow.lamp?.lampType ?? "",
       temp: firstRow.indoor?.temperature ?? "",
       humidity: firstRow.indoor?.humidity ?? "",
     },
+
     plants: growData
       .filter((row): row is typeof row & { plant: Plant } => row.plant !== null)
       .map((row) => row.plant),

@@ -23,6 +23,60 @@ import { getStageBadgeColor } from "../plant-utils";
 import { PlantImage } from "../types";
 import { PlantHeaderImage } from "./plant-header-image";
 
+// Mock data for timeline
+const timelineItems = [
+  {
+    id: "1",
+    type: "note",
+    title: "Added to grow",
+    date: "2023-05-10T09:00:00Z",
+    content: "Plant added to the current grow cycle",
+  },
+  {
+    id: "2",
+    type: "feeding",
+    title: "Nutrient feeding",
+    date: "2023-05-15T14:30:00Z",
+    content: "Fed with base nutrients",
+    data: {
+      ph: 6.5,
+      ec: 1.2,
+      nutrients: "General Hydroponics Flora Series",
+    },
+  },
+  {
+    id: "3",
+    type: "transplant",
+    title: "Transplanted",
+    date: "2023-05-20T11:15:00Z",
+    content: "Transplanted from 1L to 5L pot",
+    data: {
+      fromSize: "1L",
+      toSize: "5L",
+      medium: "Coco coir + perlite",
+    },
+  },
+  {
+    id: "4",
+    type: "stageChange",
+    title: "Changed stage",
+    date: "2023-05-25T10:00:00Z",
+    content: "Moved from seedling to vegetative stage",
+    data: {
+      fromStage: "seedling",
+      toStage: "veg",
+    },
+  },
+  {
+    id: "5",
+    type: "pruning",
+    title: "Pruning",
+    date: "2023-06-01T16:45:00Z",
+    content: "Topped main stem and removed lower growth",
+    imageUrl: "/placeholder.svg?height=300&width=400",
+  },
+];
+
 interface PlantDetailModalProps {
   plant: PlantWithStrain;
   isOpen: boolean;
@@ -67,60 +121,6 @@ export function PlantDetailModal({
     e.stopPropagation(); // Prevent modal from opening
     router.push(`/plants/${plant.id}/edit`);
   };
-
-  // Mock data for timeline
-  const timelineItems = [
-    {
-      id: "1",
-      type: "note",
-      title: "Added to grow",
-      date: "2023-05-10T09:00:00Z",
-      content: "Plant added to the current grow cycle",
-    },
-    {
-      id: "2",
-      type: "feeding",
-      title: "Nutrient feeding",
-      date: "2023-05-15T14:30:00Z",
-      content: "Fed with base nutrients",
-      data: {
-        ph: 6.5,
-        ec: 1.2,
-        nutrients: "General Hydroponics Flora Series",
-      },
-    },
-    {
-      id: "3",
-      type: "transplant",
-      title: "Transplanted",
-      date: "2023-05-20T11:15:00Z",
-      content: "Transplanted from 1L to 5L pot",
-      data: {
-        fromSize: "1L",
-        toSize: "5L",
-        medium: "Coco coir + perlite",
-      },
-    },
-    {
-      id: "4",
-      type: "stageChange",
-      title: "Changed stage",
-      date: "2023-05-25T10:00:00Z",
-      content: "Moved from seedling to vegetative stage",
-      data: {
-        fromStage: "seedling",
-        toStage: "veg",
-      },
-    },
-    {
-      id: "5",
-      type: "pruning",
-      title: "Pruning",
-      date: "2023-06-01T16:45:00Z",
-      content: "Topped main stem and removed lower growth",
-      imageUrl: "/placeholder.svg?height=300&width=400",
-    },
-  ];
 
   // Use it when selecting an image
   const handleSelectImage = (image: LocalImage) => {

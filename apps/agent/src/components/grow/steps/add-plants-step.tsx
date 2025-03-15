@@ -70,7 +70,10 @@ export function AddPlantsStep({
       setSelectedStrains([]);
       setStrainCounts({});
     }
-  }, [existingStrains, data]);
+
+    // Initialize with empty array to ensure strainPlants is always defined
+    onStrainsChange([]);
+  }, [existingStrains, data, onStrainsChange]);
 
   const { mutateAsync: createStrain } = useMutation({
     mutationFn: async (newStrain: CreateStrainDto) => {

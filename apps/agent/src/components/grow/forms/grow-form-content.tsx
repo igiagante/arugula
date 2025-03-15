@@ -9,20 +9,21 @@ import {
 import { AddPlantsStep } from "../steps/add-plants-step";
 import { BasicDetailsStep } from "../steps/basic-details-step";
 import { SetupDetailsStep } from "../steps/setup-details-step";
-import { GrowFormValues } from "./grow.schema";
+import { CreateGrowSchema } from "./grow.schema";
 
 interface GrowFormContentProps {
   step: number;
-  control: Control<GrowFormValues>;
-  fieldArray: UseFieldArrayReturn<GrowFormValues, "substrate">;
-  watch: UseFormWatch<GrowFormValues>;
-  setValue: UseFormSetValue<GrowFormValues>;
+  control: Control<CreateGrowSchema>;
+  fieldArray: UseFieldArrayReturn<CreateGrowSchema, "substrate">;
+  watch: UseFormWatch<CreateGrowSchema>;
+  setValue: UseFormSetValue<CreateGrowSchema>;
   existingStrains?: {
     strainId: string;
     strain: string;
     plants: number;
     plantsIds?: string[];
   }[];
+  onImageRemove?: (index: number) => void;
 }
 
 export function GrowFormContent({
@@ -32,6 +33,7 @@ export function GrowFormContent({
   watch,
   setValue,
   existingStrains,
+  onImageRemove,
 }: GrowFormContentProps) {
   return (
     <CardContent>
@@ -49,6 +51,7 @@ export function GrowFormContent({
           control={control}
           fieldArray={fieldArray}
           watch={watch}
+          onImageRemove={onImageRemove}
         />
       )}
       {step === 2 && (

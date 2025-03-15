@@ -12,29 +12,36 @@ import { CacheTags, createDynamicTag } from "../../tags";
 /**
  * GET /api/grows/[id]
  * Returns the grow cycle with the specified ID.
+ * This route is used to edit a grow cycle.
  */
 export async function GET(
   _request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ growId: string }> }
 ): Promise<NextResponse> {
   try {
-    const { id: growId } = await params;
+    const { growId } = await params;
     const { userId } = await auth();
 
     if (!userId) {
       return new NextResponse("Unauthorized", { status: 401 });
     }
 
-    const grow = await getGrowByIdAndUser({
+    const result = await getGrowByIdAndUser({
       growId,
       userId,
     });
 
-    if (!grow) {
+    // Check if result is an error object
+    if (result && "error" in result) {
+      return new NextResponse(result.error, { status: result.status });
+    }
+
+    // Check if result is null
+    if (!result) {
       return new NextResponse("Not found", { status: 404 });
     }
 
-    return NextResponse.json(grow);
+    return NextResponse.json(result);
   } catch (error) {
     console.error("[GROW_GET]", error);
     return new NextResponse("Internal error", { status: 500 });
@@ -47,11 +54,11 @@ export async function GET(
  */
 export async function PATCH(
   request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ growId: string }> }
 ): Promise<NextResponse> {
   try {
     const { userId } = await auth();
-    const { id: growId } = await params;
+    const { growId } = await params;
 
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -75,7 +82,7 @@ export async function PATCH(
 
     return NextResponse.json(updatedGrow, { status: 200 });
   } catch (error) {
-    console.error("PATCH /api/grows/[id] error:", error);
+    console.error("PATCH /api/grows/[growId] error:", error);
     return NextResponse.json(
       { error: "Internal Server Error" },
       { status: 500 }
@@ -89,11 +96,11 @@ export async function PATCH(
  */
 export async function DELETE(
   _request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ growId: string }> }
 ): Promise<NextResponse> {
   try {
     const { userId } = await auth();
-    const { id: growId } = await params;
+    const { growId } = await params;
 
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

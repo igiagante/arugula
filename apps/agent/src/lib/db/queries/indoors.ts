@@ -1,11 +1,11 @@
 import { and, eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
-import { type Indoor, indoor } from "../schemas";
+import { grow, growCollaborator, type Indoor, indoor } from "../schemas";
 
 // biome-ignore lint: Forbidden non-null assertion.
 const client = postgres(process.env.POSTGRES_URL!);
-const db = drizzle(client);
+const dbDrizzle = drizzle(client);
 
 /**
  * CREATE an indoor environment.
@@ -19,6 +19,7 @@ const db = drizzle(client);
  * @param humidity - Humidity level for the indoor environment
  * @param co2 - CO2 level for the indoor environment
  * @param createdBy - Clerk user ID (text) who is creating it
+ * @param organizationId - Organization ID that this indoor belongs to
  * @returns The newly inserted indoor record
  */
 export async function createIndoor({
@@ -32,10 +33,11 @@ export async function createIndoor({
   co2,
   images,
   createdBy,
-}: Omit<Indoor, "id" | "createdAt" | "updatedAt" | "archived">) {
+  organizationId,
+}: Omit<Indoor, "id" | "createdAt" | "updatedAt">) {
   try {
     // Drizzle's insert(...).values(...).returning() returns an array
-    const [newIndoor] = await db
+    const [newIndoor] = await dbDrizzle
       .insert(indoor)
       .values({
         name,
@@ -48,6 +50,7 @@ export async function createIndoor({
         co2,
         images,
         createdBy, // references a text user ID from Clerk
+        organizationId, // references the organization ID
       })
       .returning(); // get the inserted row back
 
@@ -87,7 +90,7 @@ export async function updateIndoor({
     // If you want to enforce that only the owner can update:
     // .where(and(eq(Indoor.id, indoorId), eq(Indoor.createdBy, userId)))
     // For simplicity, we just match by indoorId:
-    const [updatedIndoor] = await db
+    const [updatedIndoor] = await dbDrizzle
       .update(indoor)
       .set({
         name,
@@ -119,7 +122,7 @@ export async function updateIndoor({
 export async function deleteIndoor({ indoorId }: { indoorId: string }) {
   try {
     // If you need to ensure the user is the owner, do something like:
-    const [deletedIndoor] = await db
+    const [deletedIndoor] = await dbDrizzle
       .delete(indoor)
       .where(eq(indoor.id, indoorId))
       .returning(); // Returns the deleted row
@@ -140,7 +143,7 @@ export async function deleteIndoor({ indoorId }: { indoorId: string }) {
 export async function getIndoorsByUserId({ userId }: { userId: string }) {
   try {
     // Fetch rows from 'Indoor' where 'createdBy' = userId
-    const userIndoors = await db
+    const userIndoors = await dbDrizzle
       .select()
       .from(indoor)
       .where(eq(indoor.createdBy, userId));
@@ -164,7 +167,7 @@ export async function getIndoorsWithMyCollaboration({
   userId: string;
 }) {
   try {
-    const results = await db
+    const results = await dbDrizzle
       .select({
         indoorId: indoor.id,
         name: indoor.name,
@@ -182,27 +185,69 @@ export async function getIndoorsWithMyCollaboration({
 
 /**
  * Get a specific indoor environment by its ID and verify user access.
+ * Access is granted if user is a collaborator on an associated grow.
  *
  * @param indoorId - The indoor's UUID
- * @param userId - Clerk user ID to verify ownership/access
+ * @param userId - Clerk user ID to verify access
+ * @param organizationId - Organization ID to verify context
  * @returns The indoor record or null if not found
  */
 export async function getIndoorById({
   indoorId,
   userId,
+  organizationId,
 }: {
   indoorId: string;
   userId: string;
+  organizationId: string;
 }) {
   try {
-    const [result] = await db
-      .select()
+    // Check if user is a collaborator on a grow that uses this indoor
+    const [result] = await dbDrizzle
+      .select({
+        indoor: indoor,
+      })
       .from(indoor)
-      .where(and(eq(indoor.id, indoorId), eq(indoor.createdBy, userId)));
+      .innerJoin(grow, eq(indoor.id, grow.indoorId))
+      .innerJoin(growCollaborator, eq(grow.id, growCollaborator.growId))
+      .where(
+        and(
+          eq(indoor.id, indoorId),
+          eq(grow.organizationId, organizationId),
+          eq(growCollaborator.userId, userId)
+        )
+      );
 
-    return result || null;
+    return result ? result.indoor : null;
   } catch (error) {
     console.error("Failed to get indoor by id:", error);
+    throw error;
+  }
+}
+
+/**
+ * Get all indoor spaces by organization ID
+ *
+ * @param params - Object containing userId and organizationId
+ * @returns Promise<Indoor[]> Array of accessible indoor spaces
+ */
+export async function getIndoorsByOrganizationId({
+  userId,
+  orgId,
+}: {
+  userId: string;
+  orgId: string;
+}) {
+  try {
+    // Get all indoors in the organization
+    const indoors = await dbDrizzle
+      .select()
+      .from(indoor)
+      .where(eq(indoor.organizationId, orgId));
+
+    return indoors;
+  } catch (error) {
+    console.error("Failed to get indoors by organization id:", error);
     throw error;
   }
 }

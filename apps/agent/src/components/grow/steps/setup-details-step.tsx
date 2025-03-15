@@ -15,18 +15,20 @@ import { Input } from "@workspace/ui/components/input";
 
 import ImageUploader from "@/components/image-uploader/image-uploader";
 import { useUserPreferences } from "@/hooks/use-user-preferences";
-import { GrowFormValues } from "../forms/grow.schema";
+import { CreateGrowSchema } from "../forms/grow.schema";
 
 interface SetupDetailsStepProps {
-  control: Control<GrowFormValues>;
-  fieldArray: UseFieldArrayReturn<GrowFormValues, "substrate">;
+  control: Control<CreateGrowSchema>;
+  fieldArray: UseFieldArrayReturn<CreateGrowSchema, "substrate">;
   watch: (name: string) => any;
+  onImageRemove?: (index: number) => void;
 }
 
 export function SetupDetailsStep({
   control,
   fieldArray: { append, remove },
   watch,
+  onImageRemove,
 }: SetupDetailsStepProps) {
   const { preferences } = useUserPreferences();
   const volumeUnit = preferences.measurements.volume;
@@ -152,6 +154,18 @@ export function SetupDetailsStep({
                   }
                   onImagesChange={(images: (string | File)[]) => {
                     field.onChange(images || []);
+                  }}
+                  onImageRemove={(index: number) => {
+                    if (onImageRemove) {
+                      onImageRemove(index);
+                    } else {
+                      const currentImages = Array.isArray(field.value)
+                        ? field.value
+                        : [];
+                      const newImages = [...currentImages];
+                      newImages.splice(index, 1);
+                      field.onChange(newImages);
+                    }
                   }}
                   maxImages={5}
                 />

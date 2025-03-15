@@ -10,8 +10,8 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { convertImagesToPlantImages } from "../plant-utils";
 import { EditPlantPayload } from "../types";
-import { editPlantSchema, EditPlantSchema } from "./add-plant.schema";
 import { PlantDialog } from "./plant-dialog";
+import { editPlantSchema, EditPlantSchema } from "./plant.schema";
 
 interface PlantEditModalProps {
   plant: PlantWithStrain;

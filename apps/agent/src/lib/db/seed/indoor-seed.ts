@@ -2,7 +2,11 @@ import crypto from "crypto";
 import { indoor, lamp, organization } from "../schemas";
 import { DrizzleClient } from "../types";
 
-export async function seedIndoors(db: DrizzleClient, userId: string) {
+export async function seedIndoors(
+  db: DrizzleClient,
+  userId: string,
+  orgId: string
+) {
   // Create an organization
   const [seededOrg] = await db
     .insert(organization)
@@ -29,6 +33,7 @@ export async function seedIndoors(db: DrizzleClient, userId: string) {
       images: ["https://example.com/photo1.jpg"],
       notes: "This is a test indoor setup with high-quality LED lighting.",
       createdBy: userId,
+      organizationId: orgId,
     })
     .returning();
 
@@ -63,6 +68,7 @@ export async function seedIndoors(db: DrizzleClient, userId: string) {
       images: ["https://example.com/photo1.jpg"],
       notes: "This is a test indoor setup with high-quality LED lighting.",
       createdBy: userId,
+      organizationId: orgId,
     })
     .returning();
 

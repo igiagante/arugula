@@ -83,13 +83,15 @@ export default async function RootLayout({
                 <SidebarProvider>
                   <div className="flex w-full">
                     <AppSidebar className="w-64 shrink-0" />
-                    <main className="flex-1">{children}</main>
+                    <main className="flex-1 flex justify-center">
+                      {children}
+                    </main>
                     <Separator orientation="vertical" className="h-full" />
                     <ChatContainer className="w-64 shrink-0" />
                   </div>
                 </SidebarProvider>
               ) : (
-                <main className="flex-1">{children}</main>
+                <main className="flex-1 flex justify-center">{children}</main>
               )}
               <Toaster />
             </ThemeProvider>

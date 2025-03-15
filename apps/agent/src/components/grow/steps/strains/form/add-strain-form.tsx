@@ -378,6 +378,14 @@ export function AddStrainForm({
                     onImagesChange={(images: (string | File)[]) => {
                       field.onChange((images || []) as File[]);
                     }}
+                    onImageRemove={(index: number) => {
+                      const currentImages = Array.isArray(field.value)
+                        ? field.value
+                        : [];
+                      const newImages = [...currentImages];
+                      newImages.splice(index, 1);
+                      field.onChange(newImages);
+                    }}
                     maxImages={5}
                   />
                 </FormControl>

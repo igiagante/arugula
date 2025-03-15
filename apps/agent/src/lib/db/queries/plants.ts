@@ -58,7 +58,6 @@ export async function createPlant({
   images,
 }: Omit<Plant, "id" | "archived" | "createdAt" | "updatedAt">) {
   try {
-    console.log("growId", growId);
     const [newPlant] = await db
       .insert(plant)
       .values({
@@ -72,7 +71,6 @@ export async function createPlant({
       })
       .returning();
 
-    console.log("newPlant", newPlant);
     return newPlant;
   } catch (error) {
     console.error("Failed to create plant:", error);
@@ -183,6 +181,41 @@ export async function deletePlant({ plantId }: { plantId: string }) {
 }
 
 /**
+ * Helper function to map both plant and strain images
+ * @param plantData The plant data with optional strain
+ * @returns Plant with mapped image URLs for both plant and strain
+ */
+async function mapPlantAndStrainImages(
+  plantData: any
+): Promise<PlantWithStrain> {
+  // Map strain images if strain exists
+  let mappedStrain = null;
+  if (plantData.strain) {
+    const strainWithImages = await mapImages({
+      ...plantData.strain,
+      images: plantData.strain.images || [],
+    });
+
+    mappedStrain = {
+      ...strainWithImages,
+      cannabinoidProfile: strainWithImages.cannabinoidProfile as {
+        thc: number;
+        cbd: number;
+      } | null,
+    };
+  }
+
+  // Map plant images
+  const mappedPlant = await mapImages({
+    ...plantData,
+    strain: mappedStrain,
+    images: plantData.images || [],
+  });
+
+  return mappedPlant;
+}
+
+/**
  * GET a Plant by its ID.
  *
  * @param plantId - The plant's UUID
@@ -196,9 +229,9 @@ export async function getPlantById({ plantId }: { plantId: string }) {
       .leftJoin(strain, eq(plant.strainId, strain.id))
       .where(eq(plant.id, plantId));
 
-    return plantData
-      ? mapImages({ ...plantData, images: plantData.images || [] })
-      : null;
+    if (!plantData) return null;
+
+    return mapPlantAndStrainImages(plantData);
   } catch (error) {
     console.error("Failed to get plant by id:", error);
     throw error;
@@ -223,10 +256,9 @@ export async function getPlantsByGrowId({
       .leftJoin(strain, eq(plant.strainId, strain.id))
       .where(eq(plant.growId, growId));
 
+    // Process each plant and its strain separately
     return Promise.all(
-      plantsList.map((plant) =>
-        mapImages({ ...plant, images: plant.images || [] })
-      )
+      plantsList.map((plantData) => mapPlantAndStrainImages(plantData))
     ) as Promise<PlantWithStrain[]>;
   } catch (error) {
     console.error("Failed to get plants by grow id:", error);
@@ -248,22 +280,9 @@ export async function getPlantByGrowId({
       .leftJoin(strain, eq(plant.strainId, strain.id))
       .where(and(eq(plant.growId, growId), eq(plant.id, plantId)));
 
-    return plantData
-      ? mapImages({
-          ...plantData,
-          strain: plantData.strain
-            ? {
-                ...plantData.strain,
-                cannabinoidProfile: plantData.strain.cannabinoidProfile as {
-                  thc: number;
-                  cbd: number;
-                } | null,
-                images: plantData.strain.images || [],
-              }
-            : null,
-          images: plantData.images || [],
-        })
-      : null;
+    if (!plantData) return null;
+
+    return mapPlantAndStrainImages(plantData);
   } catch (error) {
     console.error("Failed to get plant:", error);
     throw error;

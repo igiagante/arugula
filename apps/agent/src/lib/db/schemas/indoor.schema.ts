@@ -7,6 +7,7 @@ import {
   uuid,
   varchar,
 } from "drizzle-orm/pg-core";
+import { organization } from "./organization.schema";
 import { user } from "./user.schema";
 
 export const indoor = pgTable("Indoor", {
@@ -24,6 +25,9 @@ export const indoor = pgTable("Indoor", {
   createdBy: text("createdBy")
     .notNull()
     .references(() => user.id, { onDelete: "restrict" }),
+  organizationId: text("organizationId")
+    .notNull()
+    .references(() => organization.id, { onDelete: "restrict" }),
   createdAt: timestamp("createdAt", { withTimezone: true })
     .defaultNow()
     .notNull(),
