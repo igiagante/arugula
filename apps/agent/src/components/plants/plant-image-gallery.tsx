@@ -196,7 +196,7 @@ export function ImageGallery({ images, setImages }: ImageGalleryProps) {
             )}
           </div>
 
-          <div className="p-4 flex justify-between items-center">
+          <div className="p-4 flex justify-between items-center border-t bg-background/80">
             <div>
               <p className="text-sm font-medium">
                 {lightboxIndex + 1} of {images.length}

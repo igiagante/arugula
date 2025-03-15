@@ -2,7 +2,6 @@ import {
   deletePlant,
   getPlantById,
   updatePlant,
-  updatePlantNote,
 } from "@/lib/db/queries/plants";
 import { auth } from "@clerk/nextjs/server";
 import { revalidateTag } from "next/cache";
@@ -15,14 +14,14 @@ import { CacheTags, createDynamicTag } from "../../tags";
  */
 export async function GET(
   req: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ plantId: string }> }
 ) {
   const { userId } = await auth();
   if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { id: plantId } = await params;
+  const { plantId } = await params;
   const plant = await getPlantById({ plantId });
 
   if (!plant) {
@@ -59,14 +58,6 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ error: "Plant not found" }, { status: 404 });
     }
 
-    if (data.notes && updatedPlant.notes) {
-      await updatePlantNote({
-        noteId: updatedPlant.notes.id,
-        content: data.notes.content,
-        images: data.notes.images,
-      });
-    }
-
     // Only invalidate the tags we actually use
     revalidateTag(
       createDynamicTag(CacheTags.getPlantsByGrowId, updatedPlant.growId)
@@ -89,7 +80,7 @@ export async function PATCH(request: Request) {
  */
 export async function DELETE(
   request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ plantId: string }> }
 ) {
   const { userId } = await auth();
   if (!userId) {
@@ -97,7 +88,8 @@ export async function DELETE(
   }
 
   try {
-    const { id: plantId } = await params;
+    const { plantId } = await params;
+    console.log("plantId", plantId);
     const deletedPlant = await deletePlant({ plantId });
 
     if (!deletedPlant) {

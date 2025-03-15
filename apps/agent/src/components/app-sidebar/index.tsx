@@ -11,7 +11,8 @@ import {
   SidebarSeparator,
   SidebarTrigger,
 } from "@workspace/ui/components/sidebar";
-import { CalendarDays, Leaf, Package } from "lucide-react";
+import { CalendarDays, Package } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import type { ComponentProps } from "react";
 import { SidebarLeftIcon } from "../icons";
@@ -30,9 +31,15 @@ export async function AppSidebar(props: ComponentProps<typeof Sidebar>) {
             href="/"
             className="flex group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:justify-center gap-2 px-2"
           >
-            <Leaf className="size-6 text-emerald-600 shrink-0 flex items-center justify-center" />
+            <Image
+              src="/cannabis-icon.svg"
+              alt="Cannabis Icon"
+              width={24}
+              height={24}
+              className="text-emerald-600 shrink-0 "
+            />
             <span className="font-semibold group-data-[collapsible=icon]:hidden">
-              GrowTracker
+              Leaf Legacy
             </span>
           </Link>
         </SidebarMenu>

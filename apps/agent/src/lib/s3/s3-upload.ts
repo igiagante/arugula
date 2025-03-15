@@ -43,6 +43,7 @@ export const uploadImageToS3 = async (file: File): Promise<string> => {
       }
     };
     reader.onerror = () => reject(new Error("File reading error"));
+
     reader.readAsDataURL(file);
   });
 };

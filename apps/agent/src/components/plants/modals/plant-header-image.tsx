@@ -42,7 +42,7 @@ export function PlantHeaderImage({
         <ImageWithFallback
           imageUrl={imageUrl || ""}
           alt={title}
-          className="brightness-[0.85]"
+          className="brightness-[0.85] rounded-b-none"
         />
         <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/20 to-transparent" />
         <div className="absolute bottom-0 inset-x-0 p-4 sm:p-6 text-white">

@@ -19,6 +19,8 @@ export async function seedPlants(
         archived: false,
         potSize: "1",
         potSizeUnit: "L",
+        notes: "First 1024 plant",
+        images: ["https://example.com/photo1.jpg"],
       },
       {
         growId,
@@ -29,6 +31,8 @@ export async function seedPlants(
         archived: false,
         potSize: "1",
         potSizeUnit: "L",
+        notes: "Second 1024 plant",
+        images: ["https://example.com/photo1.jpg"],
       },
       {
         growId,
@@ -39,6 +43,8 @@ export async function seedPlants(
         archived: false,
         potSize: "1",
         potSizeUnit: "L",
+        notes: "First GSC plant",
+        images: ["https://example.com/photo1.jpg"],
       },
     ])
     .returning();

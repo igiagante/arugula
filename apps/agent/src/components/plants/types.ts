@@ -14,11 +14,8 @@ export type CreatePlantPayload = {
   customName: string;
   stage: string | null;
   archived: boolean;
-  notes?: {
-    content: string;
-    images?: string[];
-  } | null;
-  images?: string[];
+  notes: string | null;
+  images: string[];
   quantity?: number;
   potSize: string | null;
   potSizeUnit: string | null;

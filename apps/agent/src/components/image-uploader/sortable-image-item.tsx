@@ -1,8 +1,8 @@
+import { ImageWithFallback } from "@/components/grow/image-with-fallback";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { GripVertical, XCircle } from "lucide-react";
-import Image from "next/image";
-import { useMemo } from "react";
+import { XCircle } from "lucide-react";
+import { useEffect, useState } from "react";
 
 interface SortableImageItemProps {
   url: string;
@@ -18,53 +18,66 @@ export function SortableImageItem({
   const { attributes, listeners, setNodeRef, transform, transition } =
     useSortable({ id: `${url}-${index}` });
 
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-  };
+  // Create a new blob URL when the component mounts
+  const [blobUrl, setBlobUrl] = useState<string | null>(null);
 
-  const cleanImageUrl = useMemo(() => {
-    try {
-      if (!url) return "";
-      if (url.startsWith("http")) return url;
-      if (url.startsWith("blob:")) return url;
-      return `/api/s3/get-view-url?key=${encodeURIComponent(url)}`;
-    } catch (error) {
-      console.error("Error processing image URL:", error);
-      return "";
+  useEffect(() => {
+    if (url.startsWith("blob:")) {
+      // Create a new blob URL from the existing one
+      fetch(url)
+        .then((response) => response.blob())
+        .then((blob) => {
+          const newBlobUrl = URL.createObjectURL(blob);
+          setBlobUrl(newBlobUrl);
+        })
+        .catch(() => {
+          // If we can't fetch the blob, just use the original URL
+          setBlobUrl(url);
+        });
+
+      return () => {
+        if (blobUrl) {
+          URL.revokeObjectURL(blobUrl);
+        }
+      };
     }
   }, [url]);
+
+  const handleRemove = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (blobUrl) {
+      URL.revokeObjectURL(blobUrl);
+    }
+    onRemove(index);
+  };
 
   return (
     <div
       ref={setNodeRef}
-      style={style}
-      className="relative aspect-square group"
+      {...attributes}
+      {...listeners}
+      className="relative aspect-square rounded-lg group cursor-move"
+      style={{
+        transform: CSS.Transform.toString(transform),
+        transition,
+      }}
     >
-      <div className="relative size-full rounded-lg overflow-hidden border border-gray-200">
-        <Image
-          src={cleanImageUrl}
-          alt={`Preview ${index + 1}`}
-          fill
-          className="object-cover"
-          sizes="(max-width: 768px) 50vw, 20vw"
+      <div className="relative w-full h-full">
+        <ImageWithFallback
+          imageUrl={blobUrl || url}
+          alt={`Image ${index + 1}`}
+          className="rounded-lg"
         />
-        <button
-          type="button"
-          onClick={() => onRemove(index)}
-          className="absolute top-1 right-1 bg-black/50 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-          aria-label="Remove image"
-        >
-          <XCircle size={20} />
-        </button>
-        <div
-          {...attributes}
-          {...listeners}
-          className="absolute top-1 left-1 bg-black/50 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing"
-        >
-          <GripVertical size={20} />
-        </div>
       </div>
+      <button
+        type="button"
+        onClick={handleRemove}
+        onPointerDown={(e) => e.stopPropagation()}
+        className="absolute top-2 right-2 bg-black/50 hover:bg-black/70 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity z-10"
+      >
+        <XCircle size={20} />
+      </button>
     </div>
   );
 }

@@ -28,6 +28,14 @@ interface PlantDetailModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
+
+interface LocalImage {
+  id: string;
+  url: string;
+  isPrimary: boolean;
+  createdAt: string;
+}
+
 export function PlantDetailModal({
   plant,
   isOpen,
@@ -45,12 +53,11 @@ export function PlantDetailModal({
         isPrimary: index === 0,
         createdAt: plant.createdAt.toString(),
       }))
-    : plant.notes?.images?.map((url, index) => ({
+    : plant.images?.map((url: string, index: number) => ({
         id: `note-image-${index}`,
         url,
         isPrimary: index === 0,
-        createdAt:
-          plant.notes?.createdAt?.toString() || plant.createdAt.toString(),
+        createdAt: plant.createdAt?.toString() || plant.createdAt.toString(),
       })) || [];
 
   const primaryImage =
@@ -115,6 +122,16 @@ export function PlantDetailModal({
     },
   ];
 
+  // Use it when selecting an image
+  const handleSelectImage = (image: LocalImage) => {
+    setSelectedImage({
+      id: image.id,
+      url: image.url,
+      isPrimary: image.isPrimary,
+      createdAt: new Date(image.createdAt),
+    });
+  };
+
   return (
     <>
       <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -135,100 +152,98 @@ export function PlantDetailModal({
             />
           )}
 
-          <div className="px-4 sm:px-6 sm:py-4">
-            {/* Plant Quick Stats */}
-            <div className="flex flex-wrap gap-4 mb-6 mt-2">
-              <div className="flex items-center gap-1.5">
-                <Calendar className="size-4 text-muted-foreground" />
-                <span className="text-sm">
-                  Added: {new Date(plant.createdAt).toLocaleDateString()}
-                </span>
-              </div>
-              {plant.potSize && (
+          <div className="flex-1 overflow-y-auto">
+            <div className="px-4 sm:px-6 sm:py-4">
+              {/* Plant Quick Stats */}
+              <div className="flex flex-wrap gap-4 mb-6 mt-2">
                 <div className="flex items-center gap-1.5">
-                  <Ruler className="size-4 text-muted-foreground" />
-                  <span className="text-sm">Pot: {plant.potSize}</span>
+                  <Calendar className="size-4 text-muted-foreground" />
+                  <span className="text-sm">
+                    Added: {new Date(plant.createdAt).toLocaleDateString()}
+                  </span>
+                </div>
+                {plant.potSize && (
+                  <div className="flex items-center gap-1.5">
+                    <Ruler className="size-4 text-muted-foreground" />
+                    <span className="text-sm">Pot: {plant.potSize}</span>
+                  </div>
+                )}
+                <div className="flex items-center gap-1.5">
+                  <Clock className="size-4 text-muted-foreground" />
+                  <span className="text-sm">Age: 45 days</span>
+                </div>
+              </div>
+
+              {/* Image Grid */}
+              {images.length > 0 && (
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-6">
+                  {images.map((image: LocalImage, index) => (
+                    <div
+                      key={image.id}
+                      className={`relative aspect-square rounded-md overflow-hidden cursor-pointer group ${
+                        image.isPrimary ? "ring-2 ring-primary" : ""
+                      }`}
+                      onClick={() => handleSelectImage(image)}
+                    >
+                      <div className="relative size-full">
+                        <Image
+                          src={image.url || "/images/placeholder.jpg"}
+                          alt={`${plant.customName} image ${index + 1}`}
+                          fill
+                          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                          className="object-cover"
+                        />
+                      </div>
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors">
+                        <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <Button
+                            variant="secondary"
+                            size="icon"
+                            className="size-7 rounded-full"
+                          >
+                            <ZoomIn className="size-4" />
+                          </Button>
+                        </div>
+                        {image.isPrimary && (
+                          <div className="absolute top-2 left-2">
+                            <Badge
+                              variant="secondary"
+                              className="bg-background/80"
+                            >
+                              <Star className="size-3 mr-1 fill-primary" />
+                              Primary
+                            </Badge>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
                 </div>
               )}
-              <div className="flex items-center gap-1.5">
-                <Clock className="size-4 text-muted-foreground" />
-                <span className="text-sm">Age: 45 days</span>
-              </div>
+
+              <Tabs
+                defaultValue="timeline"
+                value={activeTab}
+                onValueChange={setActiveTab}
+              >
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="timeline">Timeline</TabsTrigger>
+                  <TabsTrigger value="details">Details</TabsTrigger>
+                </TabsList>
+                <TabsContent value="timeline" className="pt-4">
+                  <PlantTimeline items={timelineItems} />
+                </TabsContent>
+                <TabsContent value="details" className="pt-4">
+                  <PlantDetails
+                    plant={plant}
+                    getStageBadgeColor={getStageBadgeColor}
+                  />
+                </TabsContent>
+              </Tabs>
             </div>
-
-            {/* Image Grid */}
-            {images.length > 0 && (
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-6">
-                {images.map((image, index) => (
-                  <div
-                    key={image.id}
-                    className={`relative aspect-square rounded-md overflow-hidden cursor-pointer group ${
-                      image.isPrimary ? "ring-2 ring-primary" : ""
-                    }`}
-                    onClick={() =>
-                      setSelectedImage({
-                        id: image.id,
-                        url: image.url,
-                        isPrimary: image.isPrimary,
-                        createdAt: new Date(image.createdAt),
-                      })
-                    }
-                  >
-                    <Image
-                      src={image.url || "/placeholder.svg"}
-                      alt={`${plant.customName} image ${index + 1}`}
-                      fill
-                      className="object-cover"
-                    />
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors">
-                      <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Button
-                          variant="secondary"
-                          size="icon"
-                          className="size-7 rounded-full"
-                        >
-                          <ZoomIn className="size-4" />
-                        </Button>
-                      </div>
-                      {image.isPrimary && (
-                        <div className="absolute top-2 left-2">
-                          <Badge
-                            variant="secondary"
-                            className="bg-background/80"
-                          >
-                            <Star className="size-3 mr-1 fill-primary" />
-                            Primary
-                          </Badge>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            <Tabs
-              defaultValue="timeline"
-              value={activeTab}
-              onValueChange={setActiveTab}
-            >
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="timeline">Timeline</TabsTrigger>
-                <TabsTrigger value="details">Details</TabsTrigger>
-              </TabsList>
-              <TabsContent value="timeline" className="pt-4">
-                <PlantTimeline items={timelineItems} />
-              </TabsContent>
-              <TabsContent value="details" className="pt-4">
-                <PlantDetails
-                  plant={plant}
-                  getStageBadgeColor={getStageBadgeColor}
-                />
-              </TabsContent>
-            </Tabs>
           </div>
 
-          <DialogFooter className="p-4 sm:px-6 border-t">
+          <DialogFooter className="p-4 sm:px-6 border-t bg-background">
             <Button variant="outline" onClick={handleEditPlant}>
               <Edit className="size-4 mr-2" />
               Edit Plant
@@ -243,11 +258,11 @@ export function PlantDetailModal({
           open={!!selectedImage}
           onOpenChange={() => setSelectedImage(null)}
         >
-          <DialogContent className="max-w-7xl p-0 overflow-hidden bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+          <DialogContent className="max-w-7xl p-0 overflow-hidden bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 [&>button]:hidden">
             <DialogTitle className="sr-only">
               Plant Image: {plant.customName}
             </DialogTitle>
-            <div className="relative h-[90vh]">
+            <div className="relative h-[90vh] w-full">
               <Image
                 src={selectedImage.url || "/placeholder.svg"}
                 alt={plant.customName}

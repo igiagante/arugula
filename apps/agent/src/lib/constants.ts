@@ -56,3 +56,24 @@ export const steps = [
     fields: ["strains"],
   },
 ] as const;
+
+export const MEASUREMENT_UNIT_SYMBOLS = {
+  // Volume
+  liters: "L",
+  gallons: "gal",
+
+  // Temperature
+  celsius: "°C",
+  fahrenheit: "°F",
+
+  // Distance
+  cm: "cm",
+  inches: "in",
+
+  // Weight
+  grams: "g",
+  ounces: "oz",
+} as const;
+
+// Type for the measurement units
+export type MeasurementUnit = keyof typeof MEASUREMENT_UNIT_SYMBOLS;

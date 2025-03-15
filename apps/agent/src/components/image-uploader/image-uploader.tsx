@@ -24,6 +24,7 @@ type ImageUploaderProps = {
   maxImages?: number;
   existingImages?: string[];
   onImagesChange: (images: (File | string)[]) => void;
+  onImageRemove: (index: number) => Promise<void> | void;
   className?: string;
 };
 
@@ -32,6 +33,7 @@ export default function ImageUploader({
   maxImages = 10,
   existingImages = [],
   onImagesChange,
+  onImageRemove,
   className = "",
 }: ImageUploaderProps) {
   const [previewUrls, setPreviewUrls] = useState<string[]>([...existingImages]);
@@ -111,8 +113,8 @@ export default function ImageUploader({
    * Removes an image from the uploader
    * @param index The index of the image to remove
    */
-  const handleRemoveImage = (index: number): void => {
-    // If it's a File object with a preview URL, revoke the object URL to prevent memory leaks
+  const handleRemoveImage = async (index: number): Promise<void> => {
+    // If it's a File object with a preview URL, revoke the object URL
     if (
       files[index] !== undefined &&
       typeof files[index] !== "string" &&
@@ -135,6 +137,9 @@ export default function ImageUploader({
 
     // Notify parent component
     onImagesChange(newFiles);
+
+    // Call the parent's remove handler
+    onImageRemove(index);
   };
 
   /**

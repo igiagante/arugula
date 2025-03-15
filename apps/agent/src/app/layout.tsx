@@ -13,9 +13,13 @@ import ChatContainer from "./(chat)/chat";
 import { Providers } from "./providers";
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://chat.vercel.ai"),
-  title: "Next.js Chatbot Template",
-  description: "Next.js chatbot template using the AI SDK.",
+  metadataBase: new URL("https://arugula-agent.vercel.app/"),
+  title: "Leaf Legacy – Smart Cannabis Cultivation Made Simple",
+  description:
+    "Leaf Legacy is the ultimate tool for cannabis growers, providing real-time insights, growth tracking, and AI-powered recommendations. Optimize your cultivation and nurture every leaf to its full potential.",
+  icons: {
+    icon: [{ url: "/cannabis-icon.svg", type: "image/svg+xml" }],
+  },
 };
 
 export const viewport = {

@@ -18,14 +18,12 @@ const plantSelection = {
   stage: plant.stage,
   archived: plant.archived,
   potSize: plant.potSize,
+  potSizeUnit: plant.potSizeUnit,
+  harvestedAt: plant.harvestedAt,
   createdAt: plant.createdAt,
   updatedAt: plant.updatedAt,
-  notes: {
-    id: plantNote.id,
-    content: plantNote.content,
-    images: plantNote.images,
-    createdAt: plantNote.createdAt,
-  },
+  notes: plant.notes,
+  images: plant.images,
   strain: {
     id: strain.id,
     name: strain.name,
@@ -44,9 +42,10 @@ const plantSelection = {
  * @param strainId - UUID of the strain (optional if not selected)
  * @param customName - User-defined name for the plant
  * @param stage - Growth stage (e.g., "seedling", "vegetative")
- * @param startDate - Date when the plant was started
- * @param archived - Whether the plant is archived
+ * @param potSize - Size of the pot the plant is in
+ * @param potSizeUnit - Unit of measurement for the pot size
  * @param notes - Additional notes for the plant
+ * @param images - Images of the plant
  * @returns The newly inserted plant record.
  */
 export async function createPlant({
@@ -55,8 +54,11 @@ export async function createPlant({
   customName,
   stage,
   potSize,
+  notes,
+  images,
 }: Omit<Plant, "id" | "archived" | "createdAt" | "updatedAt">) {
   try {
+    console.log("growId", growId);
     const [newPlant] = await db
       .insert(plant)
       .values({
@@ -64,10 +66,13 @@ export async function createPlant({
         strainId,
         customName,
         stage,
-        archived: false,
         potSize,
+        notes,
+        images,
       })
       .returning();
+
+    console.log("newPlant", newPlant);
     return newPlant;
   } catch (error) {
     console.error("Failed to create plant:", error);
@@ -139,13 +144,15 @@ export async function updatePlant({
   data,
 }: {
   plantId: string;
-  data: Partial<Plant>;
+  data: Partial<Omit<Plant, "id" | "createdAt" | "updatedAt" | "growId">>;
 }) {
-  const { createdAt, updatedAt, ...restData } = data;
   try {
     const [updatedPlant] = await db
       .update(plant)
-      .set({ ...restData, updatedAt: new Date() })
+      .set({
+        ...data,
+        updatedAt: new Date(),
+      })
       .where(eq(plant.id, plantId))
       .returning();
 
@@ -187,27 +194,15 @@ export async function getPlantById({ plantId }: { plantId: string }) {
       .select(plantSelection)
       .from(plant)
       .leftJoin(strain, eq(plant.strainId, strain.id))
-      .leftJoin(plantNote, eq(plant.id, plantNote.plantId))
       .where(eq(plant.id, plantId));
 
-    return plantData ? mapPlantImages(plantData) : null;
+    return plantData
+      ? mapImages({ ...plantData, images: plantData.images || [] })
+      : null;
   } catch (error) {
     console.error("Failed to get plant by id:", error);
     throw error;
   }
-}
-
-async function mapPlantImages(plantData: any) {
-  if (plantData?.notes?.images) {
-    return {
-      ...plantData,
-      notes: {
-        ...plantData.notes,
-        images: (await mapImages({ images: plantData.notes.images })).images,
-      },
-    };
-  }
-  return plantData;
 }
 
 /**
@@ -226,35 +221,15 @@ export async function getPlantsByGrowId({
       .select(plantSelection)
       .from(plant)
       .leftJoin(strain, eq(plant.strainId, strain.id))
-      .leftJoin(plantNote, eq(plant.id, plantNote.plantId))
       .where(eq(plant.growId, growId));
 
-    return Promise.all(plantsList.map(mapPlantImages)) as Promise<
-      PlantWithStrain[]
-    >;
+    return Promise.all(
+      plantsList.map((plant) =>
+        mapImages({ ...plant, images: plant.images || [] })
+      )
+    ) as Promise<PlantWithStrain[]>;
   } catch (error) {
     console.error("Failed to get plants by grow id:", error);
-    throw error;
-  }
-}
-
-/**
- * GET a Plant by its ID with optional strain relation.
- *
- * @param plantId - The plant's UUID
- * @param includeStrain - Whether to include the strain relation
- * @returns The plant record with optional strain data.
- */
-export async function getPlantWithStrain({ plantId }: { plantId: string }) {
-  try {
-    const plants = await db
-      .select()
-      .from(plant)
-      .leftJoin(strain, eq(plant.strainId, strain.id))
-      .where(eq(plant.id, plantId));
-    return plants[0];
-  } catch (error) {
-    console.error("Failed to get plant with strain:", error);
     throw error;
   }
 }
@@ -271,13 +246,23 @@ export async function getPlantByGrowId({
       .select(plantSelection)
       .from(plant)
       .leftJoin(strain, eq(plant.strainId, strain.id))
-      .leftJoin(plantNote, eq(plant.id, plantNote.plantId))
       .where(and(eq(plant.growId, growId), eq(plant.id, plantId)));
 
-    if (!plantData) return null;
-
     return plantData
-      ? (mapPlantImages(plantData) as Promise<PlantWithStrain>)
+      ? mapImages({
+          ...plantData,
+          strain: plantData.strain
+            ? {
+                ...plantData.strain,
+                cannabinoidProfile: plantData.strain.cannabinoidProfile as {
+                  thc: number;
+                  cbd: number;
+                } | null,
+                images: plantData.strain.images || [],
+              }
+            : null,
+          images: plantData.images || [],
+        })
       : null;
   } catch (error) {
     console.error("Failed to get plant:", error);

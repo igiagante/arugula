@@ -20,6 +20,8 @@ export const plant = pgTable("Plant", {
     onDelete: "set null",
   }),
   customName: text("customName").notNull(),
+  notes: text("notes"),
+  images: text("images").array(),
   stage: text("stage").default("seedling"),
   archived: boolean("archived").default(false).notNull(),
   potSize: numeric("potSize", { precision: 5, scale: 2 }),

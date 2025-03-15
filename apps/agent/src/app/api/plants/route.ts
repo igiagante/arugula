@@ -1,9 +1,5 @@
 import { CacheTags, createDynamicTag } from "@/app/api/tags";
-import {
-  createPlant,
-  createPlantNote,
-  getPlantsByGrowId,
-} from "@/lib/db/queries/plants";
+import { createPlant, getPlantsByGrowId } from "@/lib/db/queries/plants";
 import { auth } from "@clerk/nextjs/server";
 import { revalidateTag, unstable_cache } from "next/cache";
 import { NextResponse } from "next/server";
@@ -74,7 +70,10 @@ export async function POST(request: Request) {
       potSize,
       potSizeUnit,
       notes,
+      images,
     } = body;
+
+    console.log("body", body);
 
     if (!growId || !customName || !stage) {
       return NextResponse.json(
@@ -93,19 +92,13 @@ export async function POST(request: Request) {
         stage,
         potSize,
         potSizeUnit,
+        notes,
+        images,
         harvestedAt: null,
       });
 
       if (!newPlant) {
         throw new Error("Failed to create plant");
-      }
-
-      if (notes) {
-        await createPlantNote({
-          plantId: newPlant.id,
-          content: notes.content,
-          images: notes.images,
-        });
       }
 
       createdPlants.push(newPlant);

@@ -34,11 +34,9 @@ export function PlantCard({ plant, onView, onEdit, onDelete }: PlantCardProps) {
       <CardHeader className="p-0">
         <div className="relative h-48">
           <ImageWithFallback
-            imageUrl={
-              plant.strain?.images?.[0] || plant.notes?.images?.[0] || ""
-            }
+            imageUrl={plant.strain?.images?.[0] || plant.images?.[0] || ""}
             alt={plant.customName}
-            className="transition-transform duration-300 ease-in-out group-hover:scale-105"
+            className="transition-transform duration-300 ease-in-out group-hover:scale-105 rounded-b-none"
           />
           <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/20 to-transparent" />
           <div className="absolute top-2 right-2">

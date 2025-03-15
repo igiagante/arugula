@@ -1,3 +1,4 @@
+import { getCleanImageUrl } from "@/lib/utils/url-utils";
 import Image from "next/image";
 import { useMemo, useState } from "react";
 import { MockImage } from "./mocks/mock-image";
@@ -11,71 +12,53 @@ interface ImageWithFallbackProps {
 
 export function ImageWithFallback({
   imageUrl,
-  fallbackUrl = "/placeholder.jpg",
   alt,
   className,
 }: ImageWithFallbackProps) {
   const [error, setError] = useState(false);
 
+  // Move useMemo to the top with other hooks
   const cleanImageUrl = useMemo(() => {
-    if (!imageUrl) return fallbackUrl;
+    if (!imageUrl || imageUrl.startsWith("blob:")) return imageUrl;
+    return getCleanImageUrl({
+      imageUrl,
+      fallbackUrl: "/images/placeholder.jpg",
+      useApiEndpoint: error,
+    });
+  }, [imageUrl, error]);
 
-    try {
-      // Validate URL format
-      const isValidUrl = (urlString: string) => {
-        try {
-          if (urlString.startsWith("/")) return true; // Allow relative paths
-          new URL(urlString);
-          return true;
-        } catch {
-          return false;
-        }
-      };
-
-      // If it's an S3 URL that failed (contains the S3 bucket name),
-      // use our API endpoint instead
-      if (error && imageUrl.includes("arugula-store.s3")) {
-        const key = imageUrl.split("/").pop()?.split("?")[0];
-        return key ? `/api/images/${key}` : fallbackUrl;
-      }
-
-      // For new requests, if it's already a relative path or API URL, use as is
-      if (imageUrl.startsWith("/api/") || !imageUrl.startsWith("http")) {
-        return isValidUrl(imageUrl) ? imageUrl : fallbackUrl;
-      }
-
-      // For S3 URLs, convert to API endpoint immediately
-      if (imageUrl.includes("arugula-store.s3")) {
-        const key = imageUrl.split("/").pop()?.split("?")[0];
-        return key ? `/api/images/${key}` : fallbackUrl;
-      }
-
-      // For other URLs (e.g., external images), validate before using
-      return isValidUrl(imageUrl) ? imageUrl : fallbackUrl;
-    } catch (error) {
-      console.error("Invalid image URL:", imageUrl, error);
-      return fallbackUrl;
-    }
-  }, [imageUrl, error, fallbackUrl]);
-
-  if (!cleanImageUrl || error) {
+  // Now handle the different render cases
+  if (!imageUrl || error) {
     return (
       <MockImage
-        _src="/api/placeholder/400/320"
+        _src="/images/placeholder.jpg"
         alt={alt || "Grow image"}
         fill
-        className={`object-cover rounded-md rounded-b-none ${className}`}
+        className={`object-cover rounded-md ${className}`}
       />
+    );
+  }
+
+  if (imageUrl.startsWith("blob:")) {
+    return (
+      <div className="relative size-full">
+        <img
+          src={imageUrl}
+          alt={alt}
+          className={`object-cover rounded-md w-full h-full ${className}`}
+        />
+      </div>
     );
   }
 
   return (
     <div className="relative size-full">
       <Image
-        src={cleanImageUrl}
+        src={cleanImageUrl || ""}
         alt={alt || "Grow image"}
         fill
-        className={`object-cover rounded-md rounded-b-none ${className}`}
+        priority={true}
+        className={`object-cover rounded-md ${className}`}
         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
         onError={() => setError(true)}
       />
