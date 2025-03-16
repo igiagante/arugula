@@ -55,7 +55,7 @@ export default async function RootLayout({
   const isAuthenticated = !!user;
 
   return (
-    <ClerkProvider>
+    <ClerkProvider signInFallbackRedirectUrl="/grows">
       <html
         lang="en"
         // `next-themes` injects an extra classname to the body element to avoid
