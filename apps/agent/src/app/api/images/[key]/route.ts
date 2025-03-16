@@ -1,46 +1,35 @@
-// apps/agent/src/app/api/images/[key]/route.ts
 import { getS3BucketName, getS3Client } from "@/lib/s3/client";
 import { GetObjectCommand } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { NextResponse } from "next/server";
 
-export async function GET(
-  request: Request,
-  { params }: { params: Promise<{ key: string }> }
-) {
+export async function GET(request: Request) {
   try {
-    const { key } = await params;
-    // Log for debugging
-    console.log(`Fetching image with key: ${key}`);
-    console.log(`S3 Bucket: ${getS3BucketName()}`);
+    const { searchParams } = new URL(request.url);
+    const fileKey = searchParams.get("key");
 
-    const s3Client = getS3Client();
+    if (!fileKey) {
+      return NextResponse.json(
+        { error: "File key is required" },
+        { status: 400 }
+      );
+    }
 
     const command = new GetObjectCommand({
       Bucket: getS3BucketName(),
-      Key: key,
+      Key: fileKey,
     });
 
-    const response = await s3Client.send(command);
-    const buffer = await response.Body?.transformToByteArray();
-
-    if (!buffer) {
-      console.error("No buffer returned from S3");
-      return new Response("Image not found", { status: 404 });
-    }
-
-    // Return the image with appropriate headers
-    return new Response(buffer, {
-      headers: {
-        "Content-Type": response.ContentType || "image/jpeg",
-        "Cache-Control": "public, max-age=31536000", // Cache for 1 year
-      },
+    const url = await getSignedUrl(getS3Client(), command, {
+      expiresIn: 3600, // URL expires in 1 hour
     });
+
+    return NextResponse.json({ url });
   } catch (error) {
-    console.error("Error fetching image:", error);
-    return new Response(
-      `Error fetching image: ${error instanceof Error ? error.message : "Unknown error"}`,
-      {
-        status: 500,
-      }
+    console.error("Error generating signed URL:", error);
+    return NextResponse.json(
+      { error: "Failed to generate signed URL" },
+      { status: 500 }
     );
   }
 }
