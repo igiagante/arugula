@@ -4,15 +4,15 @@ import { GetObjectCommand } from "@aws-sdk/client-s3";
 
 export async function GET(
   request: Request,
-  { params }: { params: { key: string } }
+  { params }: { params: Promise<{ key: string }> }
 ) {
   try {
+    const { key } = await params;
     // Log for debugging
-    console.log(`Fetching image with key: ${params.key}`);
+    console.log(`Fetching image with key: ${key}`);
     console.log(`S3 Bucket: ${getS3BucketName()}`);
 
     const s3Client = getS3Client();
-    const key = decodeURIComponent(params.key);
 
     const command = new GetObjectCommand({
       Bucket: getS3BucketName(),
