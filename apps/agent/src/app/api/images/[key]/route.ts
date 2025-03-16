@@ -3,12 +3,14 @@ import { GetObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { NextResponse } from "next/server";
 
-export async function GET(request: Request) {
+export async function GET(
+  _request: Request,
+  { params }: { params: Promise<{ key: string }> }
+) {
   try {
-    const { searchParams } = new URL(request.url);
-    const fileKey = searchParams.get("key");
+    const key = (await params).key;
 
-    if (!fileKey) {
+    if (!key) {
       return NextResponse.json(
         { error: "File key is required" },
         { status: 400 }
@@ -17,18 +19,19 @@ export async function GET(request: Request) {
 
     const command = new GetObjectCommand({
       Bucket: getS3BucketName(),
-      Key: fileKey,
+      Key: key,
     });
 
+    // Option 1: Redirect to the signed URL
     const url = await getSignedUrl(getS3Client(), command, {
       expiresIn: 3600, // URL expires in 1 hour
     });
 
-    return NextResponse.json({ url });
+    return NextResponse.redirect(url);
   } catch (error) {
-    console.error("Error generating signed URL:", error);
-    return NextResponse.json(
-      { error: "Failed to generate signed URL" },
+    console.error("Error fetching image:", error);
+    return new Response(
+      `Error fetching image: ${error instanceof Error ? error.message : "Unknown error"}`,
       { status: 500 }
     );
   }
