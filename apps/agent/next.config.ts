@@ -11,11 +11,6 @@ const nextConfig: NextConfig = {
     ppr: true,
   },
   images: {
-    domains: [
-      "arugula-store.s3.us-east-2.amazonaws.com",
-      "img.clerk.com",
-      "images.clerk.dev",
-    ],
     remotePatterns: [
       {
         protocol: "https",
@@ -23,6 +18,16 @@ const nextConfig: NextConfig = {
         port: "",
         pathname: "/arugula-store/**",
         search: "",
+      },
+      {
+        protocol: "https",
+        hostname: "img.clerk.com",
+        pathname: "**",
+      },
+      {
+        protocol: "https",
+        hostname: "images.clerk.dev",
+        pathname: "**",
       },
     ],
   },
