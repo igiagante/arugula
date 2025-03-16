@@ -15,24 +15,14 @@ const nextConfig: NextConfig = {
       "arugula-store.s3.us-east-2.amazonaws.com",
       "img.clerk.com",
       "images.clerk.dev",
-      "leaflegacy.ai",
-      "www.leaflegacy.ai",
     ],
     remotePatterns: [
       {
         protocol: "https",
-        hostname: "leaflegacy.ai",
-        pathname: "/api/images/**",
-      },
-      {
-        protocol: "https",
-        hostname: "www.leaflegacy.ai",
-        pathname: "/api/images/**",
-      },
-      {
-        protocol: "https",
-        hostname: "arugula-store.s3.us-east-2.amazonaws.com",
-        pathname: "/**", // Allow all paths on your S3 bucket
+        hostname: "s3.amazonaws.com",
+        port: "",
+        pathname: "/arugula-store/**",
+        search: "",
       },
     ],
   },
