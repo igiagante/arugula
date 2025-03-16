@@ -8,6 +8,12 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const fileKey = searchParams.get("key");
 
+    console.log("Request URL:", request.url);
+    console.log(
+      "Request headers:",
+      Object.fromEntries(request.headers.entries())
+    );
+
     if (!fileKey) {
       return NextResponse.json(
         { error: "File key is required" },

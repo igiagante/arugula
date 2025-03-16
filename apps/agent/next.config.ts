@@ -29,6 +29,11 @@ const nextConfig: NextConfig = {
         hostname: "www.leaflegacy.ai",
         pathname: "/api/images/**",
       },
+      {
+        protocol: "https",
+        hostname: "arugula-store.s3.us-east-2.amazonaws.com",
+        pathname: "/**", // Allow all paths on your S3 bucket
+      },
     ],
   },
 };
