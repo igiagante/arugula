@@ -28,7 +28,7 @@ import {
 } from "@workspace/ui/components/select";
 import { cn } from "@workspace/ui/lib/utils";
 import { CalendarIcon } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import type { Control, UseFormSetValue } from "react-hook-form";
 
 import { apiRequest } from "@/app/api/client";
@@ -54,24 +54,15 @@ export function BasicDetailsStep({
   const [endDateOpen, setEndDateOpen] = useState(false);
   const [isCreateIndoorModalOpen, setIsCreateIndoorModalOpen] = useState(false);
 
-  //  const { organization } = useOrganization();
-
-  const { organization, isLoaded } = useOrganization();
-
-  useEffect(() => {
-    if (isLoaded && organization) {
-      console.log("Active organization:", organization.id);
-    } else {
-      console.log("No active organization");
-    }
-  }, [isLoaded, organization]);
-
-  const organizationId = "516e3958-1842-4219-bf07-2a515b86df04";
+  const { organization } = useOrganization();
 
   const { data: indoors, refetch } = useQuery({
     queryKey: [
       CacheTags.indoors,
-      createDynamicTag(CacheTags.indoorsByOrganizationId, organizationId),
+      createDynamicTag(
+        CacheTags.indoorsByOrganizationId,
+        organization?.id || ""
+      ),
     ],
     queryFn: async () => {
       return await apiRequest<Indoor[]>(`/api/indoors`);
