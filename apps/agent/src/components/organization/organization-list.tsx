@@ -45,7 +45,7 @@ export default function OrganizationList({
 
           <div className="flex flex-col sm:flex-row gap-3">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 size-4" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 size-4" />
               <input
                 type="text"
                 placeholder="Find organization..."
@@ -74,7 +74,7 @@ export default function OrganizationList({
                   key={org.id}
                   className={`relative bg-white rounded-lg border border-gray-200 hover:border-gray-300 transition-all duration-200 overflow-hidden cursor-pointer ${
                     activeOrgId === org.id ? "shadow-sm" : ""
-                  } hover:shadow-md hover:translate-y-[-2px] transform transition-all duration-300`}
+                  } hover:shadow-md hover:translate-y-[-2px] transition-all duration-300`}
                   onClick={() => handleOrgClick(org.id)}
                 >
                   {activeOrgId === org.id && (
@@ -165,7 +165,7 @@ export default function OrganizationList({
                     </div>
                   </div>
 
-                  <div className="h-px w-full bg-black transform scale-x-0 group-hover:scale-x-100 transition-transform duration-200 origin-left"></div>
+                  <div className="h-px w-full bg-black scale-x-0 group-hover:scale-x-100 transition duration-200 origin-left"></div>
                 </div>
               ))}
 

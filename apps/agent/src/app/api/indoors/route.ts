@@ -3,7 +3,7 @@ import {
   getIndoorsByOrganizationId,
 } from "@/lib/db/queries/indoors";
 import { createLamp } from "@/lib/db/queries/lamps";
-import { auth, currentUser, getAuth } from "@clerk/nextjs/server";
+import { auth, getAuth } from "@clerk/nextjs/server";
 import { revalidateTag, unstable_cache } from "next/cache";
 import { NextRequest, NextResponse } from "next/server";
 import { CacheTags, createDynamicTag } from "../tags";
@@ -12,14 +12,8 @@ import { CacheTags, createDynamicTag } from "../tags";
  * GET /api/indoors
  * Returns all indoor records for the authenticated user in the specified organization.
  */
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   const { userId, orgId } = await auth();
-  const user = await currentUser();
-
-  console.log("userId:", userId);
-  console.log("orgId:", orgId);
-
-  // Check if the user has organizations
 
   if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -34,7 +28,7 @@ export async function GET(request: NextRequest) {
 
   try {
     const indoors = await unstable_cache(
-      async () => getIndoorsByOrganizationId({ userId, orgId }),
+      async () => getIndoorsByOrganizationId({ orgId }),
       [createDynamicTag(CacheTags.indoorsByOrganizationId, orgId)],
       {
         revalidate: 3600, // Cache for 1 hour
