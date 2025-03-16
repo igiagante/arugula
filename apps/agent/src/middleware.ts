@@ -11,6 +11,11 @@ const isPublic = (path: string) => {
 };
 
 export default clerkMiddleware(async (auth, req: NextRequest) => {
+  // Skip middleware for image API routes
+  if (req.nextUrl.pathname.startsWith("/api/images/")) {
+    return NextResponse.next();
+  }
+
   if (isPublic(req.nextUrl.pathname)) {
     return NextResponse.next();
   }
@@ -25,5 +30,11 @@ export default clerkMiddleware(async (auth, req: NextRequest) => {
 });
 
 export const config = {
-  matcher: ["/((?!.+\\.[\\w]+$|_next).*)", "/", "/(api|trpc)(.*)"],
+  matcher: [
+    "/((?!.+\\.[\\w]+$|_next).*)",
+    "/",
+    "/api/:path*",
+    "/trpc/:path*",
+    "!api/images/:path*", // Exclude the images API path
+  ],
 };
