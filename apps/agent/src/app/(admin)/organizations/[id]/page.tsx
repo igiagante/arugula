@@ -1,12 +1,8 @@
-import { OrganizationContent } from "@/components/organization/organization-content";
+"use client";
 
-export default async function OrganizationProfilePage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  // Await the params to satisfy Next.js requirements
-  const { id } = await params;
+import OrganizationDetails from "@/components/organization/organization-details";
 
-  return <OrganizationContent orgId={id} />;
+export default function OrganizationDetailPage() {
+  return <OrganizationDetails />;
 }
+  

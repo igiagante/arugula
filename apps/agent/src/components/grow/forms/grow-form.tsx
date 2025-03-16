@@ -100,7 +100,8 @@ function initializeFormValues(grow?: GrowFormProps["grow"]): CreateGrowSchema {
 function prepareSubmissionData(
   data: CreateGrowSchema,
   processedImages: string[],
-  isEditing: boolean
+  isEditing: boolean,
+  organizationId: string
 ): CreateGrowSchema | EditGrowSchema {
   return {
     ...data,
@@ -115,15 +116,13 @@ function prepareSubmissionData(
       : undefined,
     images: processedImages,
     potSize: Number(data.potSize),
-    ...(isEditing
-      ? {}
-      : { organizationId: "516e3958-1842-4219-bf07-2a515b86df04" }),
+    ...(isEditing ? {} : { organizationId }),
   };
 }
 
 export function GrowForm({ grow, onSuccess }: GrowFormProps) {
   const router = useRouter();
-  const { userId } = useAuth();
+  const { userId, orgId } = useAuth();
   const queryClient = useQueryClient();
   const isEditing = !!grow;
   const { trackDeletedImage, resetDeletedImages, processImages } =
@@ -177,12 +176,20 @@ export function GrowForm({ grow, onSuccess }: GrowFormProps) {
   async function onSubmit(data: CreateGrowSchema) {
     try {
       if (!isEditing && !userId) throw new Error("User not found");
+      if (!isEditing && !orgId) {
+        throw new Error("Organization ID is required to create a grow");
+      }
 
       // Process all images (handle deletions and uploads)
       const processedImages = await processImages(data.images || []);
 
       // Prepare data for submission using the schema types directly
-      const growData = prepareSubmissionData(data, processedImages, isEditing);
+      const growData = prepareSubmissionData(
+        data,
+        processedImages,
+        isEditing,
+        orgId || ""
+      );
 
       await submitGrow(growData);
       resetDeletedImages();

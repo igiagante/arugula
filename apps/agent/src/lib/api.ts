@@ -12,6 +12,7 @@ const mockOrganizations: Organization[] = [
     id: "org-1",
     name: "Acme Inc",
     subdomain: "acme",
+    slug: "acme",
     createdAt: "2023-01-15T00:00:00Z",
     membersCount: 8,
     adminsCount: 2,
@@ -22,6 +23,7 @@ const mockOrganizations: Organization[] = [
     id: "org-2",
     name: "Globex Corporation",
     subdomain: "globex",
+    slug: "globex",
     createdAt: "2023-03-10T00:00:00Z",
     membersCount: 12,
     adminsCount: 3,
@@ -32,6 +34,7 @@ const mockOrganizations: Organization[] = [
     id: "org-3",
     name: "Initech",
     subdomain: "initech",
+    slug: "initech",
     createdAt: "2023-05-22T00:00:00Z",
     membersCount: 5,
     adminsCount: 1,
@@ -237,6 +240,7 @@ export async function createOrganization(data: {
       id: `org-${Date.now()}`,
       name: data.name,
       subdomain: data.subdomain,
+      slug: data.subdomain,
       createdAt: new Date().toISOString(),
       membersCount: 1,
       adminsCount: 1,
@@ -282,6 +286,7 @@ export async function updateOrganization(
       lastActivityDate: mockOrganizations[orgIndex]?.lastActivityDate || "",
       name: data.name,
       subdomain: data.subdomain,
+      slug: data.subdomain,
     };
 
     // Return the updated organization details

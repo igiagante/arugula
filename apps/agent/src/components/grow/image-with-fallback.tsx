@@ -42,10 +42,12 @@ export function ImageWithFallback({
   if (imageUrl.startsWith("blob:")) {
     return (
       <div className="relative size-full">
-        <img
+        <Image
           src={imageUrl}
           alt={alt}
-          className={`object-cover rounded-md size-full ${className}`}
+          fill
+          className={`object-cover rounded-md ${className}`}
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
         />
       </div>
     );

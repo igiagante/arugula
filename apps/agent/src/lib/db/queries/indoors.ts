@@ -231,13 +231,7 @@ export async function getIndoorById({
  * @param params - Object containing userId and organizationId
  * @returns Promise<Indoor[]> Array of accessible indoor spaces
  */
-export async function getIndoorsByOrganizationId({
-  userId,
-  orgId,
-}: {
-  userId: string;
-  orgId: string;
-}) {
+export async function getIndoorsByOrganizationId({ orgId }: { orgId: string }) {
   try {
     // Get all indoors in the organization
     const indoors = await dbDrizzle

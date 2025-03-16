@@ -11,7 +11,11 @@ const nextConfig: NextConfig = {
     ppr: true,
   },
   images: {
-    domains: ["arugula-store.s3.us-east-2.amazonaws.com"],
+    domains: [
+      "arugula-store.s3.us-east-2.amazonaws.com",
+      "img.clerk.com",
+      "images.clerk.dev",
+    ],
     remotePatterns: [
       {
         hostname: "avatar.vercel.sh",

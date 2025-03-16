@@ -1,12 +1,14 @@
 export interface Organization {
   id: string;
   name: string;
+  slug: string | null;
   subdomain: string;
   createdAt: string;
   membersCount: number;
   adminsCount: number;
   pendingInvites: number;
   lastActivityDate: string;
+  imageUrl?: string;
 }
 
 export interface Member {

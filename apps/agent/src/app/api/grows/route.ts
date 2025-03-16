@@ -10,19 +10,23 @@ import { CacheTags, createDynamicTag } from "../tags";
  * Returns all grow records for the authenticated user.
  */
 export async function GET(): Promise<NextResponse> {
-  const { userId } = await auth();
-
-  // TODO: Remove this once we have a real organization ID
-  const organizationId = "516e3958-1842-4219-bf07-2a515b86df04";
+  const { userId, orgId } = await auth();
 
   if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  if (!orgId) {
+    return NextResponse.json(
+      { error: "Organization not found" },
+      { status: 404 }
+    );
+  }
+
   try {
     const getCachedGrows = unstable_cache(
-      async () => getGrowsByOrganizationId(organizationId),
-      [createDynamicTag(CacheTags.growsByOrganizationId, organizationId)],
+      async () => getGrowsByOrganizationId(orgId),
+      [createDynamicTag(CacheTags.growsByOrganizationId, orgId)],
       {
         revalidate: 60, // Cache for 60 seconds
         tags: [createDynamicTag(CacheTags.growsByOrganizationId, userId)],

@@ -23,7 +23,7 @@ import { createDocument } from "@/lib/ai/tools/create-document";
 import { getWeather } from "@/lib/ai/tools/get-weather";
 import { requestSuggestions } from "@/lib/ai/tools/request-suggestions";
 import { updateDocument } from "@/lib/ai/tools/update-document";
-import { currentUser } from "@clerk/nextjs/server";
+import { auth, currentUser } from "@clerk/nextjs/server";
 import { generateTitleFromUserMessage } from "../../actions";
 
 export const maxDuration = 60;
@@ -37,6 +37,7 @@ export async function POST(request: Request) {
     await request.json();
 
   const user = await currentUser();
+  const { orgId } = await auth();
 
   if (!user || !user.id) {
     return new Response("Unauthorized", { status: 401 });
@@ -52,7 +53,12 @@ export async function POST(request: Request) {
 
   if (!chat) {
     const title = await generateTitleFromUserMessage({ message: userMessage });
-    await saveChat({ id, userId: user.id, organizationId: "arugula", title });
+    await saveChat({
+      id,
+      userId: user.id,
+      organizationId: orgId || "",
+      title,
+    });
   }
 
   await saveMessages({

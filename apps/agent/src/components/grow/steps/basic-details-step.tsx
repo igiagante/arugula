@@ -28,11 +28,12 @@ import {
 } from "@workspace/ui/components/select";
 import { cn } from "@workspace/ui/lib/utils";
 import { CalendarIcon } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { Control, UseFormSetValue } from "react-hook-form";
 
 import { apiRequest } from "@/app/api/client";
 import { CacheTags, createDynamicTag } from "@/app/api/tags";
+import { useOrganization } from "@clerk/nextjs";
 import { useQuery } from "@tanstack/react-query";
 import { CreateGrowSchema } from "../forms/grow.schema";
 import { CreateIndoorModal } from "../indoor/create-indoor-modal";
@@ -54,6 +55,16 @@ export function BasicDetailsStep({
   const [isCreateIndoorModalOpen, setIsCreateIndoorModalOpen] = useState(false);
 
   //  const { organization } = useOrganization();
+
+  const { organization, isLoaded } = useOrganization();
+
+  useEffect(() => {
+    if (isLoaded && organization) {
+      console.log("Active organization:", organization.id);
+    } else {
+      console.log("No active organization");
+    }
+  }, [isLoaded, organization]);
 
   const organizationId = "516e3958-1842-4219-bf07-2a515b86df04";
 

@@ -1,8 +1,13 @@
 "use client";
 
-import { fetchOrganizations } from "@/lib/api";
+import { useOrganizations } from "@/hooks/use-organization";
 import type { Organization } from "@/lib/types";
-
+import { useClerk, useOrganization, useUser } from "@clerk/nextjs";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@workspace/ui/components/avatar";
 import { Button } from "@workspace/ui/components/button";
 import {
   DropdownMenu,
@@ -12,49 +17,76 @@ import {
 } from "@workspace/ui/components/dropdown-menu";
 import { useSidebar } from "@workspace/ui/components/sidebar";
 import { cn } from "@workspace/ui/lib/utils";
-import { Building2, ChevronDown } from "lucide-react";
+import { Building2, ChevronDown, Plus } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+
+const OrganizationAvatar = ({
+  org,
+  className,
+}: {
+  org: Organization;
+  className?: string;
+}) => (
+  <Avatar className={cn("size-4", className)}>
+    <AvatarImage
+      src={org.imageUrl || `https://avatar.vercel.sh/${org.id}`}
+      alt={org.name}
+    />
+    <AvatarFallback>
+      <Building2 className="size-3" />
+    </AvatarFallback>
+  </Avatar>
+);
 
 export function OrganizationSidebar() {
   const router = useRouter();
   const { open } = useSidebar();
-  const [organizations, setOrganizations] = useState<Organization[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { user } = useUser();
+  const { organization } = useOrganization();
+  const { openCreateOrganization } = useClerk();
   const [searchQuery, _setSearchQuery] = useState("");
   const [selectedOrg, setSelectedOrg] = useState<Organization | null>(null);
 
+  const { data: organizations = [], isLoading } = useOrganizations();
+
+  const isAdmin = useMemo(() => {
+    if (!user) return false;
+    return user.organizationMemberships.some(
+      (membership) => membership.role === "org:admin"
+    );
+  }, [user]);
+
   useEffect(() => {
-    const loadOrganizations = async () => {
-      try {
-        setIsLoading(true);
-        setError(null);
-        const data = await fetchOrganizations();
-        setOrganizations(data);
-        // Set the first organization as selected by default if available
-        if (data.length > 0 && !selectedOrg) {
-          setSelectedOrg(data[0] || null);
-        }
-      } catch (err) {
-        console.error("Failed to fetch organizations:", err);
-        setError("Failed to load organizations. Please try again.");
-      } finally {
-        setIsLoading(false);
-      }
-    };
+    if (organizations.length === 0) return;
 
-    loadOrganizations();
-  }, [selectedOrg]);
+    // Priority: URL organization > Current selection > First organization
+    const orgToSelect = organization
+      ? organizations.find((org) => org.id === organization.id)
+      : selectedOrg || organizations[0];
 
-  const filteredOrganizations = organizations.filter((org) =>
-    org.name.toLowerCase().includes(searchQuery.toLowerCase())
+    setSelectedOrg(orgToSelect || null);
+  }, [organizations, organization, selectedOrg]);
+
+  // Memoize filtered organizations
+  const filteredOrganizations = useMemo(
+    () =>
+      organizations.filter((org) =>
+        org.name.toLowerCase().includes(searchQuery.toLowerCase())
+      ),
+    [organizations, searchQuery]
   );
 
   const handleOrgSelect = (org: Organization) => {
     setSelectedOrg(org);
     router.push(`/organizations/${org.id}`);
+  };
+
+  const handleCreateOrganization = () => {
+    openCreateOrganization({
+      afterCreateOrganizationUrl: "/organizations",
+    });
   };
 
   return (
@@ -67,7 +99,11 @@ export function OrganizationSidebar() {
           asChild
         >
           <Link href={selectedOrg ? `/organizations/${selectedOrg.id}` : "#"}>
-            <Building2 className="size-4" />
+            {selectedOrg ? (
+              <OrganizationAvatar org={selectedOrg} />
+            ) : (
+              <Building2 className="size-4" />
+            )}
           </Link>
         </Button>
       ) : (
@@ -75,15 +111,17 @@ export function OrganizationSidebar() {
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="w-full justify-between">
               <div className="flex items-center gap-2">
-                <Building2 className="size-2" />
+                {selectedOrg ? (
+                  <OrganizationAvatar org={selectedOrg} />
+                ) : (
+                  <Building2 className="size-2" />
+                )}
                 <span>
                   {isLoading
-                    ? "Loading..."
-                    : error
-                      ? "Error"
-                      : selectedOrg
-                        ? selectedOrg.name
-                        : "Select Organization"}
+                    ? "Loading organizations..."
+                    : filteredOrganizations.length === 0
+                      ? "No organizations yet"
+                      : selectedOrg?.name || "Select Organization"}
                 </span>
               </div>
               <ChevronDown className="size-4 opacity-50" />
@@ -94,25 +132,47 @@ export function OrganizationSidebar() {
               <div className="px-2 py-4 text-sm text-muted-foreground">
                 Loading organizations...
               </div>
-            ) : error ? (
-              <div className="px-2 py-4 text-sm text-red-500">{error}</div>
             ) : filteredOrganizations.length === 0 ? (
-              <div className="px-2 py-4 text-sm text-muted-foreground">
-                {searchQuery
-                  ? "No organizations found"
-                  : "No organizations yet"}
+              <div className="px-2 py-4">
+                <div className="text-sm text-muted-foreground mb-2">
+                  No organizations yet
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full"
+                  onClick={handleCreateOrganization}
+                >
+                  Create Organization
+                </Button>
               </div>
             ) : (
-              filteredOrganizations.map((org) => (
-                <DropdownMenuItem
-                  key={org.id}
-                  onClick={() => handleOrgSelect(org)}
-                  className="cursor-pointer"
-                >
-                  <Building2 className="mr-2 size-4" />
-                  <span>{org.name}</span>
-                </DropdownMenuItem>
-              ))
+              <>
+                {filteredOrganizations.map((org) => (
+                  <DropdownMenuItem
+                    key={org.id}
+                    onClick={() => handleOrgSelect(org)}
+                    className="cursor-pointer"
+                  >
+                    <OrganizationAvatar org={org} className="mr-2" />
+                    <span>{org.name}</span>
+                  </DropdownMenuItem>
+                ))}
+                {isAdmin && (
+                  <>
+                    <div className="px-2 py-1">
+                      <div className="h-px bg-border" />
+                    </div>
+                    <DropdownMenuItem
+                      onClick={handleCreateOrganization}
+                      className="cursor-pointer gap-2 text-muted-foreground hover:text-foreground"
+                    >
+                      <Plus className="size-4" />
+                      <span>New Organization</span>
+                    </DropdownMenuItem>
+                  </>
+                )}
+              </>
             )}
           </DropdownMenuContent>
         </DropdownMenu>

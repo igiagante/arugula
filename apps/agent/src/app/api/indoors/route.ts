@@ -3,20 +3,23 @@ import {
   getIndoorsByOrganizationId,
 } from "@/lib/db/queries/indoors";
 import { createLamp } from "@/lib/db/queries/lamps";
-import { auth } from "@clerk/nextjs/server";
+import { auth, currentUser, getAuth } from "@clerk/nextjs/server";
 import { revalidateTag, unstable_cache } from "next/cache";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { CacheTags, createDynamicTag } from "../tags";
 
 /**
  * GET /api/indoors
  * Returns all indoor records for the authenticated user in the specified organization.
  */
-export async function GET() {
-  const { userId } = await auth();
+export async function GET(request: NextRequest) {
+  const { userId, orgId } = await auth();
+  const user = await currentUser();
 
-  // TODO: Remove this once we have a real organization ID
-  const orgId = "516e3958-1842-4219-bf07-2a515b86df04";
+  console.log("userId:", userId);
+  console.log("orgId:", orgId);
+
+  // Check if the user has organizations
 
   if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -61,34 +64,33 @@ export async function GET() {
  * Creates a new indoor record.
  * Request body should include: { name: string, organizationId: string, ... }
  */
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
-    const { userId } = await auth();
+    const { userId, orgId } = getAuth(request);
 
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const body = await request.json();
-
-    const { name, lamp, organizationId, ...rest } = body;
-
-    if (!name) {
-      return NextResponse.json({ error: "Name is required" }, { status: 400 });
-    }
-
-    if (!organizationId) {
+    if (!orgId) {
       return NextResponse.json(
         { error: "Organization ID is required" },
         { status: 400 }
       );
     }
 
+    const body = await request.json();
+    const { name, lamp, ...rest } = body;
+
+    if (!name) {
+      return NextResponse.json({ error: "Name is required" }, { status: 400 });
+    }
+
     const newIndoor = await createIndoor({
       name,
       ...rest,
       createdBy: userId,
-      organizationId,
+      organizationId: orgId,
     });
 
     if (!newIndoor) {
@@ -114,9 +116,7 @@ export async function POST(request: Request) {
     revalidateTag(createDynamicTag(CacheTags.indoorsByUserId, userId));
 
     // Also invalidate the organization's indoors cache
-    revalidateTag(
-      createDynamicTag(CacheTags.indoorsByOrganizationId, organizationId)
-    );
+    revalidateTag(createDynamicTag(CacheTags.indoorsByOrganizationId, orgId));
 
     return NextResponse.json(newIndoor, { status: 201 });
   } catch (error) {

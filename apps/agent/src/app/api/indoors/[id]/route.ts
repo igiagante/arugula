@@ -16,19 +16,22 @@ export async function GET(
   _request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const { userId } = await auth();
+  const { userId, orgId } = await auth();
   const { id: indoorId } = await params;
-
-  // TODO: Remove this once we have a real organization ID
-  const organizationId = "516e3958-1842-4219-bf07-2a515b86df04";
 
   if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  if (!orgId) {
+    return NextResponse.json(
+      { error: "Organization not found" },
+      { status: 404 }
+    );
+  }
   try {
     const getIndoorWithCache = unstable_cache(
-      async () => getIndoorById({ userId, indoorId, organizationId }),
+      async () => getIndoorById({ userId, indoorId, organizationId: orgId }),
       [createDynamicTag(CacheTags.indoorByUserId, userId)],
       {
         tags: [createDynamicTag(CacheTags.indoorByUserId, userId)],
