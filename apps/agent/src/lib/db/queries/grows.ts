@@ -293,7 +293,7 @@ export async function getGrowByIdAndUser({
     }
 
     const view = createGrowView(growData);
-    const result = view ? mapImages(view) : null;
+    const result = view ? await mapImages(view) : null;
 
     return result;
   } catch (error) {

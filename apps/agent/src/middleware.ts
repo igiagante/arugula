@@ -11,11 +11,6 @@ const isPublic = (path: string) => {
 };
 
 export default clerkMiddleware(async (auth, req: NextRequest) => {
-  // Skip middleware for image API routes
-  if (req.nextUrl.pathname.startsWith("/api/images/")) {
-    return NextResponse.next();
-  }
-
   if (isPublic(req.nextUrl.pathname)) {
     return NextResponse.next();
   }

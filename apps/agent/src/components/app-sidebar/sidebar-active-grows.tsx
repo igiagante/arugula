@@ -14,6 +14,7 @@ import {
 } from "@workspace/ui/components/sidebar";
 import { ChevronDown, Sprout } from "lucide-react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -28,6 +29,7 @@ export function SidebarActiveGrows() {
   });
 
   const { setOpen } = useSidebar();
+  const pathname = usePathname();
 
   const handleClick = (e: React.MouseEvent) => {
     // For mobile, close the sidebar
@@ -88,7 +90,7 @@ export function SidebarActiveGrows() {
                   >
                     <span>All Grows</span>
                     {grows?.length && grows.length > 0 && (
-                      <Badge variant="secondary" className="ml-auto">
+                      <Badge variant="outline" className="ml-auto">
                         {grows.length}
                       </Badge>
                     )}
@@ -98,7 +100,14 @@ export function SidebarActiveGrows() {
 
               {grows?.map((grow) => (
                 <SidebarMenuItem key={grow.id}>
-                  <SidebarMenuButton asChild>
+                  <SidebarMenuButton
+                    asChild
+                    className={
+                      pathname.includes(`/grows/${grow.id}`)
+                        ? "border-2 border-gray-500/50 rounded-md"
+                        : ""
+                    }
+                  >
                     <Link
                       href={`/grows/${grow.id}/plants`}
                       onClick={() => {

@@ -27,16 +27,6 @@ const nextConfig: NextConfig = {
         hostname: "images.clerk.dev",
         pathname: "**",
       },
-      {
-        protocol: "https",
-        hostname: "leaflegacy.ai",
-        pathname: "/api/images/**",
-      },
-      {
-        protocol: "https",
-        hostname: "www.leaflegacy.ai",
-        pathname: "/api/images/**",
-      },
     ],
   },
 };

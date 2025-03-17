@@ -6,6 +6,9 @@ import type {
 } from "ai";
 
 import type { Message as DBMessage, Document } from "@/lib/db/schemas";
+import { GetObjectCommand } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { getS3BucketName, getS3Client } from "./s3/client";
 
 interface ApplicationError extends Error {
   info: string;
@@ -228,11 +231,21 @@ export async function mapImages<T extends { images: string[] }>(
 ): Promise<T & { images: string[] }> {
   return {
     ...entity,
-    images: entity.images.map((imageKey) => {
-      // The imageKey already contains all the information we need
-      // Example key format: "14edc6d3-6560-4d89-a0b1-abb8d42db3f4-gsc.jpg"
-      return `/api/images/${encodeURIComponent(imageKey)}`;
-    }),
+    images: await Promise.all(
+      entity.images.map(async (imageKey) => {
+        const url = await getSignedUrl(
+          getS3Client(),
+          new GetObjectCommand({
+            Bucket: getS3BucketName(),
+            Key: imageKey,
+          }),
+          {
+            expiresIn: 60 * 60 * 24, // 1 day
+          }
+        );
+        return url;
+      })
+    ),
   };
 }
 

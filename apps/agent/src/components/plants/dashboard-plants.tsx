@@ -42,6 +42,16 @@ export function PlantDashboard() {
 
   const queryClient = useQueryClient();
 
+  const { data: grow } = useQuery({
+    queryKey: [createDynamicTag(CacheTags.growById, growId as string)],
+    queryFn: async () => {
+      if (!growId) {
+        throw new Error("Grow ID is required");
+      }
+      return await apiRequest<{ name: string }>(`/api/grows/${growId}`);
+    },
+  });
+
   const { data, isLoading, error } = useQuery({
     queryKey: [createDynamicTag(CacheTags.getPlantsByGrowId, growId as string)],
     queryFn: async () => {
@@ -131,11 +141,8 @@ export function PlantDashboard() {
       <div className="flex flex-col gap-2 sm:flex-row sm:justify-between sm:items-center">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
-            Your Plants
+            {grow?.name || "Your Plants"}
           </h1>
-          <p className="text-sm text-muted-foreground">
-            Manage and track all plants in your current grow
-          </p>
         </div>
         <Button onClick={handleAddNewPlant} className="w-full sm:w-auto">
           <PlusCircle className="mr-2 size-4" />

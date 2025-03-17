@@ -1,6 +1,6 @@
 import {
   createIndoor,
-  getIndoorsByOrganizationId,
+  getAvailableIndoorsByOrganizationId,
 } from "@/lib/db/queries/indoors";
 import { createLamp } from "@/lib/db/queries/lamps";
 import { auth, getAuth } from "@clerk/nextjs/server";
@@ -28,11 +28,13 @@ export async function GET(_request: NextRequest) {
 
   try {
     const indoors = await unstable_cache(
-      async () => getIndoorsByOrganizationId({ orgId }),
-      [createDynamicTag(CacheTags.indoorsByOrganizationId, orgId)],
+      async () => getAvailableIndoorsByOrganizationId({ orgId }),
+      [createDynamicTag(CacheTags.availableIndoorsByOrganizationId, orgId)],
       {
         revalidate: 3600, // Cache for 1 hour
-        tags: [createDynamicTag(CacheTags.indoorsByOrganizationId, orgId)],
+        tags: [
+          createDynamicTag(CacheTags.availableIndoorsByOrganizationId, orgId),
+        ],
       }
     )();
 
@@ -111,6 +113,9 @@ export async function POST(request: NextRequest) {
 
     // Also invalidate the organization's indoors cache
     revalidateTag(createDynamicTag(CacheTags.indoorsByOrganizationId, orgId));
+    revalidateTag(
+      createDynamicTag(CacheTags.availableIndoorsByOrganizationId, orgId)
+    );
 
     return NextResponse.json(newIndoor, { status: 201 });
   } catch (error) {

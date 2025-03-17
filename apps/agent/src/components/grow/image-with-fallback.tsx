@@ -34,7 +34,7 @@ export function ImageWithFallback({
         _src="/images/placeholder.jpg"
         alt={alt || "Grow image"}
         fill
-        className={`object-cover rounded-md ${className}`}
+        className={`object-cover ${className}`}
       />
     );
   }
@@ -46,7 +46,7 @@ export function ImageWithFallback({
           src={imageUrl}
           alt={alt}
           fill
-          className={`object-cover rounded-md ${className}`}
+          className={`object-cover ${className}`}
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
         />
       </div>

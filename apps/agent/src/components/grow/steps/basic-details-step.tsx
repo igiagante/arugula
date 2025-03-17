@@ -60,7 +60,7 @@ export function BasicDetailsStep({
     queryKey: [
       CacheTags.indoors,
       createDynamicTag(
-        CacheTags.indoorsByOrganizationId,
+        CacheTags.availableIndoorsByOrganizationId,
         organization?.id || ""
       ),
     ],

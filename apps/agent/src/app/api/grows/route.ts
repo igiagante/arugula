@@ -1,26 +1,18 @@
+import { getAuthContext } from "@/lib/auth/auth-context";
 import { createGrow, getGrowsByOrganizationId } from "@/lib/db/queries/grows";
-import { auth } from "@clerk/nextjs/server";
 import { revalidateTag, unstable_cache } from "next/cache";
 import { NextResponse } from "next/server";
 import type { CreateGrowDto } from "../dto";
 import { CacheTags, createDynamicTag } from "../tags";
-
 /**
  * GET /api/grows
  * Returns all grow records for the authenticated user.
  */
 export async function GET(): Promise<NextResponse> {
-  const { userId, orgId } = await auth();
+  const { userId, orgId, error } = await getAuthContext();
 
-  if (!userId) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  if (!orgId) {
-    return NextResponse.json(
-      { error: "Organization not found" },
-      { status: 404 }
-    );
+  if (error) {
+    return error;
   }
 
   try {
@@ -59,10 +51,10 @@ export async function GET(): Promise<NextResponse> {
  */
 export async function POST(request: Request): Promise<NextResponse> {
   try {
-    const { userId } = await auth();
+    const { userId, error } = await getAuthContext();
 
-    if (!userId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (error) {
+      return error;
     }
 
     const body = (await request.json()) as CreateGrowDto;

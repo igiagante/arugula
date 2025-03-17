@@ -18,7 +18,15 @@ export const metadata: Metadata = {
   description:
     "Leaf Legacy is the ultimate tool for cannabis growers, providing real-time insights, growth tracking, and AI-powered recommendations. Optimize your cultivation and nurture every leaf to its full potential.",
   icons: {
-    icon: [{ url: "/cannabis-icon.svg", type: "image/svg+xml" }],
+    icon: [
+      {
+        url:
+          process.env.NODE_ENV === "development"
+            ? "/cannabis-icon-dev.svg"
+            : "/cannabis-icon.svg",
+        type: "image/svg+xml",
+      },
+    ],
   },
 };
 
@@ -87,7 +95,7 @@ export default async function RootLayout({
                       {children}
                     </main>
                     <Separator orientation="vertical" className="h-full" />
-                    <ChatContainer className="w-64 shrink-0" />
+                    <ChatContainer className="lg:w-52 xl:w-48 2xl:w-56 shrink-0" />
                   </div>
                 </SidebarProvider>
               ) : (

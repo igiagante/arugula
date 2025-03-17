@@ -1,9 +1,9 @@
+import { getAuthContext } from "@/lib/auth/auth-context";
 import {
   deleteIndoor,
   getIndoorById,
   updateIndoor,
 } from "@/lib/db/queries/indoors";
-import { auth } from "@clerk/nextjs/server";
 import { revalidateTag, unstable_cache } from "next/cache";
 import { NextResponse } from "next/server";
 import { CacheTags, createDynamicTag } from "../../tags";
@@ -16,18 +16,11 @@ export async function GET(
   _request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const { userId, orgId } = await auth();
   const { id: indoorId } = await params;
+  const { userId, orgId, error } = await getAuthContext();
 
-  if (!userId) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  if (!orgId) {
-    return NextResponse.json(
-      { error: "Organization not found" },
-      { status: 404 }
-    );
+  if (error) {
+    return error;
   }
   try {
     const getIndoorWithCache = unstable_cache(
@@ -60,10 +53,10 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { userId } = await auth();
+    const { userId, orgId, error } = await getAuthContext();
 
-    if (!userId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (error) {
+      return error;
     }
 
     const { id: indoorId } = await params;
@@ -86,7 +79,10 @@ export async function PATCH(
 
     // Invalidate the cache for this user's indoors
     revalidateTag(createDynamicTag(CacheTags.indoorByUserId, userId));
-    revalidateTag(createDynamicTag(CacheTags.indoorsByUserId, userId));
+    revalidateTag(createDynamicTag(CacheTags.indoorsByOrganizationId, orgId));
+    revalidateTag(
+      createDynamicTag(CacheTags.availableIndoorsByOrganizationId, orgId)
+    );
 
     return NextResponse.json(updatedIndoor, { status: 200 });
   } catch (error) {
@@ -107,10 +103,10 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { userId } = await auth();
+    const { userId, orgId, error } = await getAuthContext();
 
-    if (!userId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (error) {
+      return error;
     }
 
     const { id: indoorId } = await params;
@@ -126,11 +122,14 @@ export async function DELETE(
 
     // Invalidate the cache for this user's indoors
     revalidateTag(createDynamicTag(CacheTags.indoorsByUserId, userId));
+    revalidateTag(createDynamicTag(CacheTags.indoorsByOrganizationId, orgId));
+    revalidateTag(
+      createDynamicTag(CacheTags.availableIndoorsByOrganizationId, orgId)
+    );
 
     return NextResponse.json(deletedIndoor, { status: 200 });
   } catch (error) {
     console.error("DELETE /api/indoors error:", error);
-
     return NextResponse.json(
       { error: "Internal Server Error" },
       { status: 500 }
