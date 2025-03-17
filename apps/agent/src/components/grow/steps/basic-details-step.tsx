@@ -31,8 +31,8 @@ import { CalendarIcon } from "lucide-react";
 import { useState } from "react";
 import type { Control, UseFormSetValue } from "react-hook-form";
 
-import { apiRequest } from "@/app/api/client";
-import { CacheTags, createDynamicTag } from "@/app/api/tags";
+import { apiRequest } from "@/app/(main)/api/client";
+import { CacheTags, createDynamicTag } from "@/app/(main)/api/tags";
 import { useOrganization } from "@clerk/nextjs";
 import { useQuery } from "@tanstack/react-query";
 import { CreateGrowSchema } from "../forms/grow.schema";

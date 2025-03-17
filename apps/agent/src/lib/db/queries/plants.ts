@@ -257,9 +257,11 @@ export async function getPlantsByGrowId({
       .where(eq(plant.growId, growId));
 
     // Process each plant and its strain separately
-    return Promise.all(
+    const result = await Promise.all(
       plantsList.map((plantData) => mapPlantAndStrainImages(plantData))
-    ) as Promise<PlantWithStrain[]>;
+    );
+
+    return result as PlantWithStrain[];
   } catch (error) {
     console.error("Failed to get plants by grow id:", error);
     throw error;

@@ -1,7 +1,7 @@
 "use client";
 
-import { apiRequest, HttpMethods } from "@/app/api/client";
-import { CacheTags, createDynamicTag } from "@/app/api/tags";
+import { apiRequest, HttpMethods } from "@/app/(main)/api/client";
+import { CacheTags, createDynamicTag } from "@/app/(main)/api/tags";
 import { PlantWithStrain } from "@/lib/db/queries/types/plant";
 import { Plant } from "@/lib/db/schemas";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -25,6 +25,8 @@ export function PlantEditModal({
   onClose,
 }: PlantEditModalProps) {
   const queryClient = useQueryClient();
+
+  console.log("plant", plant);
 
   const form = useForm<EditPlantSchema>({
     resolver: zodResolver(editPlantSchema),

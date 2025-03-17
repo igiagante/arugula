@@ -1,7 +1,7 @@
 "use client";
 
-import { apiRequest, HttpMethods } from "@/app/api/client";
-import { CacheTags } from "@/app/api/tags";
+import { apiRequest, HttpMethods } from "@/app/(main)/api/client";
+import { CacheTags } from "@/app/(main)/api/tags";
 import {
   DefaultPreferences,
   DistanceUnits,

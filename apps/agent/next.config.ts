@@ -29,6 +29,13 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  redirects: async () => [
+    {
+      source: "/",
+      destination: "/grows",
+      permanent: false,
+    },
+  ],
 };
 
 export default nextConfig;

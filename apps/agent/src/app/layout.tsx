@@ -1,15 +1,9 @@
-import { currentUser } from "@clerk/nextjs/server";
 import type { Metadata } from "next";
 import { Toaster } from "sonner";
 
 import { ClerkProvider } from "@clerk/nextjs";
 import "./globals.css";
 
-import { AppSidebar } from "@/components/app-sidebar";
-import { ThemeProvider } from "@/components/theme-provider";
-import { Separator } from "@workspace/ui/components/separator";
-import { SidebarProvider } from "@workspace/ui/components/sidebar";
-import ChatContainer from "./(chat)/chat";
 import { Providers } from "./providers";
 
 export const metadata: Metadata = {
@@ -59,9 +53,6 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const user = await currentUser();
-  const isAuthenticated = !!user;
-
   return (
     <ClerkProvider signInFallbackRedirectUrl="/grows">
       <html
@@ -81,28 +72,8 @@ export default async function RootLayout({
         </head>
         <body className="min-h-screen bg-background antialiased">
           <Providers>
-            <ThemeProvider
-              attribute="class"
-              defaultTheme="system"
-              enableSystem
-              disableTransitionOnChange
-            >
-              {isAuthenticated ? (
-                <SidebarProvider>
-                  <div className="flex w-full">
-                    <AppSidebar className="w-64 shrink-0" />
-                    <main className="flex-1 flex justify-center">
-                      {children}
-                    </main>
-                    <Separator orientation="vertical" className="h-full" />
-                    <ChatContainer className="lg:w-52 xl:w-48 2xl:w-56 shrink-0" />
-                  </div>
-                </SidebarProvider>
-              ) : (
-                <main className="flex-1 flex justify-center">{children}</main>
-              )}
-              <Toaster />
-            </ThemeProvider>
+            {children}
+            <Toaster />
           </Providers>
         </body>
       </html>

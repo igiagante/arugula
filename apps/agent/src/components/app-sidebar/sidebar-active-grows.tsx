@@ -1,7 +1,7 @@
 "use client";
 
-import { apiRequest } from "@/app/api/client";
-import { CacheTags } from "@/app/api/tags";
+import { apiRequest } from "@/app/(main)/api/client";
+import { CacheTags } from "@/app/(main)/api/tags";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { GrowView } from "@/lib/db/queries/types/grow";
 import { useQuery } from "@tanstack/react-query";

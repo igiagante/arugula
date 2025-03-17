@@ -1,6 +1,6 @@
-import { apiRequest, HttpMethods } from "@/app/api/client";
-import { CreateStrainDto } from "@/app/api/dto";
-import { CacheTags } from "@/app/api/tags";
+import { apiRequest, HttpMethods } from "@/app/(main)/api/client";
+import { CreateStrainDto } from "@/app/(main)/api/dto";
+import { CacheTags } from "@/app/(main)/api/tags";
 import { Strain } from "@/lib/db/schemas/strain.schema";
 import { uploadImages } from "@/lib/s3/s3-upload";
 import { useAuth } from "@clerk/nextjs";
@@ -225,7 +225,7 @@ export function AddPlantsStep({
             {showAddForm ? "Cancel" : "Add Strain"}
           </span>
           <div
-            className={`transform transition-transform duration-300 ${showAddForm ? "rotate-45" : ""}`}
+            className={`transition-transform duration-300 ${showAddForm ? "rotate-45" : ""}`}
           >
             <Plus className={`size-5 ${showAddForm ? "" : "animate-pulse"}`} />
           </div>

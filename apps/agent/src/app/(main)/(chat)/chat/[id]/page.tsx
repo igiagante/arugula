@@ -2,10 +2,10 @@ import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
 
 import { Chat } from "@/components/chat";
-import { getChatById, getMessagesByChatId } from "@/lib/db/queries";
-import { convertToUIMessages } from "@/lib/utils";
 import { DataStreamHandler } from "@/components/data-stream-handler";
 import { DEFAULT_CHAT_MODEL } from "@/lib/ai/models";
+import { getChatById, getMessagesByChatId } from "@/lib/db/queries";
+import { convertToUIMessages } from "@/lib/utils";
 import { currentUser } from "@clerk/nextjs/server";
 
 export default async function Page(props: { params: Promise<{ id: string }> }) {
@@ -45,6 +45,7 @@ export default async function Page(props: { params: Promise<{ id: string }> }) {
           selectedChatModel={DEFAULT_CHAT_MODEL}
           selectedVisibilityType={chat.visibility}
           isReadonly={false}
+          isExpanded={false}
         />
         <DataStreamHandler id={id} />
       </>
@@ -59,6 +60,7 @@ export default async function Page(props: { params: Promise<{ id: string }> }) {
         selectedChatModel={chatModelFromCookie.value}
         selectedVisibilityType={chat.visibility}
         isReadonly={false}
+        isExpanded={false}
       />
       <DataStreamHandler id={id} />
     </>

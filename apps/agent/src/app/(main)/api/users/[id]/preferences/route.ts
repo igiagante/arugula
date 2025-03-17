@@ -1,4 +1,4 @@
-import { CacheTags, createDynamicTag } from "@/app/api/tags";
+import { CacheTags, createDynamicTag } from "@/app/(main)/api/tags";
 import {
   DistanceUnits,
   TemperatureUnits,

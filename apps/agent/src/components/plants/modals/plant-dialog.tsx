@@ -1,7 +1,7 @@
 "use client";
 
-import { apiRequest, HttpMethods } from "@/app/api/client";
-import { CacheTags } from "@/app/api/tags";
+import { apiRequest, HttpMethods } from "@/app/(main)/api/client";
+import { CacheTags } from "@/app/(main)/api/tags";
 import { AddStrainForm } from "@/components/grow/steps/strains/form/add-strain-form";
 import { StrainFormValues } from "@/components/grow/steps/strains/form/add-strain.schema";
 import ImageUploader from "@/components/image-uploader/image-uploader";

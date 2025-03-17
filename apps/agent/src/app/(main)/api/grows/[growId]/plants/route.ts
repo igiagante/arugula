@@ -1,4 +1,4 @@
-import { CacheTags, createDynamicTag } from "@/app/api/tags";
+import { CacheTags, createDynamicTag } from "@/app/(main)/api/tags";
 import { getPlantsByGrowId } from "@/lib/db/queries/plants";
 import { auth } from "@clerk/nextjs/server";
 import { unstable_cache } from "next/cache";

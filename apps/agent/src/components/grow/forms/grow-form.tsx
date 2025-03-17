@@ -6,8 +6,8 @@ import { useEffect } from "react";
 import { Card } from "@workspace/ui/components/card";
 import { Form } from "@workspace/ui/components/form";
 
-import { apiRequest, HttpMethods } from "@/app/api/client";
-import { CacheTags } from "@/app/api/tags";
+import { apiRequest, HttpMethods } from "@/app/(main)/api/client";
+import { CacheTags } from "@/app/(main)/api/tags";
 import { useImageUploader } from "@/hooks/use-image-uploader";
 import type { GrowView } from "@/lib/db/queries/types/grow";
 import type { Grow } from "@/lib/db/schemas";

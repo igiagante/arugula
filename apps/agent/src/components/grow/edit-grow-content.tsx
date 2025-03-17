@@ -1,6 +1,6 @@
 "use client";
-import { apiRequest } from "@/app/api/client";
-import { CacheTags, createDynamicTag } from "@/app/api/tags";
+import { apiRequest } from "@/app/(main)/api/client";
+import { CacheTags, createDynamicTag } from "@/app/(main)/api/tags";
 import { GrowView } from "@/lib/db/queries/types/grow";
 import { Grow } from "@/lib/db/schemas/grow.schema";
 import { useQuery } from "@tanstack/react-query";

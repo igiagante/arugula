@@ -2,7 +2,7 @@
 
 import type { Attachment, Message } from "ai";
 import { useChat } from "ai/react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import useSWR, { useSWRConfig } from "swr";
 
 import { ChatHeader } from "@/components/chat-header";
@@ -10,7 +10,9 @@ import type { Vote } from "@/lib/db/schemas";
 import { fetcher, generateUUID } from "@/lib/utils";
 
 import { useArtifactSelector } from "@/hooks/use-artifact";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "@workspace/ui/components/button";
+import { useSidebar } from "@workspace/ui/components/sidebar";
 import { cn } from "@workspace/ui/lib/utils";
 import { MessageCircle, X } from "lucide-react";
 import { toast } from "sonner";
@@ -26,6 +28,7 @@ export function Chat({
   selectedVisibilityType,
   isReadonly,
   className,
+  isExpanded,
 }: {
   id: string;
   initialMessages: Array<Message>;
@@ -33,8 +36,28 @@ export function Chat({
   selectedVisibilityType: VisibilityType;
   isReadonly: boolean;
   className?: string;
+  isExpanded: boolean;
 }) {
+  const { open: isSidebarOpen } = useSidebar();
   const { mutate } = useSWRConfig();
+
+  const [windowWidth, setWindowWidth] = useState(0);
+  const isMobile = useIsMobile();
+
+  // Track window width for responsive sizing
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowWidth(window.innerWidth);
+    };
+
+    // Set initial width
+    if (typeof window !== "undefined") {
+      handleResize();
+    }
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   const {
     messages,
@@ -70,84 +93,114 @@ export function Chat({
   const isArtifactVisible = useArtifactSelector((state) => state.isVisible);
   const [isOpen, setIsOpen] = useState(false);
 
-  return (
-    <>
-      {/* Chat Toggle Button */}
+  // Calculate chat width based on screen size
+  const getChatWidth = () => {
+    // For mobile screens
+    if (windowWidth < 768) {
+      return "100%";
+    }
+
+    // For very large screens (>2000px)
+    if (windowWidth > 2000) {
+      return isExpanded ? "600px" : "400px";
+    }
+
+    // For large screens (1440px-2000px)
+    if (windowWidth >= 1440) {
+      // Scale width based on screen size
+      const baseWidth = !isSidebarOpen ? 450 : 350;
+      const extraWidth = Math.floor((windowWidth - 1440) / 100) * 10;
+      return `${baseWidth + extraWidth}px`;
+    }
+
+    // For medium screens (1024px-1439px)
+    return isExpanded ? "350px" : "300px";
+  };
+
+  const content = (
+    <div
+      className={cn(
+        "border-l border-border h-full flex flex-col transition-all duration-300 ease-in-out",
+        // Only hide by default on mobile, but show when isOpen is true
+        isOpen ? "flex" : "hidden lg:flex",
+        isMobile ? "bg-[#dbd2c7]" : ""
+      )}
+      style={{ width: getChatWidth() }}
+    >
+      {/* Close button - only visible on mobile */}
       <Button
-        variant="default"
+        variant="ghost"
         size="icon"
-        className="fixed bottom-4 right-4 rounded-full shadow-lg z-50 min-[1480px]:hidden"
-        onClick={() => setIsOpen(true)}
+        className="absolute right-4 top-16 border size-8 lg:hidden"
+        onClick={() => setIsOpen(false)}
       >
-        <MessageCircle size={24} />
+        <X size={20} />
       </Button>
 
-      {/* Chat Panel */}
-      <div
-        className={cn(
-          "fixed inset-0 z-50 bg-background/80 backdrop-blur-sm transition-all",
-          "min-[1480px]:bg-transparent min-[1480px]:backdrop-blur-none min-[1480px]:relative min-[1480px]:inset-auto min-[1480px]:w-[480px]",
-          isOpen ? "opacity-100" : "opacity-0 pointer-events-none",
-          "min-[1480px]:opacity-100 min-[1480px]:pointer-events-auto",
-          className
-        )}
-      >
-        <div
-          className={`
-          fixed right-0 h-dvh w-full bg-background shadow-lg transition-transform duration-300
-          min-[1480px]:relative min-[1480px]:right-auto min-[1480px]:shadow-none min-[1480px]:w-[480px]
-          ${isOpen ? "translate-x-0" : "translate-x-full"} min-[1480px]:translate-x-0
-        `}
-        >
-          {/* Close button */}
-          <Button
-            variant="ghost"
-            size="icon"
-            className="absolute right-4 min-[1480px]:hidden z-[60] top-16 border size-8"
-            onClick={() => setIsOpen(false)}
-          >
-            <X size={20} />
-          </Button>
+      {/* Chat content */}
+      <div className="flex flex-col h-full bg-background">
+        <ChatHeader
+          chatId={id}
+          selectedModelId={selectedChatModel}
+          selectedVisibilityType={selectedVisibilityType}
+          isReadonly={isReadonly}
+        />
 
-          <div className="flex flex-col h-dvh bg-background">
-            <ChatHeader
-              chatId={id}
-              selectedModelId={selectedChatModel}
-              selectedVisibilityType={selectedVisibilityType}
-              isReadonly={isReadonly}
-            />
+        <Messages
+          chatId={id}
+          isLoading={isLoading}
+          votes={votes}
+          messages={messages}
+          setMessages={setMessages}
+          reload={reload}
+          isReadonly={isReadonly}
+          isArtifactVisible={isArtifactVisible}
+        />
 
-            <Messages
+        {!isReadonly && (
+          <form className="flex mx-auto px-4 bg-background pb-4 md:pb-6 gap-2 w-full">
+            <MultimodalInput
               chatId={id}
+              input={input}
+              setInput={setInput}
+              handleSubmit={handleSubmit}
               isLoading={isLoading}
-              votes={votes}
+              stop={stop}
+              attachments={attachments}
+              setAttachments={setAttachments}
               messages={messages}
               setMessages={setMessages}
-              reload={reload}
-              isReadonly={isReadonly}
-              isArtifactVisible={isArtifactVisible}
+              append={append}
             />
-
-            <form className="flex mx-auto px-4 bg-background pb-4 md:pb-6 gap-2 w-full">
-              {!isReadonly && (
-                <MultimodalInput
-                  chatId={id}
-                  input={input}
-                  setInput={setInput}
-                  handleSubmit={handleSubmit}
-                  isLoading={isLoading}
-                  stop={stop}
-                  attachments={attachments}
-                  setAttachments={setAttachments}
-                  messages={messages}
-                  setMessages={setMessages}
-                  append={append}
-                />
-              )}
-            </form>
-          </div>
-        </div>
+          </form>
+        )}
       </div>
+    </div>
+  );
+
+  return (
+    <>
+      {!isMobile ? (
+        content
+      ) : (
+        <div
+          className={`fixed inset-y-0 right-0 z-50 transition-transform duration-300 ${
+            isOpen && isMobile ? "translate-x-0" : "translate-x-full"
+          }`}
+        >
+          {content}
+        </div>
+      )}
+      {isMobile && (
+        <Button
+          variant="default"
+          size="icon"
+          className="fixed bottom-4 right-20 rounded-full shadow-lg z-[10000] size-10"
+          onClick={() => setIsOpen(!isOpen)}
+        >
+          <MessageCircle size={24} />
+        </Button>
+      )}
 
       <Artifact
         chatId={id}

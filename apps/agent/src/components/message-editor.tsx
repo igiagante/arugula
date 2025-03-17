@@ -1,10 +1,16 @@
 "use client";
 
-import { deleteTrailingMessages } from "@/app/(chat)/actions";
+import { deleteTrailingMessages } from "@/app/(main)/(chat)/actions";
 import { Button } from "@workspace/ui/components/button";
 import { Textarea } from "@workspace/ui/components/textarea";
 import type { ChatRequestOptions, Message } from "ai";
-import { type Dispatch, type SetStateAction, useEffect, useRef, useState } from "react";
+import {
+  type Dispatch,
+  type SetStateAction,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 
 export type MessageEditorProps = {
   message: Message;

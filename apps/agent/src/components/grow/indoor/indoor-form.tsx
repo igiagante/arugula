@@ -4,9 +4,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Box, Loader2, Ruler } from "lucide-react";
 import { useForm } from "react-hook-form";
 
-import { apiRequest, HttpMethods } from "@/app/api/client";
-import type { CreateIndoorDto } from "@/app/api/dto";
-import { CacheTags, createDynamicTag } from "@/app/api/tags";
+import { apiRequest, HttpMethods } from "@/app/(main)/api/client";
+import type { CreateIndoorDto } from "@/app/(main)/api/dto";
+import { CacheTags, createDynamicTag } from "@/app/(main)/api/tags";
 import ImageUploader from "@/components/image-uploader/image-uploader";
 import { useImageUploader } from "@/hooks/use-image-uploader";
 import { useUserPreferences } from "@/hooks/use-user-preferences";

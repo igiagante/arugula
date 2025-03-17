@@ -1,9 +1,9 @@
 import { cookies } from "next/headers";
 
 import { Chat } from "@/components/chat";
+import { DataStreamHandler } from "@/components/data-stream-handler";
 import { DEFAULT_CHAT_MODEL } from "@/lib/ai/models";
 import { generateUUID } from "@/lib/utils";
-import { DataStreamHandler } from "@/components/data-stream-handler";
 
 export default async function ChatContainer({
   className,
@@ -11,30 +11,6 @@ export default async function ChatContainer({
   className?: string;
 }) {
   const id = generateUUID();
-
-  // const growData = await fetchGrowsByIndoorId(indoorData[0].id);
-  // console.log("Grow data:", growData);
-
-  // const grow = growData[0];
-  // if (grow) {
-  //   const plantData = await fetchPlants(grow.id);
-  //   console.log("Plant data:", plantData);
-
-  //   // Get the first plant and fetch its strain
-  //   const plant = plantData[0];
-  //   const strainId = plant?.strainId;
-  //   if (plant && strainId) {
-  //     const strainData = await fetchStrainById(strainId);
-  //     console.log("Plant strainId:", strainId);
-  //     console.log("Strain data:", strainData);
-  //   }
-
-  //   const taskData = await fetchTasksByGrow(grow.id);
-  //   console.log("Task data:", JSON.stringify(taskData, null, 2));
-  // }
-
-  // const productData = await fetchProducts();
-  // console.log("Product data:", productData);
 
   const cookieStore = await cookies();
   const modelIdFromCookie = cookieStore.get("chat-model");
@@ -50,6 +26,7 @@ export default async function ChatContainer({
           selectedVisibilityType="private"
           isReadonly={false}
           className={className}
+          isExpanded={false}
         />
         <DataStreamHandler id={id} />
       </>
@@ -66,6 +43,7 @@ export default async function ChatContainer({
         selectedVisibilityType="private"
         isReadonly={false}
         className={className}
+        isExpanded={false}
       />
       <DataStreamHandler id={id} />
     </>

@@ -9,7 +9,7 @@ export default function DashboardLayout({
 }) {
   return (
     <div className="flex flex-col w-full">
-      <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-background/60 px-6 backdrop-blur-lg">
+      <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-background px-6">
         <SidebarTrigger className="lg:hidden" />
         <div className="flex flex-1 items-center justify-between">
           <h1 className="text-xl font-semibold">Grow Dashboard</h1>
@@ -18,9 +18,7 @@ export default function DashboardLayout({
           </Button>
         </div>
       </header>
-      <main className="flex-1 space-y-4 p-6 sm:p-8 sm:pt-6 flex justify-center">
-        {children}
-      </main>
+      <div className="p-8">{children}</div>
     </div>
   );
 }

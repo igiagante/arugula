@@ -1,6 +1,8 @@
 "use client";
 
 import { PlantWithStrain } from "@/lib/db/queries/types/plant";
+import { useSidebar } from "@workspace/ui/components/sidebar";
+import { cn } from "@workspace/ui/lib/utils";
 import { useState } from "react";
 import { DeletePlantDialog } from "../delete-plant-dialog";
 import { PlantCard } from "../plant-card";
@@ -18,6 +20,7 @@ export function GridViewPlants({
   onEditPlant,
   onDeletePlant,
 }: GridViewPlantsProps) {
+  const { open: isSidebarOpen } = useSidebar();
   const [plantToDelete, setPlantToDelete] = useState<PlantWithStrain | null>(
     null
   );
@@ -39,7 +42,14 @@ export function GridViewPlants({
 
   return (
     <>
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+      <div
+        className={cn(
+          "grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4",
+          isSidebarOpen
+            ? "xl:grid-cols-3 2xl:grid-cols-4"
+            : "xl:grid-cols-4 2xl:grid-cols-6"
+        )}
+      >
         {plants.map((plant) => (
           <PlantCard
             key={`${plant.id}-${plant.customName}`}

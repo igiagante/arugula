@@ -1,7 +1,7 @@
 "use client";
 
-import { apiRequest, HttpMethods } from "@/app/api/client";
-import { CacheTags, createDynamicTag } from "@/app/api/tags";
+import { apiRequest, HttpMethods } from "@/app/(main)/api/client";
+import { CacheTags, createDynamicTag } from "@/app/(main)/api/tags";
 import { GridViewPlants } from "@/components/plants/views/grid-view-plants";
 import { ListViewPlants } from "@/components/plants/views/list-view-plants";
 import { GrowStages, ViewModes, viewModes } from "@/lib/constants";

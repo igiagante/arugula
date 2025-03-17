@@ -68,10 +68,14 @@ export function GrowCard({
 }: GrowCardProps) {
   const router = useRouter();
   return (
-    <Card className="flex flex-col overflow-hidden max-w-96">
+    <Card className="flex flex-col overflow-hidden sm:max-w-96 lg:min-w-80 max-h-[680px]">
       <CardHeader className="relative p-0">
         <div className="relative h-48">
-          <ImageWithFallback imageUrl={images[0] || ""} alt={name} />
+          <ImageWithFallback
+            imageUrl={images[0] || ""}
+            alt={name}
+            className="rounded-b-0"
+          />
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
           <div className="absolute bottom-0 w-full p-4">
             <CardTitle className="text-lg text-white">{name}</CardTitle>
@@ -87,53 +91,57 @@ export function GrowCard({
             <Badge variant={getStageBadgeVariant(stage)}>{stage}</Badge>
             <span className="text-sm text-muted-foreground">{progress}%</span>
           </div>
-          <StageProgress value={progress} stage={stage} />
+          <div className="flex my-2">
+            <StageProgress value={progress} stage={stage} />
+          </div>
         </div>
-        <div className="grid grid-cols-3 gap-3 text-sm">
-          <div className="flex items-center gap-2">
+        <div className="grid grid-cols-12 gap-2 text-sm">
+          <div className="col-span-6 flex items-center gap-1 overflow-hidden">
             {environment.light ? (
               <>
-                <Zap className="size-4 text-neutral-500" />
-                <span className="text-neutral-600">{environment.light}</span>
+                <Zap className="size-4 shrink-0 text-neutral-500" />
+                <span className="text-neutral-600 truncate whitespace-nowrap">
+                  {environment.light}
+                </span>
               </>
             ) : (
               <>
-                <AlertCircle className="size-4 text-amber-500" />
+                <AlertCircle className="size-4 shrink-0 text-amber-500" />
                 <span className="text-amber-600">No data</span>
               </>
             )}
           </div>
-          <div className="flex items-center gap-2">
+          <div className="col-span-3 flex items-center justify-center">
             {environment.temp ? (
-              <>
-                <Thermometer className="size-4 text-neutral-500" />
+              <div className="flex items-center gap-1">
+                <Thermometer className="size-4 shrink-0 text-neutral-500" />
                 <span className="text-neutral-600">{environment.temp}</span>
-              </>
+              </div>
             ) : (
               <>
-                <AlertCircle className="size-4 text-amber-500" />
+                <AlertCircle className="size-4 shrink-0 text-amber-500" />
                 <span className="text-amber-600">No data</span>
               </>
             )}
           </div>
-          <div className="flex items-center gap-2">
+          <div className="col-span-3 flex items-center justify-center">
             {environment.humidity ? (
-              <>
-                <Droplets className="size-4 text-neutral-500" />
+              <div className="flex items-center gap-1">
+                <Droplets className="size-4 shrink-0 text-neutral-500" />
                 <span className="text-neutral-600">{environment.humidity}</span>
-              </>
+              </div>
             ) : (
               <>
-                <AlertCircle className="size-4 text-amber-500" />
+                <AlertCircle className="size-4 shrink-0 text-amber-500" />
                 <span className="text-amber-600">No data</span>
               </>
             )}
           </div>
         </div>
-        <div className="space-y-3 rounded-lg bg-neutral-50 p-3">
+        <div className="space-y-3 rounded-lg bg-neutral-50 p-3 max-h-[280px] overflow-y-auto">
           {strains.map((strain, index) => (
             <div key={`${strain.name}-${index}`}>
-              {index > 0 && <Separator className="my-3" />}
+              {index > 0 && <Separator className="my-2 bg-neutral-200" />}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
@@ -146,8 +154,14 @@ export function GrowCard({
                 </div>
                 <div className="text-xs text-neutral-600">{strain.ratio}</div>
                 <div className="grid grid-cols-2 gap-2 text-xs text-neutral-600">
-                  <div>THC: {strain.thc}</div>
-                  <div>CBD: {strain.cbd}</div>
+                  <div>
+                    THC:{" "}
+                    {!isNaN(Number(strain.thc)) ? `${strain.thc}%` : strain.thc}
+                  </div>
+                  <div>
+                    CBD:{" "}
+                    {!isNaN(Number(strain.cbd)) ? `${strain.cbd}%` : strain.cbd}
+                  </div>
                 </div>
               </div>
             </div>

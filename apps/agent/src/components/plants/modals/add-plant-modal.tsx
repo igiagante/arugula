@@ -1,7 +1,7 @@
 "use client";
 
-import { apiRequest, HttpMethods } from "@/app/api/client";
-import { CacheTags, createDynamicTag } from "@/app/api/tags";
+import { apiRequest, HttpMethods } from "@/app/(main)/api/client";
+import { CacheTags, createDynamicTag } from "@/app/(main)/api/tags";
 import { GrowStages } from "@/lib/constants";
 import { Plant } from "@/lib/db/schemas/plant.schema";
 import { zodResolver } from "@hookform/resolvers/zod";

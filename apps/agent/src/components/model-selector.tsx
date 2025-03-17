@@ -2,7 +2,8 @@
 
 import { startTransition, useMemo, useOptimistic, useState } from "react";
 
-import { saveChatModelAsCookie } from "@/app/(chat)/actions";
+import { saveChatModelAsCookie } from "@/app/(main)/(chat)/actions";
+import { chatModels } from "@/lib/ai/models";
 import { Button } from "@workspace/ui/components/button";
 import {
   DropdownMenu,
@@ -10,7 +11,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@workspace/ui/components/dropdown-menu";
-import { chatModels } from "@/lib/ai/models";
 import { cn } from "@workspace/ui/lib/utils";
 
 import { CheckCircleFillIcon, ChevronDownIcon } from "./icons";

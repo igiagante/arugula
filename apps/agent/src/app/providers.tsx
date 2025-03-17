@@ -9,6 +9,8 @@ import {
 } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { ReactQueryStreamedHydration } from "@tanstack/react-query-next-experimental";
+import { SidebarProvider } from "@workspace/ui/components/sidebar";
+import { ThemeProvider } from "next-themes";
 import * as React from "react";
 
 function makeQueryClient() {
@@ -37,11 +39,20 @@ export function Providers(props: { children: React.ReactNode }) {
   const queryClient = getQueryClient();
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <ReactQueryStreamedHydration>
-        <NuqsAdapter>{props.children}</NuqsAdapter>
-      </ReactQueryStreamedHydration>
-      <ReactQueryDevtools initialIsOpen={false} />
-    </QueryClientProvider>
+    <ThemeProvider
+      attribute="class"
+      defaultTheme="system"
+      enableSystem
+      disableTransitionOnChange
+    >
+      <SidebarProvider defaultOpen={true}>
+        <QueryClientProvider client={queryClient}>
+          <ReactQueryStreamedHydration>
+            <NuqsAdapter>{props.children}</NuqsAdapter>
+          </ReactQueryStreamedHydration>
+          <ReactQueryDevtools initialIsOpen={false} />
+        </QueryClientProvider>
+      </SidebarProvider>
+    </ThemeProvider>
   );
 }
