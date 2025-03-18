@@ -34,21 +34,26 @@ import type { Control, UseFormSetValue } from "react-hook-form";
 import { apiRequest } from "@/app/(main)/api/client";
 import { CacheTags, createDynamicTag } from "@/app/(main)/api/tags";
 import { useOrganization } from "@clerk/nextjs";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, UseQueryResult } from "@tanstack/react-query";
 import { CreateGrowSchema } from "../forms/grow.schema";
 import { CreateIndoorModal } from "../indoor/create-indoor-modal";
+
 interface BasicDetailsStepProps {
+  growId?: string;
   control: Control<CreateGrowSchema>;
   growStages: readonly { label: string; value: string }[];
   growingMethods: readonly { label: string; value: string }[];
   setValue: UseFormSetValue<CreateGrowSchema>;
+  currentGrowId?: string;
 }
 
 export function BasicDetailsStep({
+  growId,
   control,
   growStages,
   growingMethods,
   setValue,
+  currentGrowId,
 }: BasicDetailsStepProps) {
   const [startDateOpen, setStartDateOpen] = useState(false);
   const [endDateOpen, setEndDateOpen] = useState(false);
@@ -56,18 +61,53 @@ export function BasicDetailsStep({
 
   const { organization } = useOrganization();
 
-  const { data: indoors, refetch } = useQuery({
+  const queryResult: UseQueryResult<Indoor[]> = useQuery({
     queryKey: [
       CacheTags.indoors,
       createDynamicTag(
         CacheTags.availableIndoorsByOrganizationId,
         organization?.id || ""
       ),
+      growId,
     ],
     queryFn: async () => {
-      return await apiRequest<Indoor[]>(`/api/indoors`);
+      let url = `/api/indoors`;
+      if (growId) {
+        url += `?growId=${growId}`;
+      }
+
+      console.log("Request URL:", url);
+
+      const response = (await apiRequest<Indoor[]>(url)) || [];
+
+      try {
+        const formValues = (control as any)._formValues;
+        const currentIndoorId = formValues?.indoorId;
+
+        console.log("currentIndoorId", currentIndoorId);
+        console.log("response", response);
+
+        if (
+          Array.isArray(response) &&
+          response.length > 0 &&
+          !currentIndoorId
+        ) {
+          setValue("indoorId", response[0]?.id || "");
+        }
+      } catch (e) {
+        console.error("Failed to initialize indoorId:", e);
+      }
+
+      return response;
     },
   });
+
+  const indoors = queryResult.data || [];
+  const refetch = queryResult.refetch;
+
+  console.log("growId value:", growId);
+  console.log("Type of growId:", typeof growId);
+  console.log("Is truthy?", Boolean(growId));
 
   return (
     <div className="space-y-6">
@@ -95,7 +135,7 @@ export function BasicDetailsStep({
                       <SelectValue placeholder="Select an indoor space" />
                     </SelectTrigger>
                     <SelectContent>
-                      {indoors && indoors.length > 0 ? (
+                      {indoors.length > 0 ? (
                         indoors.map((indoor) => (
                           <SelectItem key={indoor.id} value={indoor.id}>
                             {indoor.name}

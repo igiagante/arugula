@@ -1,4 +1,4 @@
-import { and, eq, inArray, not } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import { grow, growCollaborator, type Indoor, indoor } from "../schemas";
@@ -249,39 +249,56 @@ export async function getIndoorsByOrganizationId({ orgId }: { orgId: string }) {
 /**
  * Retrieves available indoors from a specific organization that can be used for a new grow
  * @param orgId - The organization ID
+ * @param growId - The grow ID being edited (optional)
  * @returns Array of available indoors
  */
 export async function getAvailableIndoorsByOrganizationId({
   orgId,
+  growId,
 }: {
   orgId: string;
+  growId?: string;
 }) {
   try {
-    // Get all indoors in the organization
+    // First get all indoors for the organization
     const allIndoors = await dbDrizzle
       .select()
       .from(indoor)
       .where(eq(indoor.organizationId, orgId));
 
-    // Get IDs of indoors that are being used in active grows
-    const activeIndoorIds = await dbDrizzle
-      .select({ indoorId: grow.indoorId })
+    // Get indoors that are currently being used by grows
+    const usedIndoors = await dbDrizzle
+      .select({
+        indoorId: grow.indoorId,
+        growId: grow.id,
+      })
       .from(grow)
-      .where(
-        and(
-          eq(grow.organizationId, orgId),
-          not(inArray(grow.stage, ["archived"]))
-        )
-      );
+      .where(eq(grow.organizationId, orgId));
 
-    // Filter out indoors that are being used in active grows
-    const availableIndoors = allIndoors.filter(
-      (ind) => !activeIndoorIds.some((active) => active.indoorId === ind.id)
-    );
+    // Get the indoor used by our grow if applicable
+    let ourGrowIndoorId = null;
+    if (growId) {
+      const [ourGrow] = usedIndoors.filter((item) => item.growId === growId);
+      if (ourGrow) {
+        ourGrowIndoorId = ourGrow.indoorId;
+      }
+    }
+
+    // Filter to only include available indoors plus our grow's indoor
+    const availableIndoors = allIndoors.filter((ind) => {
+      // Include if not used by any grow
+      const isUsed = usedIndoors.some((item) => item.indoorId === ind.id);
+      if (!isUsed) return true;
+
+      // Include if used by our grow
+      if (ind.id === ourGrowIndoorId) return true;
+
+      return false;
+    });
 
     return availableIndoors;
   } catch (error) {
-    console.error("Error retrieving available indoors:", error);
-    throw new Error("Failed to retrieve available indoors");
+    console.error("Error fetching available indoors:", error);
+    throw error;
   }
 }

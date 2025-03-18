@@ -1,10 +1,11 @@
+import { getAuthContext } from "@/lib/auth/auth-context";
 import {
   createIndoor,
   getAvailableIndoorsByOrganizationId,
 } from "@/lib/db/queries/indoors";
 import { createLamp } from "@/lib/db/queries/lamps";
-import { auth, getAuth } from "@clerk/nextjs/server";
-import { revalidateTag, unstable_cache } from "next/cache";
+import { getAuth } from "@clerk/nextjs/server";
+import { revalidateTag } from "next/cache";
 import { NextRequest, NextResponse } from "next/server";
 import { CacheTags, createDynamicTag } from "../tags";
 
@@ -12,47 +13,22 @@ import { CacheTags, createDynamicTag } from "../tags";
  * GET /api/indoors
  * Returns all indoor records for the authenticated user in the specified organization.
  */
-export async function GET(_request: NextRequest) {
-  const { userId, orgId } = await auth();
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const growId = searchParams.get("growId");
 
-  if (!userId) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const { orgId, error } = await getAuthContext();
+
+  if (error) {
+    return error;
   }
 
-  if (!orgId) {
-    return NextResponse.json(
-      { error: "Organization ID is required" },
-      { status: 400 }
-    );
-  }
+  const indoors = await getAvailableIndoorsByOrganizationId({
+    orgId,
+    growId: growId || undefined,
+  });
 
-  try {
-    const indoors = await unstable_cache(
-      async () => getAvailableIndoorsByOrganizationId({ orgId }),
-      [createDynamicTag(CacheTags.availableIndoorsByOrganizationId, orgId)],
-      {
-        revalidate: 3600, // Cache for 1 hour
-        tags: [
-          createDynamicTag(CacheTags.availableIndoorsByOrganizationId, orgId),
-        ],
-      }
-    )();
-
-    if (!indoors) {
-      return NextResponse.json(
-        { error: "Indoor records not found" },
-        { status: 404 }
-      );
-    }
-
-    return NextResponse.json(indoors, { status: 200 });
-  } catch (error) {
-    console.error("GET /api/indoors error:", error);
-    return NextResponse.json(
-      { error: "Internal Server Error" },
-      { status: 500 }
-    );
-  }
+  return Response.json(indoors);
 }
 
 /**

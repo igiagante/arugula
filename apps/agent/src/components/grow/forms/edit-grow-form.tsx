@@ -18,5 +18,6 @@ interface UpdateGrowFormProps {
 }
 
 export function UpdateGrowForm({ grow }: UpdateGrowFormProps) {
+  console.log("grow", grow);
   return <GrowForm grow={grow} />;
 }

@@ -246,6 +246,7 @@ export function GrowForm({ grow, onSuccess }: GrowFormProps) {
             noValidate
           >
             <GrowFormContent
+              growId={grow?.id}
               step={step}
               control={form.control}
               fieldArray={fieldArray}

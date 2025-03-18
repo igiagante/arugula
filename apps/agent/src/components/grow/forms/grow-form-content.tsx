@@ -12,6 +12,7 @@ import { SetupDetailsStep } from "../steps/setup-details-step";
 import { CreateGrowSchema } from "./grow.schema";
 
 interface GrowFormContentProps {
+  growId?: string;
   step: number;
   control: Control<CreateGrowSchema>;
   fieldArray: UseFieldArrayReturn<CreateGrowSchema, "substrate">;
@@ -27,6 +28,7 @@ interface GrowFormContentProps {
 }
 
 export function GrowFormContent({
+  growId,
   step,
   control,
   fieldArray,
@@ -43,6 +45,7 @@ export function GrowFormContent({
           growStages={growStages}
           growingMethods={growingMethods}
           setValue={setValue}
+          growId={growId}
         />
       )}
 

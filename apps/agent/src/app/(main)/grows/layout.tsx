@@ -18,7 +18,7 @@ export default function DashboardLayout({
           </Button>
         </div>
       </header>
-      <div className="p-8">{children}</div>
+      <div className="p-8 flex justify-center">{children}</div>
     </div>
   );
 }
