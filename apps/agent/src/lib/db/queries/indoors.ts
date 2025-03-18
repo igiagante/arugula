@@ -33,7 +33,7 @@ export async function createIndoor({
   co2,
   images,
   createdBy,
-  organizationId,
+  orgId,
 }: Omit<Indoor, "id" | "createdAt" | "updatedAt">) {
   try {
     // Drizzle's insert(...).values(...).returning() returns an array
@@ -50,7 +50,7 @@ export async function createIndoor({
         co2,
         images,
         createdBy, // references a text user ID from Clerk
-        organizationId, // references the organization ID
+        orgId, // references the organization ID
       })
       .returning(); // get the inserted row back
 
@@ -237,7 +237,7 @@ export async function getIndoorsByOrganizationId({ orgId }: { orgId: string }) {
     const indoors = await dbDrizzle
       .select()
       .from(indoor)
-      .where(eq(indoor.organizationId, orgId));
+      .where(eq(indoor.orgId, orgId));
 
     return indoors;
   } catch (error) {
@@ -264,7 +264,7 @@ export async function getAvailableIndoorsByOrganizationId({
     const allIndoors = await dbDrizzle
       .select()
       .from(indoor)
-      .where(eq(indoor.organizationId, orgId));
+      .where(eq(indoor.orgId, orgId));
 
     // Get indoors that are currently being used by grows
     const usedIndoors = await dbDrizzle

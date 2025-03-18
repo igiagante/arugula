@@ -73,17 +73,19 @@ export async function createUser({
   firstName,
   lastName,
   imageUrl,
+  orgId,
 }: {
   id: string;
   email: string;
   firstName: string;
   lastName: string;
   imageUrl: string;
+  orgId: string;
 }) {
   try {
     return await db
       .insert(user)
-      .values({ id, email, firstName, lastName, imageUrl });
+      .values({ id, email, firstName, lastName, imageUrl, orgId });
   } catch (error) {
     console.error("Failed to create user in database");
     throw error;
@@ -92,20 +94,12 @@ export async function createUser({
 
 export async function updateUser({
   id,
-  firstName,
-  lastName,
-  imageUrl,
+  ...data
 }: {
   id: string;
-  firstName: string;
-  lastName: string;
-  imageUrl: string;
-}) {
+} & Partial<Omit<User, "id">>) {
   try {
-    return await db
-      .update(user)
-      .set({ firstName, lastName, imageUrl })
-      .where(eq(user.id, id));
+    return await db.update(user).set(data).where(eq(user.id, id));
   } catch (error) {
     console.error("Failed to update user in database");
     throw error;

@@ -33,7 +33,7 @@ export async function seedIndoors(
       images: ["https://example.com/photo1.jpg"],
       notes: "This is a test indoor setup with high-quality LED lighting.",
       createdBy: userId,
-      organizationId: orgId,
+      orgId: orgId,
     })
     .returning();
 
@@ -68,7 +68,7 @@ export async function seedIndoors(
       images: ["https://example.com/photo1.jpg"],
       notes: "This is a test indoor setup with high-quality LED lighting.",
       createdBy: userId,
-      organizationId: orgId,
+      orgId: orgId,
     })
     .returning();
 

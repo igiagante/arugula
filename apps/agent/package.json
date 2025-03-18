@@ -19,7 +19,8 @@
     "db:up": "drizzle-kit up",
     "db:reset": "npx tsx src/lib/db/reset.ts",
     "db:check-seed-files": "npx tsx src/lib/db/check-seed-files.ts",
-    "db:seed": "npx tsx src/lib/db/seed/index.ts"
+    "db:seed": "npx tsx src/lib/db/seed/index.ts",
+    "db:setup": "npx tsx src/lib/db/setup.ts"
   },
   "dependencies": {
     "@ai-sdk/openai": "1.1.9",

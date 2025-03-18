@@ -25,7 +25,7 @@ export const indoor = pgTable("Indoor", {
   createdBy: text("createdBy")
     .notNull()
     .references(() => user.id, { onDelete: "restrict" }),
-  organizationId: text("organizationId")
+  orgId: text("orgId")
     .notNull()
     .references(() => organization.id, { onDelete: "restrict" }),
   createdAt: timestamp("createdAt", { withTimezone: true })

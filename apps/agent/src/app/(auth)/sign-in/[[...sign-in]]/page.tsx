@@ -8,10 +8,16 @@ export default function SignInPage() {
   const { resolvedTheme } = useTheme();
 
   return (
-    <SignIn
-      appearance={{
-        baseTheme: resolvedTheme === "dark" ? dark : undefined,
-      }}
-    />
+    <div className="flex h-screen items-center justify-center">
+      <SignIn
+        appearance={{
+          baseTheme: resolvedTheme === "dark" ? dark : undefined,
+          elements: {
+            rootBox: "mx-auto",
+            card: "bg-white",
+          },
+        }}
+      />
+    </div>
   );
 }

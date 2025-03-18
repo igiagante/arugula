@@ -3,6 +3,7 @@ import {
   boolean,
   index,
   pgTable,
+  text,
   timestamp,
   unique,
   uuid,
@@ -18,7 +19,7 @@ export const growCollaborator = pgTable(
     growId: uuid("growId")
       .notNull()
       .references(() => grow.id, { onDelete: "cascade" }),
-    userId: uuid("userId")
+    userId: text("userId")
       .notNull()
       .references(() => user.id, { onDelete: "restrict" }),
     role: varchar("role", {

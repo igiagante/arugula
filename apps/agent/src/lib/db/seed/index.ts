@@ -3,6 +3,7 @@ import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import { seedGrows } from "./grow-seed";
 import { seedIndoors } from "./indoor-seed";
+import { seedOrganizations } from "./organization-seed";
 import { seedPlants } from "./plant-seed";
 import { seedProducts } from "./product-seed";
 import { seedStrains } from "./strain-seed";
@@ -21,12 +22,19 @@ async function main() {
   try {
     console.log("🌱 Starting database seeding...");
 
-    // Seed users
-    const { users } = await seedUsers(db);
+    // Seed organization first
+    const { organizations } = await seedOrganizations(db);
+    if (!organizations?.[0]?.id) {
+      throw new Error("Failed to seed organization");
+    }
+    const orgId = organizations[0].id;
+    console.log("🏢 Organization seeded successfully");
+
+    // Seed users with the organization ID
+    const { users } = await seedUsers(db, orgId);
     if (!users) {
       throw new Error("Failed to seed user");
     }
-
     console.log("👤 Users seeded successfully");
 
     const seededUser = users[0];
@@ -34,20 +42,14 @@ async function main() {
       throw new Error("Failed to seed user");
     }
 
-    // Seed indoors and organization
-    const { indoors, organization: seededOrg } = await seedIndoors(
-      db,
-      seededUser.id,
-      "516e3958-1842-4219-bf07-2a515b86df04"
-    );
+    // Seed indoors
+    const { indoors } = await seedIndoors(db, seededUser.id, orgId);
 
-    if (!indoors || !seededOrg) {
-      throw new Error("Failed to seed indoor or organization");
+    if (!indoors) {
+      throw new Error("Failed to seed indoor");
     }
 
-    console.log(
-      `🏠 Indoors (${indoors.length}) and organization seeded successfully`
-    );
+    console.log(`🏠 Indoors (${indoors.length}) seeded successfully`);
 
     // Seed strains
     const { strainIds } = await seedStrains(db);
@@ -60,7 +62,7 @@ async function main() {
     // Seed grows
     const { growIds } = await seedGrows(
       db,
-      seededOrg.id,
+      orgId,
       indoors,
       users.map((u) => u?.id).filter((id): id is string => id !== undefined)
     );

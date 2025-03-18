@@ -33,7 +33,7 @@ export function createGrowView(
     indoor: firstRow.indoor || {
       id: "",
       name: "",
-      organizationId: "",
+      orgId: "",
       height: null,
       width: null,
       length: null,

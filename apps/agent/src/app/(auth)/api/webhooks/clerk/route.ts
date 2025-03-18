@@ -1,9 +1,8 @@
+import { createOrganization, createUser, updateUser } from "@/lib/db/queries";
 import {
-  createOrganization,
-  createUser,
-  getOrganizationByDomain,
-  updateUser,
-} from "@/lib/db/queries";
+  getOrganizationByHostname,
+  getOrganizationById,
+} from "@/lib/db/queries/organizations";
 import { getUserById } from "@/lib/db/queries/user";
 import { clerkClient, type WebhookEvent } from "@clerk/nextjs/server";
 import { headers } from "next/headers";
@@ -30,46 +29,36 @@ const addUserToOrganization = async (
   });
 };
 
-export async function POST(req: Request) {
-  const SIGNING_SECRET = process.env.SIGNING_SECRET;
+async function verifyWebhook(req: Request): Promise<WebhookEvent> {
+  const SIGNING_SECRET = process.env.CLERK_WEBHOOK_SECRET;
 
   if (!SIGNING_SECRET) {
     throw new Error(
-      "Error: Please add SIGNING_SECRET from Clerk Dashboard to .env or .env.local"
+      "Error: Please add CLERK_WEBHOOK_SECRET from Clerk Dashboard to .env or .env.local"
     );
   }
 
-  const wh = new Webhook(SIGNING_SECRET);
-
+  const wh = new Webhook(SIGNING_SECRET.trim());
   const headerPayload = await headers();
   const svix_id = headerPayload.get("svix-id");
   const svix_timestamp = headerPayload.get("svix-timestamp");
   const svix_signature = headerPayload.get("svix-signature");
 
   if (!svix_id || !svix_timestamp || !svix_signature) {
-    return new Response("Error: Missing Svix headers", {
-      status: 400,
-    });
+    throw new Error("Error: Missing Svix headers");
   }
 
-  const payload = await req.json();
-  const body = JSON.stringify(payload);
+  const body = await req.text();
 
-  let evt: WebhookEvent;
+  return wh.verify(body, {
+    "svix-id": svix_id,
+    "svix-timestamp": svix_timestamp,
+    "svix-signature": svix_signature,
+  }) as WebhookEvent;
+}
 
-  try {
-    evt = wh.verify(body, {
-      "svix-id": svix_id,
-      "svix-timestamp": svix_timestamp,
-      "svix-signature": svix_signature,
-    }) as WebhookEvent;
-  } catch (err) {
-    console.error("Error: Could not verify webhook:", err);
-    return new Response("Error: Verification error", {
-      status: 400,
-    });
-  }
-
+export async function POST(req: Request) {
+  const evt = await verifyWebhook(req);
   console.log("Webhook received:", evt.type);
 
   if (evt.type === "user.created") {
@@ -88,28 +77,24 @@ export async function POST(req: Request) {
         firstName: evt.data.first_name ?? "",
         lastName: evt.data.last_name ?? "",
         imageUrl: evt.data.image_url ?? "",
+        orgId: "",
       });
 
       console.log("User created successfully in database");
 
-      try {
-        const userEmail = evt.data.email_addresses[0]?.email_address ?? "";
+      const metadata = evt.data.public_metadata;
+      const hostname = metadata?.hostname as string;
 
-        const organization = await getOrganizationByDomain({
-          domain: userEmail.split("@")[1]!,
-        });
+      if (hostname) {
+        const organization = await getOrganizationByHostname(hostname);
 
         if (organization) {
           try {
-            try {
-              await addUserToOrganization(evt.data.id, organization.id);
-            } catch (err) {
-              console.error("Error: Failed to add user to organization", err);
-              return new Response("Error: Failed to add user to organization", {
-                status: 500,
-              });
-            }
-
+            await addUserToOrganization(evt.data.id, organization.id);
+            await updateUser({
+              id: evt.data.id,
+              orgId: organization.id,
+            });
             await updateOnboardingComplete(evt.data.id);
           } catch (err) {
             console.error("Error: Failed to update user in database", err);
@@ -118,18 +103,10 @@ export async function POST(req: Request) {
             });
           }
         }
-      } catch (error) {
-        console.error("Error: Failed to get organization by domain", error);
-        return new Response("Error: Failed to get organization by domain", {
-          status: 500,
-        });
       }
     } catch (err) {
-      console.error("Error details:", err);
-      console.error("Error: Failed to create user in database", err);
-      return new Response("Error: Failed to create user in database", {
-        status: 500,
-      });
+      console.error("Error handling user creation:", err);
+      throw err;
     }
   }
 
@@ -152,28 +129,30 @@ export async function POST(req: Request) {
   if (evt.type === "organization.created") {
     try {
       const userId = evt.data.created_by;
-
       if (!userId) {
         throw new Error("Created by user not found");
       }
 
       const user = await getUserById({ id: userId });
+      if (!user) {
+        throw new Error("User not found in database");
+      }
 
+      // Create organization with slug
       await createOrganization({
         id: evt.data.id,
-        domain: user?.email.split("@")[1]!,
-        slug: evt.data.slug,
         name: evt.data.name,
+        slug: evt.data.slug,
+        domain: user.email.split("@")[1]!, // Keep domain for backwards compatibility
       });
 
-      try {
-        await updateOnboardingComplete(user?.id ?? "");
-      } catch (err) {
-        console.error("Error: Failed to update user in database", err);
-        return new Response("Error: Failed to update user in database", {
-          status: 500,
-        });
-      }
+      // Update user's organization
+      await updateUser({
+        id: user.id,
+        orgId: evt.data.id,
+      });
+
+      await updateOnboardingComplete(user.id);
     } catch (err) {
       console.error("Error: Failed to create organization in database", err);
       return new Response("Error: Failed to create organization in database", {
@@ -182,5 +161,74 @@ export async function POST(req: Request) {
     }
   }
 
+  if (evt.type === "organizationMembership.created") {
+    // Add a user to an organization in your database
+    const { organization, public_user_data } = evt.data;
+
+    // Get the user from your database
+    const user = await getUserById({ id: public_user_data.user_id });
+
+    if (user) {
+      // Find the organization in your database
+      const org = await getOrganizationById(organization.id);
+
+      if (org) {
+        // Connect the user to the organization
+        await updateUser({
+          id: user.id,
+          orgId: org.id,
+        });
+      }
+    }
+  }
+
   return new Response("Webhook received", { status: 200 });
 }
+
+// export async function POST(request: Request) {
+//   const headersList = await headers();
+//   const rawBody = await request.text();
+
+//   try {
+//     const secret = process.env.CLERK_WEBHOOK_SECRET;
+//     if (!secret) {
+//       throw new Error("Missing CLERK_WEBHOOK_SECRET");
+//     }
+
+//     // Get the full signature string
+//     const svix_signature = headersList.get("svix-signature");
+//     if (!svix_signature) {
+//       throw new Error("Missing svix-signature header");
+//     }
+
+//     // Create webhook instance with trimmed secret
+//     const wh = new Webhook(secret.trim());
+
+//     // Construct headers object exactly as received
+//     const svixHeaders = {
+//       "svix-id": headersList.get("svix-id") || "",
+//       "svix-timestamp": headersList.get("svix-timestamp") || "",
+//       "svix-signature": svix_signature,
+//     };
+
+//     // Log exact values being used (for debugging)
+//     console.log("Verification attempt with:", {
+//       bodyLength: rawBody.length,
+//       timestamp: svixHeaders["svix-timestamp"],
+//       signatureStart: svix_signature.substring(0, 20),
+//     });
+
+//     // Verify without any body modifications
+//     const payload = wh.verify(rawBody, svixHeaders);
+
+//     return new Response(JSON.stringify({ success: true }), {
+//       headers: { "Content-Type": "application/json" },
+//       status: 200,
+//     });
+//   } catch (error: any) {
+//     console.error("Verification failed:", error.message);
+//     return new Response(JSON.stringify({ error: error.message }), {
+//       status: 400,
+//     });
+//   }
+// }

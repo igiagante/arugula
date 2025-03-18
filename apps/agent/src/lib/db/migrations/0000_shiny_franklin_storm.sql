@@ -1,3 +1,4 @@
+CREATE TYPE "public"."user_role" AS ENUM('user', 'admin');--> statement-breakpoint
 CREATE TABLE "Chat" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"createdAt" timestamp NOT NULL,
@@ -8,6 +9,17 @@ CREATE TABLE "Chat" (
 	"visibility" varchar DEFAULT 'private' NOT NULL
 );
 --> statement-breakpoint
+CREATE TABLE "GrowCollaborator" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"growId" uuid NOT NULL,
+	"userId" uuid NOT NULL,
+	"role" varchar NOT NULL,
+	"archived" boolean DEFAULT false NOT NULL,
+	"createdAt" timestamp with time zone DEFAULT now() NOT NULL,
+	"updatedAt" timestamp with time zone DEFAULT now() NOT NULL,
+	CONSTRAINT "GrowCollaborator_userId_growId_unique" UNIQUE("userId","growId")
+);
+--> statement-breakpoint
 CREATE TABLE "Document" (
 	"id" uuid DEFAULT gen_random_uuid() NOT NULL,
 	"createdAt" timestamp NOT NULL,
@@ -16,6 +28,19 @@ CREATE TABLE "Document" (
 	"text" varchar DEFAULT 'text' NOT NULL,
 	"userId" text NOT NULL,
 	CONSTRAINT "Document_id_createdAt_pk" PRIMARY KEY("id","createdAt")
+);
+--> statement-breakpoint
+CREATE TABLE "Suggestion" (
+	"id" uuid DEFAULT gen_random_uuid() NOT NULL,
+	"documentId" uuid NOT NULL,
+	"documentCreatedAt" timestamp NOT NULL,
+	"originalText" text NOT NULL,
+	"suggestedText" text NOT NULL,
+	"description" text,
+	"isResolved" boolean DEFAULT false NOT NULL,
+	"userId" text NOT NULL,
+	"createdAt" timestamp NOT NULL,
+	CONSTRAINT "Suggestion_id_pk" PRIMARY KEY("id")
 );
 --> statement-breakpoint
 CREATE TABLE "Grow" (
@@ -37,17 +62,6 @@ CREATE TABLE "Grow" (
 	"updatedAt" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "GrowCollaborator" (
-	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
-	"growId" uuid NOT NULL,
-	"userId" text NOT NULL,
-	"role" varchar NOT NULL,
-	"archived" boolean DEFAULT false NOT NULL,
-	"createdAt" timestamp with time zone DEFAULT now() NOT NULL,
-	"updatedAt" timestamp with time zone DEFAULT now() NOT NULL,
-	CONSTRAINT "GrowCollaborator_userId_growId_unique" UNIQUE("userId","growId")
-);
---> statement-breakpoint
 CREATE TABLE "Indoor" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"name" text NOT NULL,
@@ -61,6 +75,7 @@ CREATE TABLE "Indoor" (
 	"images" text[],
 	"notes" text,
 	"createdBy" text NOT NULL,
+	"orgId" text NOT NULL,
 	"createdAt" timestamp with time zone DEFAULT now() NOT NULL,
 	"updatedAt" timestamp with time zone DEFAULT now() NOT NULL
 );
@@ -86,11 +101,20 @@ CREATE TABLE "Message" (
 	"createdAt" timestamp NOT NULL
 );
 --> statement-breakpoint
+CREATE TABLE "Vote" (
+	"chatId" uuid NOT NULL,
+	"messageId" uuid NOT NULL,
+	"isUpvoted" boolean NOT NULL,
+	CONSTRAINT "Vote_chatId_messageId_pk" PRIMARY KEY("chatId","messageId")
+);
+--> statement-breakpoint
 CREATE TABLE "Organization" (
 	"id" text PRIMARY KEY NOT NULL,
 	"domain" text NOT NULL,
 	"slug" text NOT NULL,
 	"name" text NOT NULL,
+	"createdAt" timestamp with time zone DEFAULT now() NOT NULL,
+	"updatedAt" timestamp with time zone DEFAULT now() NOT NULL,
 	CONSTRAINT "Organization_slug_unique" UNIQUE("slug")
 );
 --> statement-breakpoint
@@ -99,6 +123,8 @@ CREATE TABLE "Plant" (
 	"growId" uuid NOT NULL,
 	"strainId" uuid,
 	"customName" text NOT NULL,
+	"notes" text,
+	"images" text[],
 	"stage" text DEFAULT 'seedling',
 	"archived" boolean DEFAULT false NOT NULL,
 	"potSize" numeric(5, 2),
@@ -130,11 +156,30 @@ CREATE TABLE "Product" (
 	"updatedAt" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
+CREATE TABLE "TaskProduct" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"taskId" uuid NOT NULL,
+	"productId" uuid NOT NULL,
+	"quantity" numeric(10, 2),
+	"unit" text,
+	"createdAt" timestamp with time zone DEFAULT now() NOT NULL,
+	"updatedAt" timestamp with time zone DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
 CREATE TABLE "SensorReading" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"indoorId" uuid NOT NULL,
 	"recordedAt" timestamp with time zone DEFAULT now(),
 	"data" jsonb NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE "Site" (
+	"id" text PRIMARY KEY NOT NULL,
+	"name" text NOT NULL,
+	"description" text,
+	"orgId" text NOT NULL,
+	"createdAt" timestamp with time zone DEFAULT now() NOT NULL,
+	"updatedAt" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "Strain" (
@@ -158,19 +203,6 @@ CREATE TABLE "Strain" (
 	"images" text[]
 );
 --> statement-breakpoint
-CREATE TABLE "Suggestion" (
-	"id" uuid DEFAULT gen_random_uuid() NOT NULL,
-	"documentId" uuid NOT NULL,
-	"documentCreatedAt" timestamp NOT NULL,
-	"originalText" text NOT NULL,
-	"suggestedText" text NOT NULL,
-	"description" text,
-	"isResolved" boolean DEFAULT false NOT NULL,
-	"userId" text NOT NULL,
-	"createdAt" timestamp NOT NULL,
-	CONSTRAINT "Suggestion_id_pk" PRIMARY KEY("id")
-);
---> statement-breakpoint
 CREATE TABLE "Task" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"taskTypeId" text NOT NULL,
@@ -189,16 +221,6 @@ CREATE TABLE "TaskPlant" (
 	"plantId" uuid NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "TaskProduct" (
-	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
-	"taskId" uuid NOT NULL,
-	"productId" uuid NOT NULL,
-	"quantity" numeric(10, 2),
-	"unit" text,
-	"createdAt" timestamp with time zone DEFAULT now() NOT NULL,
-	"updatedAt" timestamp with time zone DEFAULT now() NOT NULL
-);
---> statement-breakpoint
 CREATE TABLE "TaskType" (
 	"id" text PRIMARY KEY NOT NULL,
 	"label" text NOT NULL,
@@ -214,42 +236,42 @@ CREATE TABLE "User" (
 	"firstName" text DEFAULT '' NOT NULL,
 	"lastName" text DEFAULT '' NOT NULL,
 	"imageUrl" text DEFAULT '' NOT NULL,
+	"role" "user_role" DEFAULT 'user' NOT NULL,
 	"preferences" jsonb,
+	"orgId" text NOT NULL,
+	"createdAt" timestamp with time zone DEFAULT now() NOT NULL,
+	"updatedAt" timestamp with time zone DEFAULT now() NOT NULL,
 	CONSTRAINT "User_email_unique" UNIQUE("email")
-);
---> statement-breakpoint
-CREATE TABLE "Vote" (
-	"chatId" uuid NOT NULL,
-	"messageId" uuid NOT NULL,
-	"isUpvoted" boolean NOT NULL,
-	CONSTRAINT "Vote_chatId_messageId_pk" PRIMARY KEY("chatId","messageId")
 );
 --> statement-breakpoint
 ALTER TABLE "Chat" ADD CONSTRAINT "Chat_userId_User_id_fk" FOREIGN KEY ("userId") REFERENCES "public"."User"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "Chat" ADD CONSTRAINT "Chat_organizationId_Organization_id_fk" FOREIGN KEY ("organizationId") REFERENCES "public"."Organization"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "Document" ADD CONSTRAINT "Document_userId_User_id_fk" FOREIGN KEY ("userId") REFERENCES "public"."User"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "Grow" ADD CONSTRAINT "Grow_indoorId_Indoor_id_fk" FOREIGN KEY ("indoorId") REFERENCES "public"."Indoor"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "Grow" ADD CONSTRAINT "Grow_organizationId_Organization_id_fk" FOREIGN KEY ("organizationId") REFERENCES "public"."Organization"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "GrowCollaborator" ADD CONSTRAINT "GrowCollaborator_growId_Grow_id_fk" FOREIGN KEY ("growId") REFERENCES "public"."Grow"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "GrowCollaborator" ADD CONSTRAINT "GrowCollaborator_userId_User_id_fk" FOREIGN KEY ("userId") REFERENCES "public"."User"("id") ON DELETE restrict ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "Document" ADD CONSTRAINT "Document_userId_User_id_fk" FOREIGN KEY ("userId") REFERENCES "public"."User"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "Suggestion" ADD CONSTRAINT "Suggestion_userId_User_id_fk" FOREIGN KEY ("userId") REFERENCES "public"."User"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "Suggestion" ADD CONSTRAINT "Suggestion_documentId_documentCreatedAt_Document_id_createdAt_fk" FOREIGN KEY ("documentId","documentCreatedAt") REFERENCES "public"."Document"("id","createdAt") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "Grow" ADD CONSTRAINT "Grow_indoorId_Indoor_id_fk" FOREIGN KEY ("indoorId") REFERENCES "public"."Indoor"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "Grow" ADD CONSTRAINT "Grow_organizationId_Organization_id_fk" FOREIGN KEY ("organizationId") REFERENCES "public"."Organization"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "Indoor" ADD CONSTRAINT "Indoor_createdBy_User_id_fk" FOREIGN KEY ("createdBy") REFERENCES "public"."User"("id") ON DELETE restrict ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "Indoor" ADD CONSTRAINT "Indoor_orgId_Organization_id_fk" FOREIGN KEY ("orgId") REFERENCES "public"."Organization"("id") ON DELETE restrict ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "Lamp" ADD CONSTRAINT "Lamp_indoorId_Indoor_id_fk" FOREIGN KEY ("indoorId") REFERENCES "public"."Indoor"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "Message" ADD CONSTRAINT "Message_chatId_Chat_id_fk" FOREIGN KEY ("chatId") REFERENCES "public"."Chat"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "Vote" ADD CONSTRAINT "Vote_chatId_Chat_id_fk" FOREIGN KEY ("chatId") REFERENCES "public"."Chat"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "Vote" ADD CONSTRAINT "Vote_messageId_Message_id_fk" FOREIGN KEY ("messageId") REFERENCES "public"."Message"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "Plant" ADD CONSTRAINT "Plant_growId_Grow_id_fk" FOREIGN KEY ("growId") REFERENCES "public"."Grow"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "Plant" ADD CONSTRAINT "Plant_strainId_Strain_id_fk" FOREIGN KEY ("strainId") REFERENCES "public"."Strain"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "PlantNote" ADD CONSTRAINT "PlantNote_plantId_Plant_id_fk" FOREIGN KEY ("plantId") REFERENCES "public"."Plant"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "TaskProduct" ADD CONSTRAINT "TaskProduct_taskId_Task_id_fk" FOREIGN KEY ("taskId") REFERENCES "public"."Task"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "TaskProduct" ADD CONSTRAINT "TaskProduct_productId_Product_id_fk" FOREIGN KEY ("productId") REFERENCES "public"."Product"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "SensorReading" ADD CONSTRAINT "SensorReading_indoorId_Indoor_id_fk" FOREIGN KEY ("indoorId") REFERENCES "public"."Indoor"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "Suggestion" ADD CONSTRAINT "Suggestion_userId_User_id_fk" FOREIGN KEY ("userId") REFERENCES "public"."User"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "Suggestion" ADD CONSTRAINT "Suggestion_documentId_documentCreatedAt_Document_id_createdAt_fk" FOREIGN KEY ("documentId","documentCreatedAt") REFERENCES "public"."Document"("id","createdAt") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "Site" ADD CONSTRAINT "Site_orgId_Organization_id_fk" FOREIGN KEY ("orgId") REFERENCES "public"."Organization"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "Task" ADD CONSTRAINT "Task_taskTypeId_TaskType_id_fk" FOREIGN KEY ("taskTypeId") REFERENCES "public"."TaskType"("id") ON DELETE restrict ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "Task" ADD CONSTRAINT "Task_growId_Grow_id_fk" FOREIGN KEY ("growId") REFERENCES "public"."Grow"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "Task" ADD CONSTRAINT "Task_userId_User_id_fk" FOREIGN KEY ("userId") REFERENCES "public"."User"("id") ON DELETE restrict ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "TaskPlant" ADD CONSTRAINT "TaskPlant_taskId_Task_id_fk" FOREIGN KEY ("taskId") REFERENCES "public"."Task"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "TaskPlant" ADD CONSTRAINT "TaskPlant_plantId_Plant_id_fk" FOREIGN KEY ("plantId") REFERENCES "public"."Plant"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "TaskProduct" ADD CONSTRAINT "TaskProduct_taskId_Task_id_fk" FOREIGN KEY ("taskId") REFERENCES "public"."Task"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "TaskProduct" ADD CONSTRAINT "TaskProduct_productId_Product_id_fk" FOREIGN KEY ("productId") REFERENCES "public"."Product"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "Vote" ADD CONSTRAINT "Vote_chatId_Chat_id_fk" FOREIGN KEY ("chatId") REFERENCES "public"."Chat"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "Vote" ADD CONSTRAINT "Vote_messageId_Message_id_fk" FOREIGN KEY ("messageId") REFERENCES "public"."Message"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
-CREATE INDEX "grow_organizationId_idx" ON "Grow" USING btree ("organizationId");--> statement-breakpoint
+ALTER TABLE "User" ADD CONSTRAINT "User_orgId_Organization_id_fk" FOREIGN KEY ("orgId") REFERENCES "public"."Organization"("id") ON DELETE cascade ON UPDATE cascade;--> statement-breakpoint
 CREATE INDEX "growCollaborator_userId_idx" ON "GrowCollaborator" USING btree ("userId");--> statement-breakpoint
-CREATE INDEX "growCollaborator_growId_idx" ON "GrowCollaborator" USING btree ("growId");
+CREATE INDEX "growCollaborator_growId_idx" ON "GrowCollaborator" USING btree ("growId");--> statement-breakpoint
+CREATE INDEX "grow_organizationId_idx" ON "Grow" USING btree ("organizationId");

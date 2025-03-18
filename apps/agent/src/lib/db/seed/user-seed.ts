@@ -1,7 +1,7 @@
 import { user } from "../schemas";
 import { DrizzleClient } from "../types";
 
-export async function seedUsers(db: DrizzleClient) {
+export async function seedUsers(db: DrizzleClient, orgId: string) {
   const userId = "user_2tMsS1D6OD8KYB9GQxWHo6as1IX";
   const email = "igiagante@gmail.com";
   const imageUrl = "https://i.pravatar.cc/150?img=1";
@@ -14,6 +14,7 @@ export async function seedUsers(db: DrizzleClient) {
       firstName: "Nachito",
       lastName: "Giagante",
       imageUrl,
+      orgId,
       preferences: {
         measurements: {
           system: "metric",
@@ -46,6 +47,7 @@ export async function seedUsers(db: DrizzleClient) {
       firstName: "Nachito",
       lastName: "Giagante",
       imageUrl: imageUrlTwo || "",
+      orgId,
       preferences: {
         measurements: {
           system: "metric",

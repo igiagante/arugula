@@ -54,7 +54,7 @@ const createIndoorPayload = (
     images: uploadedImageUrls?.length ? uploadedImageUrls : null,
     notes: formData.notes || null,
     createdBy: userId || "anonymous",
-    organizationId,
+    orgId: organizationId,
     temperature: null,
     humidity: null,
     co2: null,
