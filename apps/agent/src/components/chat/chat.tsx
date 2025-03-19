@@ -5,7 +5,7 @@ import { useChat } from "ai/react";
 import { useEffect, useState } from "react";
 import useSWR, { useSWRConfig } from "swr";
 
-import { ChatHeader } from "@/components/chat-header";
+import { ChatHeader } from "@/components/chat/chat-header";
 import type { Vote } from "@/lib/db/schemas";
 import { fetcher, generateUUID } from "@/lib/utils";
 
@@ -16,10 +16,10 @@ import { useSidebar } from "@workspace/ui/components/sidebar";
 import { cn } from "@workspace/ui/lib/utils";
 import { MessageCircle, X } from "lucide-react";
 import { toast } from "sonner";
-import { Artifact } from "./artifact";
-import { Messages } from "./messages";
-import { MultimodalInput } from "./multimodal-input";
-import type { VisibilityType } from "./visibility-selector";
+import { Artifact } from "../artifact/artifact";
+import { Messages } from "../messages/messages";
+import { MultimodalInput } from "../multimodal-input";
+import type { VisibilityType } from "../visibility-selector";
 
 export function Chat({
   id,

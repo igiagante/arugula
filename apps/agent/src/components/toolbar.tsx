@@ -28,8 +28,8 @@ import {
 import { useOnClickOutside } from "usehooks-ts";
 
 import type { UseChatHelpers } from "ai/react";
-import { artifactDefinitions, type ArtifactKind } from "./artifact";
-import type { ArtifactToolbarItem } from "./create-artifact";
+import { artifactDefinitions, type ArtifactKind } from "./artifact/artifact";
+import type { ArtifactToolbarItem } from "./artifact/create-artifact";
 import { ArrowUpIcon, StopIcon, SummarizeIcon } from "./icons";
 
 type ToolProps = {

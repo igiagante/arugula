@@ -1,5 +1,5 @@
 import { textDocumentHandler } from "@/artifacts/text/server";
-import type { ArtifactKind } from "@/components/artifact";
+import type { ArtifactKind } from "@/components/artifact/artifact";
 import { saveDocument } from "@/lib/db/queries";
 import type { Document } from "@/lib/db/schemas";
 import type { User } from "@clerk/nextjs/server";

@@ -7,8 +7,8 @@ import {
 } from "prosemirror-view";
 import { createRoot } from "react-dom/client";
 
-import type { ArtifactKind } from "@/components/artifact";
-import { Suggestion as PreviewSuggestion } from "@/components/suggestion";
+import type { ArtifactKind } from "@/components/artifact/artifact";
+import { Suggestion as PreviewSuggestion } from "@/components/suggestions/suggestion";
 import type { Suggestion } from "@/lib/db/schemas";
 
 export interface UISuggestion extends Suggestion {

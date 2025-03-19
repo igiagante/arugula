@@ -4,7 +4,7 @@ import { and, asc, desc, eq, gt, gte, inArray } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 
-import type { ArtifactKind } from "@/components/artifact";
+import type { ArtifactKind } from "@/components/artifact/artifact";
 import {
   chat,
   document,

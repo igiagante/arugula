@@ -1,6 +1,6 @@
-import { Artifact } from "@/components/create-artifact";
+import { Artifact } from "@/components/artifact/create-artifact";
 import { DiffView } from "@/components/diffview";
-import { DocumentSkeleton } from "@/components/document-skeleton";
+import { DocumentSkeleton } from "@/components/document/document-skeleton";
 import {
   ClockRewind,
   CopyIcon,

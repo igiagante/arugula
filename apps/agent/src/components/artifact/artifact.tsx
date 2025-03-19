@@ -18,12 +18,12 @@ import {
 } from "react";
 import useSWR, { useSWRConfig } from "swr";
 import { useDebounceCallback, useWindowSize } from "usehooks-ts";
+import { MultimodalInput } from "../multimodal-input";
+import { Toolbar } from "../toolbar";
+import { VersionFooter } from "../version-footer";
 import { ArtifactActions } from "./artifact-actions";
 import { ArtifactCloseButton } from "./artifact-close-button";
 import { ArtifactMessages } from "./artifact-messages";
-import { MultimodalInput } from "./multimodal-input";
-import { Toolbar } from "./toolbar";
-import { VersionFooter } from "./version-footer";
 // import { useSidebar } from './ui/sidebar';
 import { useArtifact } from "@/hooks/use-artifact";
 

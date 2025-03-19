@@ -14,7 +14,7 @@ import {
 } from "@workspace/ui/components/tooltip";
 import equal from "fast-deep-equal";
 import { memo } from "react";
-import { CopyIcon, ThumbDownIcon, ThumbUpIcon } from "./icons";
+import { CopyIcon, ThumbDownIcon, ThumbUpIcon } from "../icons";
 
 export function PureMessageActions({
   chatId,

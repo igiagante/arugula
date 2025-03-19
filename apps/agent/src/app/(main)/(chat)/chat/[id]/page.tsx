@@ -1,8 +1,8 @@
 import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
 
-import { Chat } from "@/components/chat";
-import { DataStreamHandler } from "@/components/data-stream-handler";
+import { DataStreamHandler } from "@/components/artifact/data-stream-handler";
+import { Chat } from "@/components/chat/chat";
 import { DEFAULT_CHAT_MODEL } from "@/lib/ai/models";
 import { getChatById, getMessagesByChatId } from "@/lib/db/queries";
 import { convertToUIMessages } from "@/lib/utils";

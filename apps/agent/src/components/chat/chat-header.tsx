@@ -12,8 +12,11 @@ import {
   TooltipTrigger,
 } from "@workspace/ui/components/tooltip";
 import { memo } from "react";
-import { PlusIcon } from "./icons";
-import { VisibilitySelector, type VisibilityType } from "./visibility-selector";
+import { PlusIcon } from "../icons";
+import {
+  VisibilitySelector,
+  type VisibilityType,
+} from "../visibility-selector";
 
 function PureChatHeader({
   chatId,

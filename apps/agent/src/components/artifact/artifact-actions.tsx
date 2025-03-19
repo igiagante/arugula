@@ -6,7 +6,7 @@ import {
 } from "@workspace/ui/components/tooltip";
 import { type Dispatch, memo, type SetStateAction, useState } from "react";
 import { artifactDefinitions, type UIArtifact } from "./artifact";
-import type { ArtifactActionContext } from "./create-artifact";
+import type { ArtifactAction, ArtifactActionContext } from "./create-artifact";
 
 import { cn } from "@workspace/ui/lib/utils";
 import { toast } from "sonner";
@@ -52,7 +52,7 @@ function PureArtifactActions({
 
   return (
     <div className="flex flex-row gap-1">
-      {artifactDefinition.actions.map((action) => (
+      {artifactDefinition.actions.map((action: ArtifactAction) => (
         <Tooltip key={action.description}>
           <TooltipTrigger asChild>
             <Button

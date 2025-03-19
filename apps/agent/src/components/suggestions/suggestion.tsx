@@ -6,11 +6,11 @@ import { useWindowSize } from "usehooks-ts";
 
 import type { UISuggestion } from "@/lib/editor/suggestions";
 
-import { CrossIcon, MessageIcon } from "./icons";
+import { CrossIcon, MessageIcon } from "../icons";
 
-import type { ArtifactKind } from "./artifact";
-import { cn } from "@workspace/ui/lib/utils";
 import { Button } from "@workspace/ui/components/button";
+import { cn } from "@workspace/ui/lib/utils";
+import type { ArtifactKind } from "../artifact/artifact";
 export const Suggestion = ({
   suggestion,
   onApply,

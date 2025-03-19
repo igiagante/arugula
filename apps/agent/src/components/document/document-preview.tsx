@@ -11,11 +11,11 @@ import {
   useRef,
 } from "react";
 import useSWR from "swr";
-import type { UIArtifact } from "./artifact";
+import type { UIArtifact } from "../artifact/artifact";
+import { FileIcon, FullscreenIcon, LoaderIcon } from "../icons";
+import { Editor } from "../text-editor";
 import { DocumentToolCall, DocumentToolResult } from "./document";
 import { InlineDocumentSkeleton } from "./document-skeleton";
-import { FileIcon, FullscreenIcon, LoaderIcon } from "./icons";
-import { Editor } from "./text-editor";
 
 import { useArtifact } from "@/hooks/use-artifact";
 import equal from "fast-deep-equal";

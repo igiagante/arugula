@@ -1,4 +1,4 @@
-import type { ArtifactKind } from "@/components/artifact";
+import type { ArtifactKind } from "@/components/artifact/artifact";
 import {
   deleteDocumentsByIdAfterTimestamp,
   getDocumentsById,

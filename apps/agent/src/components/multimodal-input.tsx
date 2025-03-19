@@ -28,7 +28,7 @@ import { Textarea } from "@workspace/ui/components/textarea";
 import equal from "fast-deep-equal";
 import { ArrowUpIcon, PaperclipIcon, StopIcon } from "./icons";
 import { PreviewAttachment } from "./preview-attachment";
-import { SuggestedActions } from "./suggested-actions";
+import { SuggestedActions } from "./suggestions/suggested-actions";
 
 function PureMultimodalInput({
   chatId,

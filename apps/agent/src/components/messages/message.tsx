@@ -8,12 +8,12 @@ import { memo, useState } from "react";
 import type { Vote } from "@/lib/db/schemas";
 
 import equal from "fast-deep-equal";
-import { DocumentToolCall, DocumentToolResult } from "./document";
-import { PencilEditIcon, SparklesIcon } from "./icons";
-import { Markdown } from "./markdown";
+import { DocumentToolCall, DocumentToolResult } from "../document/document";
+import { PencilEditIcon, SparklesIcon } from "../icons";
+import { Markdown } from "../markdown";
+import { PreviewAttachment } from "../preview-attachment";
+import { Weather } from "../weather";
 import { MessageActions } from "./message-actions";
-import { PreviewAttachment } from "./preview-attachment";
-import { Weather } from "./weather";
 
 import { Button } from "@workspace/ui/components/button";
 import {
@@ -22,7 +22,7 @@ import {
   TooltipTrigger,
 } from "@workspace/ui/components/tooltip";
 import { cn } from "@workspace/ui/lib/utils";
-import { DocumentPreview } from "./document-preview";
+import { DocumentPreview } from "../document/document-preview";
 import { MessageEditor } from "./message-editor";
 import { MessageReasoning } from "./message-reasoning";
 
