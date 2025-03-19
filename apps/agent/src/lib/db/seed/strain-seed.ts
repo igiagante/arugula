@@ -1,6 +1,5 @@
 import { uploadImageToS3ForSeed } from "@/lib/s3/s3-upload";
-import { mapImages } from "@/lib/utils";
-import fs, { readFileSync } from "fs";
+import { loadImageFile } from "@/lib/utils/image-utils";
 import path from "path";
 import postgres from "postgres";
 import { strain } from "../schemas";
@@ -12,41 +11,13 @@ export async function seedStrains(db: DrizzleClient) {
 
   try {
     // Upload sample images to S3 and get their keys
-    const imagePath = path.join(
-      process.cwd(),
-      "src/lib/db/seed/images/1024.jpg"
+    const imageFile = loadImageFile(
+      path.join(process.cwd(), "src/lib/db/seed/images/1024.jpg")
     );
 
-    // Check if file exists before trying to read it
-    if (!fs.existsSync(imagePath)) {
-      console.error(`Image file not found at: ${imagePath}`);
-      throw new Error(`Image file not found: ${imagePath}`);
-    }
-
-    const imageBuffer = readFileSync(imagePath);
-    const imageFile = {
-      buffer: imageBuffer,
-      name: "1024.jpg",
-      type: "image/jpeg",
-    };
-
-    const imagePath2 = path.join(
-      process.cwd(),
-      "src/lib/db/seed/images/gsc.jpg"
+    const imageFile2 = loadImageFile(
+      path.join(process.cwd(), "src/lib/db/seed/images/gsc.jpg")
     );
-
-    // Check if file exists before trying to read it
-    if (!fs.existsSync(imagePath2)) {
-      console.error(`Image file not found at: ${imagePath2}`);
-      throw new Error(`Image file not found: ${imagePath2}`);
-    }
-
-    const imageBuffer2 = readFileSync(imagePath2);
-    const imageFile2 = {
-      buffer: imageBuffer2,
-      name: "gsc.jpg",
-      type: "image/jpeg",
-    };
 
     // Upload images and get S3 keys
     const _1024_image = await uploadImageToS3ForSeed(imageFile);
@@ -94,20 +65,10 @@ export async function seedStrains(db: DrizzleClient) {
       images: [_gsc_image], // Store the S3 key
     };
 
-    // Map the S3 keys to signed URLs for the returned strains
-    const mappedStrain1024 = await mapImages({
-      ...strain1024,
-      images: strain1024.images || [],
-    });
-    const mappedStrainGSC = await mapImages({
-      ...strainGSC,
-      images: strainGSC.images || [],
-    });
-
-    // Store S3 keys in the database
+    // Store S3 keys directly in the database, without mapping to signed URLs
     const [strain1024DB, strainGSCDB] = await db
       .insert(strain)
-      .values([mappedStrain1024, mappedStrainGSC])
+      .values([strain1024, strainGSC])
       .returning();
 
     return {

@@ -315,6 +315,7 @@ export async function getGrowByIdAndUser({
 export async function getGrowsByOrganizationId(
   organizationId: string
 ): Promise<GrowView[]> {
+  console.log("organizationId", organizationId);
   const growsList = await db
     .select({
       grow: grow,

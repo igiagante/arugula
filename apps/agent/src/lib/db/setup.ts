@@ -1,21 +1,43 @@
-import { exec } from "child_process";
-import { promisify } from "util";
+import { execSync } from "child_process";
+import * as readline from "readline";
 
-const execAsync = promisify(exec);
+function createPrompt(question: string): Promise<boolean> {
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+  });
+
+  return new Promise((resolve) => {
+    rl.question(question, (answer) => {
+      rl.close();
+      resolve(answer.toLowerCase() === "y" || answer.toLowerCase() === "yes");
+    });
+  });
+}
 
 async function setup() {
   try {
+    console.log("⚠️  Warning: This will reset the database and all its data!");
+    const shouldContinue = await createPrompt(
+      "Do you want to continue? (y/N): "
+    );
+
+    if (!shouldContinue) {
+      console.log("❌ Operation cancelled by user");
+      process.exit(0);
+    }
+
     console.log("🗑️  Resetting database...");
-    await execAsync("npx tsx src/lib/db/reset.ts");
+    execSync("npx tsx src/lib/db/reset.ts", { stdio: "inherit" });
 
     console.log("📝 Generating migrations...");
-    await execAsync("drizzle-kit generate:pg");
+    execSync("drizzle-kit generate:pg", { stdio: "inherit" });
 
     console.log("⬆️  Pushing schema changes...");
-    await execAsync("drizzle-kit push");
+    execSync("drizzle-kit push", { stdio: "inherit" });
 
     console.log("🌱 Seeding database...");
-    await execAsync("npx tsx src/lib/db/seed/index.ts");
+    execSync("npx tsx src/lib/db/seed/index.ts", { stdio: "inherit" });
 
     console.log("✅ Database setup completed successfully!");
   } catch (error) {

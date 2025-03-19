@@ -1,6 +1,10 @@
+import { uploadImageToS3ForSeed } from "@/lib/s3/s3-upload";
+import { loadImageFile } from "@/lib/utils/image-utils";
 import { config } from "dotenv";
+import path from "path";
 import { grow, growCollaborator } from "../schemas";
 import { DrizzleClient, GrowRoles } from "../types";
+
 config({
   path: ".env.local",
 });
@@ -12,6 +16,19 @@ export async function seedGrows(
   users: string[]
 ) {
   if (!indoors[0] || !indoors[1]) throw new Error("Indoors not found");
+
+  // Upload sample images to S3 and get their keys
+  const imageFile = loadImageFile(
+    path.join(process.cwd(), "src/lib/db/seed/images/grow-cero.svg")
+  );
+
+  const imageFile2 = loadImageFile(
+    path.join(process.cwd(), "src/lib/db/seed/images/grow-one.png")
+  );
+
+  // Upload images and get S3 keys
+  const _grow_cero_image = await uploadImageToS3ForSeed(imageFile);
+  const _grow_one_image = await uploadImageToS3ForSeed(imageFile2);
 
   try {
     // Sample grows data
@@ -26,6 +43,7 @@ export async function seedGrows(
         growingMethod: "soil",
         potSize: "5",
         potSizeUnit: "liters",
+        images: [_grow_cero_image],
       })
       .returning();
 
@@ -42,6 +60,7 @@ export async function seedGrows(
         growingMethod: "hydroponic",
         potSize: "10",
         potSizeUnit: "liters",
+        images: [_grow_one_image],
       })
       .returning();
 
@@ -57,8 +76,18 @@ export async function seedGrows(
         role: GrowRoles.owner,
       },
       {
+        growId: growOne.id,
+        userId: users[1],
+        role: GrowRoles.owner,
+      },
+      {
         growId: growTwo.id,
         userId: users[1],
+        role: GrowRoles.owner,
+      },
+      {
+        growId: growTwo.id,
+        userId: users[0],
         role: GrowRoles.owner,
       },
     ]);
@@ -69,5 +98,3 @@ export async function seedGrows(
     throw error;
   }
 }
-
-// seedGrows("org_1", "indoor_1", ["user_1", "user_2"]);

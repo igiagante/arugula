@@ -13,7 +13,7 @@ const resetAndSeedDatabase = async () => {
   // Create a connection with higher timeout for dropping tables
   const connection = postgres(process.env.POSTGRES_URL, {
     max: 1,
-    timeout: 10000,
+    idle_timeout: 10000,
   });
 
   console.log("⏳ Resetting database...");

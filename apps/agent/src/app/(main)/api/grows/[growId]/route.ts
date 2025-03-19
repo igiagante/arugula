@@ -1,4 +1,4 @@
-// app/(grows)/api/route.ts
+import { getAuthContext } from "@/lib/auth/auth-context";
 import {
   deleteGrow,
   getGrowByIdAndUser,
@@ -8,7 +8,6 @@ import { auth } from "@clerk/nextjs/server";
 import { revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 import { CacheTags, createDynamicTag } from "../../tags";
-
 /**
  * GET /api/grows/[id]
  * Returns the grow cycle with the specified ID.
@@ -20,10 +19,12 @@ export async function GET(
 ): Promise<NextResponse> {
   try {
     const { growId } = await params;
-    const { userId } = await auth();
+    const { userId, error } = await getAuthContext();
 
-    if (!userId) {
-      return new NextResponse("Unauthorized", { status: 401 });
+    console.log("userId", userId);
+
+    if (error) {
+      return error;
     }
 
     const result = await getGrowByIdAndUser({
