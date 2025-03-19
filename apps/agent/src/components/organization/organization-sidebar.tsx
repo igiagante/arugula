@@ -3,11 +3,6 @@
 import { useOrganizations } from "@/hooks/use-organization";
 import type { Organization } from "@/lib/types";
 import { useClerk, useOrganization, useUser } from "@clerk/nextjs";
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "@workspace/ui/components/avatar";
 import { Button } from "@workspace/ui/components/button";
 import {
   DropdownMenu,
@@ -19,35 +14,20 @@ import { useSidebar } from "@workspace/ui/components/sidebar";
 import { cn } from "@workspace/ui/lib/utils";
 import { Building2, ChevronDown, Plus } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-
-const OrganizationAvatar = ({
-  org,
-  className,
-}: {
-  org: Organization;
-  className?: string;
-}) => (
-  <Avatar className={cn("size-4", className)}>
-    <AvatarImage
-      src={org.imageUrl || `https://avatar.vercel.sh/${org.id}`}
-      alt={org.name}
-    />
-    <AvatarFallback>
-      <Building2 className="size-3" />
-    </AvatarFallback>
-  </Avatar>
-);
+import { OrganizationAvatar } from "./organization-avatar";
 
 export function OrganizationSidebar() {
   const router = useRouter();
+  const pathname = usePathname();
   const { open } = useSidebar();
   const { user } = useUser();
   const { organization } = useOrganization();
-  const { openCreateOrganization } = useClerk();
+  const { openCreateOrganization, setActive } = useClerk();
   const [searchQuery, _setSearchQuery] = useState("");
   const [selectedOrg, setSelectedOrg] = useState<Organization | null>(null);
+  const [isChanging, setIsChanging] = useState(false);
 
   const { data: organizations = [], isLoading } = useOrganizations();
 
@@ -61,13 +41,19 @@ export function OrganizationSidebar() {
   useEffect(() => {
     if (organizations.length === 0) return;
 
-    // Priority: URL organization > Current selection > First organization
-    const orgToSelect = organization
-      ? organizations.find((org) => org.id === organization.id)
-      : selectedOrg || organizations[0];
+    // Extract org ID from the URL
+    const orgIdMatch = pathname.match(/\/organizations\/(org_[^/]+)/);
+    const urlOrgId = orgIdMatch ? orgIdMatch[1] : null;
+
+    // Find organization based on URL or Clerk organization
+    const orgToSelect = urlOrgId
+      ? organizations.find((org) => org.id === urlOrgId)
+      : organization
+        ? organizations.find((org) => org.id === organization.id)
+        : organizations[0];
 
     setSelectedOrg(orgToSelect || null);
-  }, [organizations, organization, selectedOrg]);
+  }, [organizations, organization, pathname]);
 
   // Memoize filtered organizations
   const filteredOrganizations = useMemo(
@@ -78,9 +64,24 @@ export function OrganizationSidebar() {
     [organizations, searchQuery]
   );
 
-  const handleOrgSelect = (org: Organization) => {
-    setSelectedOrg(org);
-    router.push(`/organizations/${org.id}`);
+  const handleOrgSelect = async (org: Organization) => {
+    if (org.id === selectedOrg?.id) return;
+
+    setIsChanging(true);
+    setSelectedOrg(org); // Update UI immediately
+
+    try {
+      // Update Clerk organization first
+      await setActive({ organization: org.id });
+      // Then navigate
+      await router.push(`/grows`);
+    } catch (error) {
+      console.error("Failed to switch organization:", error);
+      setSelectedOrg(selectedOrg); // Revert on error
+    } finally {
+      setIsChanging(false);
+      router.refresh();
+    }
   };
 
   const handleCreateOrganization = () => {
@@ -108,7 +109,7 @@ export function OrganizationSidebar() {
         </Button>
       ) : (
         <DropdownMenu>
-          <DropdownMenuTrigger asChild>
+          <DropdownMenuTrigger asChild disabled={isChanging}>
             <Button variant="outline" className="w-full justify-between">
               <div className="flex items-center gap-2">
                 {selectedOrg ? (
@@ -117,8 +118,8 @@ export function OrganizationSidebar() {
                   <Building2 className="size-2" />
                 )}
                 <span>
-                  {isLoading
-                    ? "Loading organizations..."
+                  {isLoading || isChanging
+                    ? "Loading..."
                     : filteredOrganizations.length === 0
                       ? "No organizations yet"
                       : selectedOrg?.name || "Select Organization"}

@@ -1,25 +1,43 @@
 import { ActivityItem } from "@/components/organization/activity-item";
 import { StatCard } from "@/components/organization/stat-card";
-import { Activity, Organization } from "@/components/organization/types";
+import { Activity, Organization } from "@/lib/types";
+import { useQuery } from "@tanstack/react-query";
+import { formatDistance } from "date-fns";
 import { Calendar, ExternalLink, Shield, Users } from "lucide-react";
 
-interface OverviewTabProps {
-  organization: Organization;
-  activities: Activity[];
-}
+export function OverviewTab({ organization }: { organization: Organization }) {
+  const { data: activities } = useQuery({
+    queryKey: ["organization-activities", organization?.id],
+    queryFn: async () => {
+      const response = await fetch(
+        `/api/organizations/${organization?.id}/activities`
+      );
+      return response.json();
+    },
+    enabled: !!organization?.id,
+  });
 
-export function OverviewTab({ organization, activities }: OverviewTabProps) {
+  const createdAt = formatDistance(
+    new Date(organization.createdAt),
+    new Date(),
+    { addSuffix: true }
+  );
+
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
         {/* Stats cards */}
-        <StatCard title="MEMBERS" value={organization.members} icon={Users} />
-        <StatCard title="PLAN" value={organization.plan} icon={Shield} />
         <StatCard
-          title="CREATED"
-          value={organization.createdAt}
-          icon={Calendar}
+          title="MEMBERS"
+          value={organization.membersCount}
+          icon={Users}
         />
+        <StatCard
+          title="PLAN"
+          value={organization.plan || "Free"}
+          icon={Shield}
+        />
+        <StatCard title="CREATED" value={createdAt} icon={Calendar} />
       </div>
 
       {/* Recent activity section */}
@@ -31,8 +49,15 @@ export function OverviewTab({ organization, activities }: OverviewTabProps) {
           </button>
         </div>
         <div className="space-y-4">
-          {activities.slice(0, 3).map((activity) => (
-            <ActivityItem key={activity.id} activity={activity} />
+          {activities?.slice(0, 3).map((activity: Activity) => (
+            <ActivityItem
+              key={activity.id}
+              activity={{
+                ...activity,
+                user: activity.user.name,
+                time: activity.timestamp,
+              }}
+            />
           ))}
         </div>
       </div>
@@ -45,10 +70,13 @@ export function OverviewTab({ organization, activities }: OverviewTabProps) {
         <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200">
           <div className="flex items-center">
             <ExternalLink className="size-4 text-gray-500 mr-2" />
-            <span className="text-sm text-gray-700">{organization.domain}</span>
+            <span className="text-sm text-gray-700">
+              {`${organization.slug}.${process.env.NEXT_PUBLIC_ROOT_DOMAIN}` ||
+                "No domain set"}
+            </span>
           </div>
           <span className="text-xs py-1 px-2 bg-green-100 text-green-800 rounded">
-            Verified
+            {organization.slug ? "Verified" : "Unverified"}
           </span>
         </div>
       </div>

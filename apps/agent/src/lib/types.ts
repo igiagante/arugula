@@ -9,6 +9,7 @@ export interface Organization {
   pendingInvites: number;
   lastActivityDate: string;
   imageUrl?: string;
+  plan?: string;
 }
 
 export interface Member {

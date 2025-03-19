@@ -1,3 +1,4 @@
+import { auth } from "@clerk/nextjs/server";
 import {
   Sidebar,
   SidebarContent,
@@ -11,7 +12,7 @@ import {
   SidebarSeparator,
   SidebarTrigger,
 } from "@workspace/ui/components/sidebar";
-import { CalendarDays, Package } from "lucide-react";
+import { Package, Settings } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import type { ComponentProps } from "react";
@@ -23,6 +24,8 @@ import { SidebarActiveGrows } from "./sidebar-active-grows";
 import { UserMenuItem } from "./user-menu-item";
 
 export async function AppSidebar(props: ComponentProps<typeof Sidebar>) {
+  const { orgId } = await auth();
+
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader className="mt-2">
@@ -58,16 +61,16 @@ export async function AppSidebar(props: ComponentProps<typeof Sidebar>) {
             <SidebarMenuItem>
               <SidebarMenuButton asChild>
                 <Link href="/calendar">
-                  <CalendarDays />
-                  <span>Calendar</span>
+                  <Package />
+                  <span>Store</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
               <SidebarMenuButton asChild>
-                <Link href="/store">
-                  <Package />
-                  <span>Store</span>
+                <Link href={`/organizations/${orgId}`}>
+                  <Settings />
+                  <span>Settings</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>

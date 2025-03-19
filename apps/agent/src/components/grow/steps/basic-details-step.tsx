@@ -44,7 +44,6 @@ interface BasicDetailsStepProps {
   growStages: readonly { label: string; value: string }[];
   growingMethods: readonly { label: string; value: string }[];
   setValue: UseFormSetValue<CreateGrowSchema>;
-  currentGrowId?: string;
 }
 
 export function BasicDetailsStep({
@@ -53,7 +52,6 @@ export function BasicDetailsStep({
   growStages,
   growingMethods,
   setValue,
-  currentGrowId,
 }: BasicDetailsStepProps) {
   const [startDateOpen, setStartDateOpen] = useState(false);
   const [endDateOpen, setEndDateOpen] = useState(false);

@@ -1,15 +1,11 @@
-import { Organization } from "@/components/organization/types";
+import { Organization } from "@/lib/types";
 import { Button } from "@workspace/ui/components/button";
 import { Card } from "@workspace/ui/components/card";
 import { Input } from "@workspace/ui/components/input";
 import { Label } from "@workspace/ui/components/label";
 import { CreditCard } from "lucide-react";
 
-interface SettingsTabProps {
-  organization: Organization;
-}
-
-export function SettingsTab({ organization }: SettingsTabProps) {
+export function SettingsTab({ organization }: { organization: Organization }) {
   return (
     <div className="space-y-6 w-full">
       <Card className="p-5 w-full">

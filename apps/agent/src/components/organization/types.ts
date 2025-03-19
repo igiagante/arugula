@@ -14,6 +14,7 @@ export interface Member {
   role: string;
   joined: string;
   avatar: string;
+  initials: string;
 }
 
 export interface Activity {

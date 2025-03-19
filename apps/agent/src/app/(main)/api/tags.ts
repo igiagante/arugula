@@ -24,7 +24,8 @@ export const CacheTags = {
   getTaskById: (id: string) => `task:${id}`,
   getUserById: (id: string) => `user:${id}`,
   plantById: (id: string) => `plant:${id}`,
-  // Add more cache tags here as needed
+  organizationMembers: (organizationId: string) =>
+    `organization-members:${organizationId}`,
 } as const;
 
 // Type for static tags

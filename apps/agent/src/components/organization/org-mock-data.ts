@@ -19,6 +19,7 @@ export const members: Member[] = [
     role: "Admin",
     joined: "Feb 10, 2025",
     avatar: "AJ",
+    initials: "AJ",
   },
   {
     id: "user_2",
@@ -27,6 +28,7 @@ export const members: Member[] = [
     role: "Member",
     joined: "Feb 12, 2025",
     avatar: "SM",
+    initials: "SM",
   },
   {
     id: "user_3",
@@ -35,6 +37,7 @@ export const members: Member[] = [
     role: "Member",
     joined: "Feb 15, 2025",
     avatar: "DC",
+    initials: "DC",
   },
   {
     id: "user_4",
@@ -43,6 +46,7 @@ export const members: Member[] = [
     role: "Admin",
     joined: "Feb 18, 2025",
     avatar: "EW",
+    initials: "EW",
   },
 ];
 

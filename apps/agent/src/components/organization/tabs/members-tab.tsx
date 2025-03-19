@@ -1,4 +1,3 @@
-import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar";
 import { Badge } from "@workspace/ui/components/badge";
 import { Button } from "@workspace/ui/components/button";
 import {
@@ -15,7 +14,9 @@ import {
   TableHeader,
   TableRow,
 } from "@workspace/ui/components/table";
+import { formatDistance } from "date-fns";
 import { Mail, MoreHorizontal, Plus } from "lucide-react";
+import { MemberAvatar } from "../member-avatar";
 import { Member } from "../types";
 
 interface MembersTabProps {
@@ -57,12 +58,12 @@ export function MembersTab({ members }: MembersTabProps) {
             {members.map((member) => (
               <TableRow key={member.id} className="hover:bg-gray-50">
                 <TableCell className="py-5 px-6">
-                  <div className="flex items-center">
-                    <Avatar className="size-9 mr-3 rounded-full">
-                      <AvatarFallback className="bg-gray-100 border border-gray-200 text-sm rounded-full">
-                        {member.avatar}
-                      </AvatarFallback>
-                    </Avatar>
+                  <div className="flex items-center gap-2">
+                    <MemberAvatar
+                      name={member.name}
+                      initials={member.initials}
+                      avatarUrl={member.avatar}
+                    />
                     <span className="text-sm font-medium">{member.name}</span>
                   </div>
                 </TableCell>
@@ -83,7 +84,11 @@ export function MembersTab({ members }: MembersTabProps) {
                   </Badge>
                 </TableCell>
                 <TableCell className="py-5 px-6">
-                  <span className="text-sm text-gray-700">{member.joined}</span>
+                  <span className="text-sm text-gray-700">
+                    {formatDistance(new Date(member.joined), new Date(), {
+                      addSuffix: true,
+                    })}
+                  </span>
                 </TableCell>
                 <TableCell className="text-right py-5 px-6">
                   <Button variant="ghost" size="icon" className="size-8">
