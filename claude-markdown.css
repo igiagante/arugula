@@ -1,0 +1,100 @@
+/* Base styles */
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    line-height: 1.6;
+    color: #1A1A1A;
+    background: #FFFFFF;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+/* Headings */
+h1, h2, h3, h4, h5, h6 {
+    font-weight: 600;
+    line-height: 1.25;
+    margin-top: 1.5em;
+    margin-bottom: 0.5em;
+}
+
+h1 { font-size: 2em; color: #1A1A1A; }
+h2 { font-size: 1.5em; color: #2D2D2D; }
+h3 { font-size: 1.25em; color: #2D2D2D; }
+
+/* Links */
+a {
+    color: #0969DA;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+/* Code blocks */
+pre {
+    background-color: #F6F8FA;
+    border-radius: 6px;
+    padding: 16px;
+    overflow: auto;
+}
+
+code {
+    font-family: 'SF Mono', Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+    font-size: 0.9em;
+    background-color: #F6F8FA;
+    padding: 0.2em 0.4em;
+    border-radius: 3px;
+}
+
+/* Tables */
+table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 1em 0;
+}
+
+th, td {
+    border: 1px solid #E1E4E8;
+    padding: 8px 12px;
+    text-align: left;
+}
+
+th {
+    background-color: #F6F8FA;
+    font-weight: 600;
+}
+
+/* Blockquotes */
+blockquote {
+    margin: 0;
+    padding: 0 1em;
+    color: #57606A;
+    border-left: 0.25em solid #D0D7DE;
+}
+
+/* Lists */
+ul, ol {
+    padding-left: 2em;
+}
+
+li + li {
+    margin-top: 0.25em;
+}
+
+/* Horizontal rule */
+hr {
+    height: 1px;
+    background-color: #D0D7DE;
+    border: none;
+    margin: 24px 0;
+}
+
+/* Inline code */
+:not(pre) > code {
+    color: #24292F;
+    background-color: #F6F8FA;
+    padding: 0.2em 0.4em;
+    border-radius: 3px;
+    font-size: 85%;
+} 
